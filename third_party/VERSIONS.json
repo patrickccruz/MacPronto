@@ -1,0 +1,47 @@
+{
+  "OpCore-Simplify": {
+    "repository": "https://github.com/lzhoang2801/OpCore-Simplify",
+    "commit": "f0e1e441bb455c33e9695a9c9c50e8ca931d4de8",
+    "license": "BSD-3-Clause",
+    "paths": [
+      "Scripts",
+      "OpCore-Simplify.py",
+      "updater.py",
+      "LICENSE",
+      "README.md"
+    ]
+  },
+  "Hardware-Sniffer": {
+    "repository": "https://github.com/lzhoang2801/Hardware-Sniffer",
+    "commit": "2e0fa16020279a7a13575813ace94537362e262a",
+    "license": "BSD-3-Clause",
+    "paths": [
+      "Scripts",
+      "HardwareSniffer.py",
+      "LICENSE",
+      "README.md"
+    ]
+  },
+  "USBToolBox": {
+    "repository": "https://github.com/USBToolBox/tool",
+    "commit": "0c6823a2c643a4488888938451194723dc9ae29a",
+    "license": "MIT",
+    "paths": [
+      "resources/usbdump.exe",
+      "resources/Info.plist",
+      "LICENSE",
+      "README.md"
+    ]
+  },
+  "macrecovery": {
+    "repository": "https://github.com/acidanthera/OpenCorePkg",
+    "commit": "963025f1382eca619412d527ad82b6d19bee70d9",
+    "license": "BSD-3-Clause",
+    "paths": [
+      "Utilities/macrecovery/macrecovery.py=>macrecovery.py",
+      "Utilities/macrecovery/boards.json=>boards.json",
+      "Utilities/macrecovery/recovery_urls.txt=>recovery_urls.txt",
+      "LICENSE.txt=>LICENSE.txt"
+    ]
+  }
+}
