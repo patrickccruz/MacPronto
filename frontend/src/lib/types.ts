@@ -191,6 +191,7 @@ export interface ScanPayload {
   selection: Selection
   efi: EfiInfo | null
   usb_mapped: boolean
+  guide: GuideInfo | null
 }
 
 export interface AppInfo {
@@ -269,4 +270,44 @@ export interface UsbBuildResult {
   kext: string
   efi_updated: boolean
   efi: EfiInfo | null
+}
+
+export interface GuideInfo {
+  folder: string
+  html: string
+  pdf: string | null
+  vendor: string
+  generated: string
+}
+
+export interface ShareInfo {
+  url: string
+  qr_svg: string
+  minutes: number
+}
+
+export interface DiskInfo {
+  number: number
+  model: string
+  size_bytes: number
+  size_gb: number
+  bus: string
+  unique_id: string
+  system: boolean
+  boot: boolean
+  read_only: boolean
+  letters: string[]
+  labels: string[]
+  eligible: boolean
+  reason: string
+}
+
+export interface MediaResult {
+  letter: string
+  disk: DiskInfo
+  product: string
+  darwin: number
+  recovery_cached: boolean
+  verified: boolean
+  guide: GuideInfo
 }

@@ -50,6 +50,29 @@ def open_url(url: str) -> None:
     webbrowser.open(url)
 
 
+def relaunch_as_admin() -> bool:
+    """Abre uma nova cópia do MacPronto como administrador (aviso do UAC). True se o Windows aceitou."""
+    if sys.platform != "win32":
+        return False
+    from macpronto import paths
+
+    if paths.is_frozen():
+        executable, parameters = sys.executable, ""
+    else:
+        executable, parameters = sys.executable, "-m macpronto"
+    result = ctypes.windll.shell32.ShellExecuteW(None, "runas", executable, parameters, os.getcwd(), 1)
+    return int(result) > 32
+
+
+def eject(letter: str) -> bool:
+    """Ejeta a unidade com segurança pelo Shell do Windows."""
+    if sys.platform != "win32" or not letter:
+        return False
+    script = f"(New-Object -ComObject Shell.Application).Namespace(17).ParseName('{letter[0]}:').InvokeVerb('Eject')"
+    completed = run_hidden(["powershell", "-NoProfile", "-Command", script], capture_output=True)
+    return completed.returncode == 0
+
+
 def run_hidden(args: list[str], **kwargs) -> subprocess.CompletedProcess:
     if sys.platform == "win32":
         kwargs["creationflags"] = kwargs.get("creationflags", 0) | CREATE_NO_WINDOW

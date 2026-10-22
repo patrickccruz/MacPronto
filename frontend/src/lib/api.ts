@@ -8,6 +8,10 @@ import type {
   ScanSummary,
   Selection,
   Settings,
+  DiskInfo,
+  GuideInfo,
+  MediaResult,
+  ShareInfo,
   UsbBuildResult,
   UsbState,
 } from "./types"
@@ -43,4 +47,14 @@ export const api = {
   usbSelect: (mode: "used" | "all" | "none") => call<UsbState>("usb_select", mode),
   usbReset: () => call<UsbState>("usb_reset"),
   usbBuild: () => call<UsbBuildResult>("usb_build"),
+
+  guideBuild: (taskId: string) => call<GuideInfo>("guide_build", taskId),
+  guideShareStart: () => call<ShareInfo>("guide_share_start"),
+  guideShareStop: () => call<void>("guide_share_stop"),
+
+  mediaDisks: () => call<DiskInfo[]>("media_disks"),
+  mediaCreate: (taskId: string, options: { number: number; unique_id: string; size_bytes: number; confirm: string }) =>
+    call<MediaResult>("media_create", taskId, options),
+  mediaEject: (letter: string) => call<boolean>("media_eject", letter),
+  relaunchAsAdmin: () => call<boolean>("relaunch_as_admin"),
 }

@@ -48,7 +48,7 @@ def run(debug: bool = False) -> int:
     api._attach(window)  # noqa: SLF001
 
     def on_closing() -> None:
-        api._tasks.cancel_all()  # noqa: SLF001
+        api._shutdown()  # noqa: SLF001
 
     window.events.closing += on_closing
 

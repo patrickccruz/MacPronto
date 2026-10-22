@@ -4,13 +4,14 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { isMockMode } from "@/lib/bridge"
-import { STEPS, type ViewId } from "@/lib/steps"
+import type { ViewId } from "@/lib/steps"
 import { AppProvider, useApp } from "@/lib/store"
 import { AboutPage } from "@/steps/AboutPage"
-import { ComingSoon } from "@/steps/ComingSoon"
 import { DiagnosisStep } from "@/steps/DiagnosisStep"
 import { EfiStep } from "@/steps/EfiStep"
+import { GuideStep } from "@/steps/GuideStep"
 import { LogsPage } from "@/steps/LogsPage"
+import { PendriveStep } from "@/steps/PendriveStep"
 import { ReportStep } from "@/steps/ReportStep"
 import { UsbStep } from "@/steps/UsbStep"
 import { VersionStep } from "@/steps/VersionStep"
@@ -30,14 +31,16 @@ function CurrentView({ view }: { view: ViewId }) {
       return <EfiStep />
     case "usb":
       return <UsbStep />
+    case "pendrive":
+      return <PendriveStep />
+    case "guide":
+      return <GuideStep />
     case "logs":
       return <LogsPage />
     case "about":
       return <AboutPage />
-    default: {
-      const step = STEPS.find((item) => item.id === view)
-      return <ComingSoon title={step?.title ?? ""} description={step?.description ?? ""} />
-    }
+    default:
+      return null
   }
 }
 

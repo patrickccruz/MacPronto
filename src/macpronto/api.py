@@ -33,6 +33,8 @@ class Session:
     selection: dict = field(default_factory=dict)
     efi: dict | None = None
     usb_map: Path | None = None
+    guide: dict | None = None
+    media: dict | None = None
 
 
 class Api:
@@ -41,11 +43,18 @@ class Api:
         self._session = Session()
         self._tasks = TaskManager(self._emit)
         self._usb_session = None
+        self._share = None
 
     # ------------------------------------------------------------------ infraestrutura
 
     def _attach(self, window: Any) -> None:
         self._window = window
+
+    def _shutdown(self) -> None:
+        """Chamado ao fechar a janela: cancela tarefas e desliga o compartilhamento do guia."""
+        self._tasks.cancel_all()
+        if self._share is not None:
+            self._share.stop()
 
     def _emit(self, payload: dict) -> None:
         if self._window is None:
@@ -161,6 +170,7 @@ class Api:
             "selection": self._session.selection,
             "efi": self._session.efi,
             "usb_mapped": self._session.usb_map is not None,
+            "guide": self._session.guide,
         }
 
     def _plan_payload(self) -> dict | None:
@@ -332,3 +342,93 @@ class Api:
             self._session.efi = efi_service.apply_usb_to_build(self._session.efi, kext)
             efi_updated = True
         return {"kext": str(kext), "efi_updated": efi_updated, "efi": self._session.efi}
+
+    # ------------------------------------------------------------------ guia
+
+    def _build_guide(self, with_pdf: bool = True) -> dict:
+        from macpronto.guide import render
+
+        scan = self._require_scan()
+        if self._session.laudo is None:
+            raise UserFacingError("no-laudo", "Faça ou abra um diagnóstico primeiro.")
+        info = render.build(
+            scan.to_dict(),
+            self._session.laudo,
+            self._session.selection,
+            self._session.efi,
+            usb_mapped=bool(self._session.efi and self._session.efi.get("usb_map")),
+            with_pdf=with_pdf,
+        )
+        self._session.guide = info
+        return info
+
+    def guide_build(self, task_id: str) -> dict:
+        def job(reporter: TaskReporter) -> dict:
+            reporter.stage("Gerando o guia personalizado")
+            return self._build_guide()
+
+        return self._tasks.run(task_id, job)
+
+    @guarded
+    def guide_share_start(self) -> dict:
+        from macpronto.guide.share import GuideShare
+
+        guide = self._session.guide or self._build_guide(with_pdf=False)
+        if self._share is None:
+            self._share = GuideShare()
+        return self._share.start(Path(guide["folder"]))
+
+    @guarded
+    def guide_share_stop(self) -> None:
+        if self._share is not None:
+            self._share.stop()
+
+    # ------------------------------------------------------------------ pendrive
+
+    @guarded
+    def media_disks(self) -> list[dict]:
+        from macpronto.media import disks
+
+        return disks.list_disks()
+
+    def media_create(self, task_id: str, options: dict) -> dict:
+        from macpronto.media import writer
+
+        def job(reporter: TaskReporter) -> dict:
+            options_ = options or {}
+            if str(options_.get("confirm", "")).strip().upper() != "APAGAR":
+                raise UserFacingError("confirm", "Digite APAGAR para confirmar que o pendrive pode ser apagado.")
+            if self._session.efi is None:
+                raise UserFacingError("no-efi", "Monte a EFI antes de preparar o pendrive.")
+            if not winutil.is_admin():
+                raise UserFacingError(
+                    "admin",
+                    "Formatar o pendrive exige administrador. Use o botão para reabrir o MacPronto como administrador.",
+                )
+            reporter.stage("Atualizando o guia")
+            guide = self._build_guide()
+            result = writer.create(
+                reporter,
+                disk_number=int(options_["number"]),
+                unique_id=str(options_["unique_id"]),
+                size_bytes=int(options_["size_bytes"]),
+                darwin=int(self._session.selection["darwin"]),
+                efi_dir=Path(self._session.efi["efi_dir"]),
+                extra_folder=Path(guide["folder"]),
+            )
+            self._session.media = result
+            return {**result, "guide": guide}
+
+        return self._tasks.run(task_id, job)
+
+    @guarded
+    def media_eject(self, letter: str) -> bool:
+        return winutil.eject(letter)
+
+    @guarded
+    def relaunch_as_admin(self) -> bool:
+        if not winutil.relaunch_as_admin():
+            return False
+        if self._window is not None:
+            self._window.destroy()
+        return True

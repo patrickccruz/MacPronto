@@ -237,6 +237,37 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       if (session?.efi) session.efi = { ...session.efi, usb_map: true }
       return ok({ kext: `${SAMPLE_FOLDER}\\UTBMap.kext`, efi_updated: Boolean(session?.efi), efi: session?.efi ?? null })
     },
+    guide_build: async (taskId: string) => {
+      await simulate(taskId, ["Gerando o guia personalizado"])
+      const guide = {
+        folder: SAMPLE_FOLDER,
+        html: `${SAMPLE_FOLDER}\\Guia.html`,
+        pdf: `${SAMPLE_FOLDER}\\Guia.pdf`,
+        vendor: "Gigabyte",
+        generated: new Date().toLocaleString("pt-BR"),
+      }
+      if (session) session.guide = guide
+      return ok(guide)
+    },
+    guide_share_start: async () =>
+      ok({
+        url: "http://192.168.0.10:51234/Guia.html",
+        qr_svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21"><rect width="21" height="21" fill="#fff"/><path d="M1 1h7v7H1zM13 1h7v7h-7zM1 13h7v7H1z" fill="#111827"/><path d="M10 10h2v2h-2zM14 14h2v2h-2zM17 11h2v2h-2z" fill="#111827"/></svg>',
+        minutes: 30,
+      }),
+    guide_share_stop: async () => ok(null),
+    media_disks: async () =>
+      ok([
+        { number: 2, model: "SanDisk Ultra USB 3.0", size_bytes: 32010928128, size_gb: 32, bus: "USB", unique_id: "USBSTOR\\SANDISK", system: false, boot: false, read_only: false, letters: ["E"], labels: ["SANDISK"], eligible: true, reason: "" },
+        { number: 0, model: "Samsung SSD 970 EVO Plus 500GB", size_bytes: 500107862016, size_gb: 500.1, bus: "NVMe", unique_id: "eui.0025", system: true, boot: true, read_only: false, letters: ["C"], labels: ["Windows"], eligible: false, reason: "É o disco do Windows." },
+        { number: 1, model: "Seagate Expansion", size_bytes: 2000398934016, size_gb: 2000.4, bus: "USB", unique_id: "USBSTOR\\SEAGATE", system: false, boot: false, read_only: false, letters: ["D"], labels: ["Backup"], eligible: false, reason: "Grande demais para ser um pendrive. Se for um HD externo, use outro dispositivo." },
+      ]),
+    media_create: async (taskId: string) => {
+      await simulate(taskId, ["Atualizando o guia", "Conferindo o pendrive", "Baixando o macOS Recovery da Apple", "Apagando e formatando o pendrive", "Copiando o macOS Recovery", "Copiando a EFI", "Conferindo o pendrive"])
+      return ok({ letter: "E", disk: null, product: "696-28424", darwin: 24, recovery_cached: false, verified: true, guide: session?.guide })
+    },
+    media_eject: async () => ok(true),
+    relaunch_as_admin: async () => ok(false),
     plan_update: async (taskId: string, selection: Partial<Selection>) => {
       await simulate(taskId, ["Recalculando o plano da EFI"])
       if (!session || !session.plan) return { ok: false as const, error: { code: "no-scan", message: "Sem diagnóstico." } }
