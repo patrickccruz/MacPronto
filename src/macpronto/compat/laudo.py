@@ -190,6 +190,20 @@ def _gpus(report: dict, is_laptop: bool) -> list[Component]:
                 f"Sem patches vai até o {macos.label(version_range['max'])}; com o OpenCore Legacy Patcher, "
                 f"até o {macos.label(oclp_range['max'])}."
             )
+        if integrated and manufacturer == "Intel" and not is_laptop:
+            # Mesma condição em que o OpCore Simplify acrescenta -igfxvesa aos boot-args.
+            hdmi = [
+                monitor
+                for monitor, info in monitors.items()
+                if info.get("Connected GPU") == name and info.get("Connector Type") in ("HDMI", "DVI")
+            ]
+            if hdmi:
+                status = "tweak"
+                details.append(
+                    "Há monitor no HDMI/DVI do vídeo integrado: a EFI liga o modo VESA (sem aceleração) para garantir "
+                    "imagem na instalação. Para ter aceleração, use a DisplayPort ou ajuste as portas depois de "
+                    "instalar (o guia explica)."
+                )
         if props.get("Resizable BAR") == "Enabled":
             details.append("Resizable BAR ativo: a EFI ajusta isso automaticamente.")
         components.append(

@@ -9,6 +9,7 @@ import { AppProvider, useApp } from "@/lib/store"
 import { AboutPage } from "@/steps/AboutPage"
 import { ComingSoon } from "@/steps/ComingSoon"
 import { DiagnosisStep } from "@/steps/DiagnosisStep"
+import { EfiStep } from "@/steps/EfiStep"
 import { LogsPage } from "@/steps/LogsPage"
 import { ReportStep } from "@/steps/ReportStep"
 import { VersionStep } from "@/steps/VersionStep"
@@ -24,6 +25,8 @@ function CurrentView({ view }: { view: ViewId }) {
       return <ReportStep />
     case "version":
       return <VersionStep />
+    case "efi":
+      return <EfiStep />
     case "logs":
       return <LogsPage />
     case "about":

@@ -94,6 +94,9 @@ class TaskManager:
         except UserFacingError as exc:
             log.error("Tarefa %s: %s", task_id, exc.message)
             return failure(exc.code, exc.message, exc.details)
+        except ValueError as exc:
+            log.error("Tarefa %s: %s", task_id, exc)
+            return failure("invalid", str(exc))
         except Exception as exc:  # noqa: BLE001 - nenhum erro pode travar a interface
             log.exception("Erro inesperado na tarefa %s", task_id)
             return failure("unexpected", f"Erro inesperado: {exc}", traceback.format_exc())

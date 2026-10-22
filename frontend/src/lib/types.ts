@@ -148,6 +148,39 @@ export interface Extras {
   disks?: { number: number; model: string; size_gb: number; bus: string; media: string; system: boolean }[]
 }
 
+export interface EfiInfo {
+  created_at: string
+  scan_id: string
+  machine: string
+  folder: string
+  efi_dir: string
+  zip: string
+  size_mb: number
+  opencore: string | null
+  macos: number
+  keyboard: string
+  keyboard_label: string
+  usb_map: boolean
+  validation: { ran: boolean; ok: boolean | null; output: string } | null
+  config: {
+    smbios: { model: string; serial: string; mlb: string; uuid: string; rom: string }
+    boot_args: string
+    keyboard: string
+    kexts: string[]
+    ssdts: string[]
+    drivers: string[]
+    secure_boot_model: string
+    vesa: boolean
+  }
+  plan: {
+    needs_oclp: boolean
+    smbios_model: string
+    decisions: Decision[]
+    bios_requirements: string[]
+    disabled_devices: { label: string; type: string; name: string }[]
+  }
+}
+
 export interface ScanPayload {
   scan: ScanSummary
   report: HardwareReport
@@ -156,6 +189,8 @@ export interface ScanPayload {
   laudo: Laudo
   plan: PlanPayload | null
   selection: Selection
+  efi: EfiInfo | null
+  usb_mapped: boolean
 }
 
 export interface AppInfo {

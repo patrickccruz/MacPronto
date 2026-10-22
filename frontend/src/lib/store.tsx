@@ -2,7 +2,7 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useM
 
 import { api } from "./api"
 import type { StepId, ViewId } from "./steps"
-import type { AppInfo, PlanPayload, ScanPayload, Selection, Settings } from "./types"
+import type { AppInfo, EfiInfo, PlanPayload, ScanPayload, Selection, Settings } from "./types"
 
 const DEFAULT_SETTINGS: Settings = { theme: "system", policy_accepted: false, advanced: false, last_scan_id: null }
 
@@ -13,8 +13,9 @@ interface AppContextValue {
   payload: ScanPayload | null
   setPayload: (payload: ScanPayload | null) => void
   setPlan: (plan: PlanPayload, selection: Selection) => void
+  setEfi: (efi: EfiInfo | null) => void
+  setUsbMapped: (mapped: boolean) => void
   efiReady: boolean
-  setEfiReady: (ready: boolean) => void
   view: ViewId
   go: (view: ViewId) => void
   resolvedTheme: "light" | "dark"
@@ -30,7 +31,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [info, setInfo] = useState<AppInfo | null>(null)
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [payload, setPayloadState] = useState<ScanPayload | null>(null)
-  const [efiReady, setEfiReady] = useState(false)
   // ?view= serve só para inspecionar telas no modo de demonstração
   const [view, setView] = useState<ViewId>(() => (new URLSearchParams(window.location.search).get("view") as ViewId) || "welcome")
   const [systemDark, setSystemDark] = useState(systemPrefersDark)
@@ -75,14 +75,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSettings(saved)
   }, [])
 
-  const setPayload = useCallback((next: ScanPayload | null) => {
-    setPayloadState(next)
-    setEfiReady(false)
-  }, [])
+  const setPayload = useCallback((next: ScanPayload | null) => setPayloadState(next), [])
 
   const setPlan = useCallback((plan: PlanPayload, selection: Selection) => {
-    setPayloadState((previous) => (previous ? { ...previous, plan, selection } : previous))
-    setEfiReady(false)
+    setPayloadState((previous) => (previous ? { ...previous, plan, selection, efi: null } : previous))
+  }, [])
+
+  const setEfi = useCallback((efi: EfiInfo | null) => {
+    setPayloadState((previous) => (previous ? { ...previous, efi } : previous))
+  }, [])
+
+  const setUsbMapped = useCallback((mapped: boolean) => {
+    setPayloadState((previous) => (previous ? { ...previous, usb_mapped: mapped } : previous))
   }, [])
 
   const go = useCallback((next: ViewId) => {
@@ -90,9 +94,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.getElementById("main-scroll")?.scrollTo({ top: 0 })
   }, [])
 
+  const efiReady = Boolean(payload?.efi)
+
   const value = useMemo(
-    () => ({ info, settings, updateSettings, payload, setPayload, setPlan, efiReady, setEfiReady, view, go, resolvedTheme }),
-    [info, settings, updateSettings, payload, setPayload, setPlan, efiReady, view, go, resolvedTheme],
+    () => ({
+      info,
+      settings,
+      updateSettings,
+      payload,
+      setPayload,
+      setPlan,
+      setEfi,
+      setUsbMapped,
+      efiReady,
+      view,
+      go,
+      resolvedTheme,
+    }),
+    [info, settings, updateSettings, payload, setPayload, setPlan, setEfi, setUsbMapped, efiReady, view, go, resolvedTheme],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

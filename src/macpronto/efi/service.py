@@ -1,0 +1,209 @@
+"""Monta a EFI com o OpCore Simplify e aplica os ajustes do MacPronto.
+
+Ajustes feitos depois da montagem:
+- idioma e teclado do instalador (prev-lang:kbd), em português com ABNT2 por padrão;
+- mapa USB gerado no Windows (UTBMap.kext no lugar do UTBDefault.kext);
+- nova validação com o ocvalidate e um .zip da pasta EFI.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import plistlib
+import re
+import shutil
+import subprocess
+import threading
+from collections.abc import Callable
+from datetime import datetime
+from pathlib import Path
+
+from macpronto import paths
+from macpronto.engine import EngineEvent, run_task, workspace
+from macpronto.scanner.service import Scan
+
+log = logging.getLogger(__name__)
+
+NVRAM_GUID = "7C436110-AB2A-4BBB-A880-FE41995C9F82"
+INFO_FILE = "macpronto-efi.json"
+CREATE_NO_WINDOW = 0x08000000
+
+# Identificadores da lista AppleKeyboardLayouts do OpenCorePkg.
+KEYBOARDS = {
+    "abnt2": ("pt-BR:128", "Português (Brasil), teclado ABNT2"),
+    "br-pro": ("pt-BR:72", "Português (Brasil), teclado Brasileiro Pro"),
+    "us": ("en-US:0", "Inglês (EUA), teclado americano"),
+}
+
+
+def _slug(text: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]+", "-", text).strip("-")[:40] or "EFI"
+
+
+def build(
+    scan: Scan,
+    selection: dict,
+    keyboard: str = "abnt2",
+    usb_map: Path | None = None,
+    on_event: Callable[[EngineEvent], None] | None = None,
+    cancel: threading.Event | None = None,
+) -> dict:
+    if scan.acpi_dir is None:
+        raise ValueError("Este diagnóstico não tem as tabelas ACPI. Refaça o diagnóstico no próprio computador.")
+
+    output = paths.efi_output_dir() / f"{datetime.now():%Y%m%d-%H%M%S}-{_slug(scan.label)}"
+    params = {
+        "report": scan.report,
+        "acpi_dir": str(scan.acpi_dir),
+        "macos_version": str(selection["darwin"]),
+        "answers": selection.get("answers") or {},
+        "smbios_model": selection.get("smbios_model"),
+        "acpi_overrides": selection.get("acpi_overrides") or {},
+        "kext_overrides": selection.get("kext_overrides") or {},
+        "output_dir": str(output),
+    }
+    result = run_task("build", params, on_event=on_event, cancel=cancel)
+
+    efi_dir = output / "EFI"
+    config_path = efi_dir / "OC" / "config.plist"
+    if on_event:
+        on_event(EngineEvent("stage", {"title": "Aplicando os ajustes do MacPronto"}))
+    apply_keyboard(config_path, keyboard)
+    usb_applied = False
+    if usb_map is not None and usb_map.is_dir():
+        apply_usb_map(efi_dir, usb_map)
+        usb_applied = True
+
+    validation = validate(config_path) or result.get("validation")
+    archive = shutil.make_archive(str(output / f"EFI-{_slug(scan.label)}"), "zip", root_dir=output, base_dir="EFI")
+
+    info = {
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "scan_id": scan.id,
+        "machine": scan.label,
+        "folder": str(output),
+        "efi_dir": str(efi_dir),
+        "zip": archive,
+        "size_mb": round(sum(f.stat().st_size for f in efi_dir.rglob("*") if f.is_file()) / 1024**2, 1),
+        "opencore": result.get("opencore"),
+        "macos": selection["darwin"],
+        "keyboard": keyboard,
+        "keyboard_label": KEYBOARDS.get(keyboard, KEYBOARDS["abnt2"])[1],
+        "usb_map": usb_applied,
+        "validation": validation,
+        "config": summarize(config_path),
+        "plan": {
+            "needs_oclp": result["plan"]["needs_oclp"],
+            "smbios_model": result["plan"]["smbios_model"],
+            "decisions": result["plan"]["decisions"],
+            "bios_requirements": result["plan"]["bios_requirements"],
+            "disabled_devices": result["plan"]["disabled_devices"],
+        },
+    }
+    (output / INFO_FILE).write_text(json.dumps(info, indent=2, ensure_ascii=False), encoding="utf-8")
+    log.info("EFI pronta em %s", efi_dir)
+    return info
+
+
+def apply_keyboard(config_path: Path, keyboard: str) -> None:
+    value = KEYBOARDS.get(keyboard, KEYBOARDS["abnt2"])[0]
+    with config_path.open("rb") as handle:
+        config = plistlib.load(handle)
+    config.setdefault("NVRAM", {}).setdefault("Add", {}).setdefault(NVRAM_GUID, {})["prev-lang:kbd"] = value.encode()
+    with config_path.open("wb") as handle:
+        plistlib.dump(config, handle)
+
+
+def apply_usb_map(efi_dir: Path, usb_map: Path) -> None:
+    """Troca o UTBDefault.kext (todas as portas) pelo mapa gerado no Windows."""
+    kexts_dir = efi_dir / "OC" / "Kexts"
+    target = kexts_dir / "UTBMap.kext"
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(usb_map, target)
+    default = kexts_dir / "UTBDefault.kext"
+    if default.exists():
+        shutil.rmtree(default)
+
+    config_path = efi_dir / "OC" / "config.plist"
+    with config_path.open("rb") as handle:
+        config = plistlib.load(handle)
+    entries = [e for e in config["Kernel"]["Add"] if e.get("BundlePath") not in ("UTBDefault.kext", "UTBMap.kext")]
+    position = next((i + 1 for i, e in enumerate(entries) if e.get("BundlePath") == "USBToolBox.kext"), len(entries))
+    template = entries[position - 1] if position else {}
+    entries.insert(
+        position,
+        {
+            "Arch": template.get("Arch", "x86_64"),
+            "BundlePath": "UTBMap.kext",
+            "Comment": "Mapa USB gerado pelo MacPronto",
+            "Enabled": True,
+            "ExecutablePath": "",
+            "MaxKernel": "",
+            "MinKernel": "",
+            "PlistPath": "Contents/Info.plist",
+        },
+    )
+    config["Kernel"]["Add"] = entries
+    with config_path.open("wb") as handle:
+        plistlib.dump(config, handle)
+
+
+def ocvalidate_path() -> Path:
+    return workspace.ensure("OpCore-Simplify") / "bin" / "ocvalidate.exe"
+
+
+def validate(config_path: Path) -> dict | None:
+    executable = ocvalidate_path()
+    if not executable.exists():
+        return None
+    completed = subprocess.run(
+        [str(executable), str(config_path)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        creationflags=CREATE_NO_WINDOW,
+    )
+    output = (completed.stdout + completed.stderr).strip()
+    return {"ran": True, "ok": completed.returncode == 0, "output": output}
+
+
+def summarize(config_path: Path) -> dict:
+    with config_path.open("rb") as handle:
+        config = plistlib.load(handle)
+    generic = config.get("PlatformInfo", {}).get("Generic", {})
+    nvram = config.get("NVRAM", {}).get("Add", {}).get(NVRAM_GUID, {})
+    rom = generic.get("ROM")
+    return {
+        "smbios": {
+            "model": generic.get("SystemProductName"),
+            "serial": generic.get("SystemSerialNumber"),
+            "mlb": generic.get("MLB"),
+            "uuid": generic.get("SystemUUID"),
+            "rom": rom.hex().upper() if isinstance(rom, bytes) else rom,
+        },
+        "boot_args": nvram.get("boot-args", ""),
+        "keyboard": (nvram.get("prev-lang:kbd") or b"").decode(errors="replace"),
+        "kexts": [e.get("BundlePath") for e in config.get("Kernel", {}).get("Add", []) if e.get("Enabled")],
+        "ssdts": [e.get("Path") for e in config.get("ACPI", {}).get("Add", []) if e.get("Enabled")],
+        "drivers": [e.get("Path") for e in config.get("UEFI", {}).get("Drivers", []) if e.get("Enabled")],
+        "secure_boot_model": config.get("Misc", {}).get("Security", {}).get("SecureBootModel"),
+        "vesa": "-igfxvesa" in nvram.get("boot-args", ""),
+    }
+
+
+def list_builds(scan_id: str | None = None) -> list[dict]:
+    builds = []
+    for folder in sorted(paths.efi_output_dir().iterdir(), reverse=True):
+        info_file = folder / INFO_FILE
+        if not info_file.exists():
+            continue
+        try:
+            info = json.loads(info_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if scan_id is None or info.get("scan_id") == scan_id:
+            builds.append(info)
+    return builds

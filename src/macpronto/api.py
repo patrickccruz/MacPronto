@@ -16,6 +16,7 @@ from typing import Any
 from macpronto import __version__, logs, paths, settings, winutil
 from macpronto.compat import laudo as laudo_builder
 from macpronto.compat import service as compat
+from macpronto.efi import service as efi_service
 from macpronto.engine import workspace
 from macpronto.scanner import service as scans
 from macpronto.tasks import TaskManager, TaskReporter, UserFacingError, guarded
@@ -31,6 +32,7 @@ class Session:
     laudo: dict | None = None
     selection: dict = field(default_factory=dict)
     efi: dict | None = None
+    usb_map: Path | None = None
 
 
 class Api:
@@ -156,6 +158,8 @@ class Api:
             "laudo": self._session.laudo,
             "plan": self._plan_payload(),
             "selection": self._session.selection,
+            "efi": self._session.efi,
+            "usb_mapped": self._session.usb_map is not None,
         }
 
     def _plan_payload(self) -> dict | None:
@@ -256,3 +260,31 @@ class Api:
             return {"plan": self._plan_payload(), "selection": current}
 
         return self._tasks.run(task_id, job)
+
+    # ------------------------------------------------------------------ EFI
+
+    def efi_build(self, task_id: str, options: dict) -> dict:
+        def job(reporter: TaskReporter) -> dict:
+            scan = self._require_scan()
+            if self._session.selection.get("darwin") is None:
+                raise UserFacingError("no-version", "Escolha uma versão do macOS.")
+            options_ = options or {}
+            usb_map = self._session.usb_map if options_.get("use_usb_map", True) else None
+            reporter.stage("Preparando a montagem")
+            with self._tasks.engine_lock:
+                info = efi_service.build(
+                    scan,
+                    self._session.selection,
+                    keyboard=options_.get("keyboard", "abnt2"),
+                    usb_map=usb_map,
+                    on_event=reporter.engine_event,
+                    cancel=reporter.cancel,
+                )
+            self._session.efi = info
+            return info
+
+        return self._tasks.run(task_id, job)
+
+    @guarded
+    def efi_keyboards(self) -> list[dict]:
+        return [{"value": key, "label": label} for key, (_, label) in efi_service.KEYBOARDS.items()]

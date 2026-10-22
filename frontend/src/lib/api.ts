@@ -1,5 +1,5 @@
 import { call } from "./bridge"
-import type { AppInfo, LogLine, PlanPayload, ScanPayload, ScanSummary, Selection, Settings } from "./types"
+import type { AppInfo, EfiInfo, LogLine, PlanPayload, ScanPayload, ScanSummary, Selection, Settings } from "./types"
 
 export const api = {
   appInfo: () => call<AppInfo>("app_info"),
@@ -21,4 +21,8 @@ export const api = {
 
   planUpdate: (taskId: string, selection: Partial<Selection>) =>
     call<{ plan: PlanPayload; selection: Selection }>("plan_update", taskId, selection),
+
+  efiBuild: (taskId: string, options: { keyboard: string; use_usb_map: boolean }) =>
+    call<EfiInfo>("efi_build", taskId, options),
+  efiKeyboards: () => call<{ value: string; label: string }[]>("efi_keyboards"),
 }

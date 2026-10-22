@@ -208,7 +208,7 @@
   "ssdt2.aml"
  ],
  "laudo": {
-  "generated_at": "2026-10-22T16:22:25",
+  "generated_at": "2026-10-22T16:29:01",
   "app_version": "0.1.0",
   "scan_id": "20261022-090000-desktop-coffee-lake-rx580",
   "source": "local",
@@ -658,7 +658,7 @@
     {
      "key": "audio-layout-id",
      "label": "Layout de áudio (layout-id)",
-     "prompt": "Enter the ID of the codec layout you want to use (default: 7):",
+     "prompt": "Enter the ID of the codec layout you want to use (default: 1):",
      "options": [
       {
        "value": "1",
@@ -931,7 +931,7 @@
    {
     "key": "audio-layout-id",
     "label": "Layout de áudio (layout-id)",
-    "prompt": "Enter the ID of the codec layout you want to use (default: 7):",
+    "prompt": "Enter the ID of the codec layout you want to use (default: 1):",
     "options": [
      {
       "value": "1",
@@ -1982,5 +1982,7 @@
   "smbios_model": null,
   "acpi_overrides": {},
   "kext_overrides": {}
- }
+ },
+ "efi": null,
+ "usb_mapped": false
 }

@@ -5,12 +5,49 @@ import desktop from "@/mocks/desktop-coffee-lake-rx580.json"
 import laptop from "@/mocks/laptop-tiger-lake.json"
 
 import type { Backend } from "./bridge"
-import type { ScanPayload, Selection, Settings, TaskEvent } from "./types"
+import type { EfiInfo, ScanPayload, Selection, Settings, TaskEvent } from "./types"
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
 
 function ok<T>(data: T) {
   return { ok: true as const, data }
+}
+
+const SAMPLE_FOLDER = "C:\\Users\\voce\\Documents\\MacPronto\\EFI\\exemplo"
+
+function sampleEfi(current: ScanPayload, keyboard: string): EfiInfo {
+  return {
+    created_at: new Date().toISOString(),
+    scan_id: current.scan.id,
+    machine: current.scan.label,
+    folder: SAMPLE_FOLDER,
+    efi_dir: `${SAMPLE_FOLDER}\\EFI`,
+    zip: `${SAMPLE_FOLDER}\\EFI.zip`,
+    size_mb: 23.5,
+    opencore: "1.0.9",
+    macos: current.selection.darwin ?? 24,
+    keyboard,
+    keyboard_label: "Português (Brasil), teclado ABNT2",
+    usb_map: false,
+    validation: { ran: true, ok: true, output: "No issues found." },
+    config: {
+      smbios: {
+        model: current.plan?.smbios ?? "iMac19,1",
+        serial: "C02XXXXXXXXX",
+        mlb: "C02000000000000XX",
+        uuid: "00000000-0000-0000-0000-000000000000",
+        rom: "001122334455",
+      },
+      boot_args: "-v debug=0x100 keepsyms=1 alcid=1",
+      keyboard: "pt-BR:128",
+      kexts: (current.plan?.kexts ?? []).map((kext) => `${kext.name}.kext`),
+      ssdts: ["SSDT-EC.aml", "SSDT-PLUG.aml", "SSDT-USBX.aml"],
+      drivers: ["HfsPlus.efi", "OpenRuntime.efi", "ResetNvramEntry.efi"],
+      secure_boot_model: "Disabled",
+      vesa: false,
+    },
+    plan: { needs_oclp: false, smbios_model: current.plan?.smbios ?? "", decisions: [], bios_requirements: [], disabled_devices: [] },
+  }
 }
 
 export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
@@ -23,6 +60,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
     last_scan_id: null,
   }
   let session: ScanPayload | null = params.has("loaded") ? structuredClone(sample) : null
+  if (session && params.has("efi")) session.efi = sampleEfi(session, "abnt2")
   const cancelled = new Set<string>()
   let logId = 0
 
@@ -98,6 +136,19 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
     scan_delete: async () => ok(null),
     scan_export: async () => ok("C:\\Users\\voce\\Documents\\MacPronto\\exemplo.macpronto"),
     session_state: async () => ok(session),
+    efi_keyboards: async () =>
+      ok([
+        { value: "abnt2", label: "Português (Brasil), teclado ABNT2" },
+        { value: "br-pro", label: "Português (Brasil), teclado Brasileiro Pro" },
+        { value: "us", label: "Inglês (EUA), teclado americano" },
+      ]),
+    efi_build: async (taskId: string, options: { keyboard: string }) => {
+      await simulate(taskId, ["Preparando o iasl", "Carregando tabelas ACPI", "Baixando OpenCore e kexts", "Montando a EFI", "Validando o config.plist com o ocvalidate"])
+      if (!session) return { ok: false as const, error: { code: "no-scan", message: "Sem diagnóstico." } }
+      const efi = sampleEfi(session, options.keyboard)
+      session.efi = efi
+      return ok(efi)
+    },
     plan_update: async (taskId: string, selection: Partial<Selection>) => {
       await simulate(taskId, ["Recalculando o plano da EFI"])
       if (!session || !session.plan) return { ok: false as const, error: { code: "no-scan", message: "Sem diagnóstico." } }
@@ -109,6 +160,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       }))
       if (session.selection.smbios_model) plan.smbios = session.selection.smbios_model
       session.plan = plan
+      session.efi = null
       return ok({ plan, selection: session.selection })
     },
   }
