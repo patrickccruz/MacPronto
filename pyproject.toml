@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "macpronto"
+version = "0.1.0"
+description = "Analisa o PC no Windows, diz se ele pode virar Hackintosh e prepara o pendrive de instalação."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Patrick da Costa Cruz" }]
+dependencies = [
+    "pywebview>=6.2",
+    "wmi>=1.5.1; sys_platform == 'win32'",
+    "pywin32>=306; sys_platform == 'win32'",
+    "jinja2>=3.1",
+    "segno>=1.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.7",
+]
+build = [
+    "nuitka>=2.5",
+    "ordered-set>=4.1",
+    "zstandard>=0.23",
+]
+
+[project.scripts]
+macpronto = "macpronto.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/macpronto"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["third_party", "frontend"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]
