@@ -5,7 +5,7 @@ import desktop from "@/mocks/desktop-coffee-lake-rx580.json"
 import laptop from "@/mocks/laptop-tiger-lake.json"
 
 import type { Backend } from "./bridge"
-import type { EfiInfo, ScanPayload, Selection, Settings, TaskEvent } from "./types"
+import type { EfiInfo, ScanPayload, Selection, Settings, TaskEvent, UsbPort, UsbState } from "./types"
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
 
@@ -50,6 +50,66 @@ function sampleEfi(current: ScanPayload, keyboard: string): EfiInfo {
   }
 }
 
+const CONNECTORS = [
+  { value: 0, label: "USB 2 Tipo A" },
+  { value: 3, label: "USB 3 Tipo A" },
+  { value: 8, label: "Tipo C (só USB 2)" },
+  { value: 9, label: "Tipo C (com chave)" },
+  { value: 10, label: "Tipo C (sem chave)" },
+  { value: 255, label: "Interna" },
+]
+
+function sampleUsb(): UsbState {
+  const seen: Record<string, string> = { HS01: "Logitech Unifying Receiver", HS03: "SanDisk Cruzer", HS14: "Intel(R) Wireless Bluetooth(R)", SS01: "Samsung BAR Plus", SS03: "Samsung BAR Plus" }
+  const ports: UsbPort[] = []
+  for (let index = 1; index <= 20; index++) {
+    const usb3 = index > 14
+    const name = usb3 ? `SS${String(index - 14).padStart(2, "0")}` : `HS${String(index).padStart(2, "0")}`
+    const device = seen[name]
+    const type = name === "HS14" ? 255 : usb3 || index <= 6 ? 3 : 0
+    ports.push({
+      index,
+      name,
+      speed: usb3 ? "USB 3.0" : "USB 2.0",
+      class: usb3 ? 3 : 2,
+      selected: Boolean(device) || (!usb3 && index <= 6 && Boolean(seen[`SS${String(index).padStart(2, "0")}`])),
+      auto_selected: true,
+      type,
+      type_label: CONNECTORS.find((item) => item.value === type)?.label ?? "",
+      type_guessed: true,
+      comment: name === "SS01" ? "Traseira, em cima" : null,
+      current: name === "SS03" ? [{ name: "Samsung BAR Plus", speed: "USB 3.0" }] : [],
+      errors: [],
+      seen: device ? [{ name: device, speed: usb3 ? "USB 3.0" : "USB 2.0" }] : [],
+      companion: usb3 ? `HS${String(index - 14).padStart(2, "0")}` : index <= 6 ? `SS${String(index).padStart(2, "0")}` : null,
+      user_connectable: name !== "HS14",
+    })
+  }
+  return {
+    controllers: [
+      {
+        id: "PCI\\VEN_8086&DEV_A36D",
+        name: "Intel(R) USB 3.1 eXtensible Host Controller - 1.10 (Microsoft)",
+        class_label: "USB 3 (XHCI)",
+        acpi_path: "\\_SB.PCI0.XHC",
+        selected: ports.filter((port) => port.selected).length,
+        total: ports.length,
+        limit: 15,
+        ports,
+      },
+    ],
+    errors: [],
+    connector_types: CONNECTORS,
+    updated_at: new Date().toLocaleTimeString("pt-BR"),
+  }
+}
+
+function recount(state: UsbState) {
+  for (const controller of state.controllers) controller.selected = controller.ports.filter((port) => port.selected).length
+  state.updated_at = new Date().toLocaleTimeString("pt-BR")
+  return state
+}
+
 export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
   const params = new URLSearchParams(window.location.search)
   const sample = (params.get("mock") === "laptop" ? laptop : desktop) as unknown as ScanPayload
@@ -62,6 +122,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
   let session: ScanPayload | null = params.has("loaded") ? structuredClone(sample) : null
   if (session && params.has("efi")) session.efi = sampleEfi(session, "abnt2")
   const cancelled = new Set<string>()
+  let usb = sampleUsb()
   let logId = 0
 
   async function simulate(taskId: string, stages: string[]) {
@@ -148,6 +209,33 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       const efi = sampleEfi(session, options.keyboard)
       session.efi = efi
       return ok(efi)
+    },
+    usb_refresh: async () => ok(recount(usb)),
+    usb_update_port: async (_controller: string, index: number, changes: { selected?: boolean; type?: number; comment?: string }) => {
+      const port = usb.controllers[0].ports.find((item) => item.index === index)
+      if (port) {
+        if (changes.selected !== undefined) port.selected = changes.selected
+        if (changes.type !== undefined) {
+          port.type = changes.type
+          port.type_guessed = false
+          port.type_label = CONNECTORS.find((item) => item.value === changes.type)?.label ?? ""
+        }
+        if (changes.comment !== undefined) port.comment = changes.comment || null
+      }
+      return ok(recount(usb))
+    },
+    usb_select: async (mode: string) => {
+      for (const port of usb.controllers[0].ports) port.selected = mode === "all" ? true : mode === "none" ? false : port.seen.length > 0
+      return ok(recount(usb))
+    },
+    usb_reset: async () => {
+      usb = sampleUsb()
+      return ok(usb)
+    },
+    usb_build: async () => {
+      if (session) session.usb_mapped = true
+      if (session?.efi) session.efi = { ...session.efi, usb_map: true }
+      return ok({ kext: `${SAMPLE_FOLDER}\\UTBMap.kext`, efi_updated: Boolean(session?.efi), efi: session?.efi ?? null })
     },
     plan_update: async (taskId: string, selection: Partial<Selection>) => {
       await simulate(taskId, ["Recalculando o plano da EFI"])

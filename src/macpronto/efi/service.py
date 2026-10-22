@@ -207,3 +207,25 @@ def list_builds(scan_id: str | None = None) -> list[dict]:
         if scan_id is None or info.get("scan_id") == scan_id:
             builds.append(info)
     return builds
+
+
+def apply_usb_to_build(info: dict, usb_map: Path) -> dict:
+    """Aplica o mapa USB a uma EFI já montada, valida de novo e refaz o .zip."""
+    folder = Path(info["folder"])
+    efi_dir = folder / "EFI"
+    config_path = efi_dir / "OC" / "config.plist"
+    apply_usb_map(efi_dir, usb_map)
+    validation = validate(config_path) or info.get("validation")
+    archive = Path(info["zip"])
+    archive.unlink(missing_ok=True)
+    zip_path = shutil.make_archive(str(archive.with_suffix("")), "zip", root_dir=folder, base_dir="EFI")
+    updated = {
+        **info,
+        "zip": zip_path,
+        "usb_map": True,
+        "validation": validation,
+        "config": summarize(config_path),
+        "size_mb": round(sum(f.stat().st_size for f in efi_dir.rglob("*") if f.is_file()) / 1024**2, 1),
+    }
+    (folder / INFO_FILE).write_text(json.dumps(updated, indent=2, ensure_ascii=False), encoding="utf-8")
+    return updated

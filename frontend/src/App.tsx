@@ -12,6 +12,7 @@ import { DiagnosisStep } from "@/steps/DiagnosisStep"
 import { EfiStep } from "@/steps/EfiStep"
 import { LogsPage } from "@/steps/LogsPage"
 import { ReportStep } from "@/steps/ReportStep"
+import { UsbStep } from "@/steps/UsbStep"
 import { VersionStep } from "@/steps/VersionStep"
 import { WelcomeStep } from "@/steps/WelcomeStep"
 
@@ -27,6 +28,8 @@ function CurrentView({ view }: { view: ViewId }) {
       return <VersionStep />
     case "efi":
       return <EfiStep />
+    case "usb":
+      return <UsbStep />
     case "logs":
       return <LogsPage />
     case "about":

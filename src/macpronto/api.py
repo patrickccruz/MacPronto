@@ -40,6 +40,7 @@ class Api:
         self._window: Any = None
         self._session = Session()
         self._tasks = TaskManager(self._emit)
+        self._usb_session = None
 
     # ------------------------------------------------------------------ infraestrutura
 
@@ -288,3 +289,46 @@ class Api:
     @guarded
     def efi_keyboards(self) -> list[dict]:
         return [{"value": key, "label": label} for key, (_, label) in efi_service.KEYBOARDS.items()]
+
+    # ------------------------------------------------------------------ mapeamento USB
+
+    def _usb(self):
+        from macpronto.usb.mapper import UsbMapSession
+
+        scan = self._require_scan()
+        if scan.source != "local":
+            raise UserFacingError("usb-remote", "O mapeamento USB só funciona no próprio computador diagnosticado.")
+        if self._usb_session is None or self._usb_session.scan_id != scan.id:
+            self._usb_session = UsbMapSession(scan.id)
+        return self._usb_session
+
+    @guarded
+    def usb_refresh(self) -> dict:
+        return self._usb().refresh()
+
+    @guarded
+    def usb_update_port(self, controller_id: str, index: int, changes: dict) -> dict:
+        return self._usb().update_port(controller_id, int(index), changes or {})
+
+    @guarded
+    def usb_select(self, mode: str) -> dict:
+        return self._usb().select(mode)
+
+    @guarded
+    def usb_reset(self) -> dict:
+        self._session.usb_map = None
+        return self._usb().reset()
+
+    @guarded
+    def usb_build(self) -> dict:
+        session = self._usb()
+        scan = self._require_scan()
+        destination = paths.documents_dir() / "USB" / scan.id
+        destination.mkdir(parents=True, exist_ok=True)
+        kext = session.build_kext(destination)
+        self._session.usb_map = kext
+        efi_updated = False
+        if self._session.efi is not None:
+            self._session.efi = efi_service.apply_usb_to_build(self._session.efi, kext)
+            efi_updated = True
+        return {"kext": str(kext), "efi_updated": efi_updated, "efi": self._session.efi}

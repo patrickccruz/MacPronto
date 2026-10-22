@@ -59,7 +59,7 @@ COMPONENTS = (
         repo="tool",
         branch="master",
         license="MIT",
-        paths=("resources/usbdump.exe", "resources/Info.plist", "LICENSE", "README.md"),
+        paths=("resources/Info.plist", "LICENSE", "README.md"),
     ),
     Component(
         name="macrecovery",

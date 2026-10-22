@@ -222,3 +222,51 @@ export interface TaskEvent {
   kind: "stage" | "progress" | "log"
   data: { title?: string; current?: number; total?: number; label?: string; level?: string; message?: string }
 }
+
+export interface UsbDevice {
+  name: string
+  vid_pid?: string | null
+  speed: string
+}
+
+export interface UsbPort {
+  index: number
+  name: string
+  speed: string
+  class: number
+  selected: boolean
+  auto_selected: boolean
+  type: number
+  type_label: string
+  type_guessed: boolean
+  comment: string | null
+  current: UsbDevice[]
+  errors: string[]
+  seen: UsbDevice[]
+  companion: string | null
+  user_connectable: boolean
+}
+
+export interface UsbController {
+  id: string
+  name: string
+  class_label: string
+  acpi_path: string | null
+  selected: number
+  total: number
+  limit: number | null
+  ports: UsbPort[]
+}
+
+export interface UsbState {
+  controllers: UsbController[]
+  errors: string[]
+  connector_types: { value: number; label: string }[]
+  updated_at: string
+}
+
+export interface UsbBuildResult {
+  kext: string
+  efi_updated: boolean
+  efi: EfiInfo | null
+}

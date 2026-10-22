@@ -27,7 +27,6 @@
     "commit": "0c6823a2c643a4488888938451194723dc9ae29a",
     "license": "MIT",
     "paths": [
-      "resources/usbdump.exe",
       "resources/Info.plist",
       "LICENSE",
       "README.md"
