@@ -2,7 +2,7 @@
 
 > Analisa o seu PC ainda no Windows, diz se ele pode virar um Hackintosh e até qual macOS ele aguenta, e prepara o pendrive de instalação com um passo a passo feito para a sua máquina.
 
-![status](https://img.shields.io/badge/status-em%20planejamento-orange)
+![status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 ![plataforma](https://img.shields.io/badge/plataforma-Windows%2010%20%7C%2011-blue)
 ![licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green)
 
