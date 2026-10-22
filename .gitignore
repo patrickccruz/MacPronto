@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# Build (Nuitka / Inno Setup)
+build/
+dist/
+*.build/
+*.dist/
+*.onefile-build/
+installer/Output/
+
+# Saídas do app: EFI gerada, laudos, dumps ACPI e logs (contêm números de série)
+output/
+dumps/
+logs/
+*.log
+
+# Cache de downloads (kexts, macOS Recovery)
+cache/
+*.dmg
+*.chunklist
+
+# Segredos
+.env
+*.pfx
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
