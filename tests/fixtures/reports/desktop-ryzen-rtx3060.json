@@ -1,0 +1,13 @@
+{
+  "Motherboard": {"Name": "ASUS TUF GAMING B550M-PLUS", "Chipset": "B550", "Platform": "Desktop"},
+  "BIOS": {"Version": "3607", "Release Date": "2024-04-01", "System Type": "x64-based", "Firmware Type": "UEFI", "Secure Boot": "Disabled"},
+  "CPU": {"Manufacturer": "AMD", "Processor Name": "AMD Ryzen 5 5600X 6-Core Processor", "Codename": "Vermeer", "Core Count": "06", "CPU Count": "01", "SIMD Features": "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2"},
+  "GPU": {"NVIDIA GeForce RTX 3060": {"Manufacturer": "NVIDIA", "Codename": "Ampere", "Device ID": "10DE-2504", "Device Type": "Discrete GPU", "Subsystem ID": "88071043", "PCI Path": "PciRoot(0x0)/Pci(0x3,0x1)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.GPP0.X161", "Resizable BAR": "Enabled"}},
+  "Monitor": {"LG ULTRAGEAR": {"Connector Type": "DP", "Resolution": "2560x1440", "Connected GPU": "NVIDIA GeForce RTX 3060"}},
+  "Network": {"Realtek Gaming 2.5GbE Family Controller": {"Bus Type": "PCI", "Device ID": "10EC-8125", "Subsystem ID": "87D71043", "PCI Path": "PciRoot(0x0)/Pci(0x2,0x1)/Pci(0x0,0x2)/Pci(0x9,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.GPP2.PTXH"}},
+  "Sound": {"Realtek(R) Audio": {"Bus Type": "HDAUDIO", "Device ID": "10EC-0887", "Subsystem ID": "104387FB", "Audio Endpoints": ["Alto-falantes"], "Controller Device ID": "1022-1487"}},
+  "USB Controllers": {"AMD USB 3.10 eXtensible Host Controller - 1.10 (Microsoft)": {"Bus Type": "PCI", "Device ID": "1022-149C", "Subsystem ID": "87C01043", "PCI Path": "PciRoot(0x0)/Pci(0x7,0x1)/Pci(0x0,0x3)", "ACPI Path": "\\_SB.PCI0.GP17.XHC0"}},
+  "Input": {"Teclado USB": {"Bus Type": "USB", "Device ID": "1A2C-4C5E"}},
+  "Storage Controllers": {"WD Blue SN570 1TB": {"Bus Type": "PCI", "Device ID": "15B7-501A", "Subsystem ID": "501A15B7", "PCI Path": "PciRoot(0x0)/Pci(0x1,0x1)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.GPP0.X161", "Disk Drives": ["WD Blue SN570 1TB"]}},
+  "System Devices": {"Recursos da placa-mãe": {"Bus Type": "ACPI", "Device": "PNP0C02", "ACPI Path": "\\_SB.PCI0.SBRG.SIO1"}}
+}

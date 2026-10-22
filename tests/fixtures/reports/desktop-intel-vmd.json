@@ -1,0 +1,13 @@
+{
+  "Motherboard": {"Name": "MSI MAG B460M MORTAR", "Chipset": "B460", "Platform": "Desktop"},
+  "BIOS": {"Version": "1.60", "Release Date": "2022-06-01", "System Type": "x64-based", "Firmware Type": "UEFI", "Secure Boot": "Enabled"},
+  "CPU": {"Manufacturer": "Intel", "Processor Name": "Intel(R) Core(TM) i5-10400", "Codename": "Comet Lake-S", "Core Count": "06", "CPU Count": "01", "SIMD Features": "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2"},
+  "GPU": {"Intel(R) UHD Graphics 630": {"Manufacturer": "Intel", "Codename": "Comet Lake", "Device ID": "8086-9BC8", "Device Type": "Integrated GPU", "Subsystem ID": "7C831462", "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)", "ACPI Path": "\\_SB.PCI0.GFX0"}},
+  "Monitor": {"AOC 24G2W1G4": {"Connector Type": "HDMI", "Resolution": "1920x1080", "Connected GPU": "Intel(R) UHD Graphics 630"}},
+  "Network": {"Realtek PCIe GbE Family Controller": {"Bus Type": "PCI", "Device ID": "10EC-8168", "Subsystem ID": "7C831462", "PCI Path": "PciRoot(0x0)/Pci(0x1c,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.RP01.PXSX"}},
+  "Sound": {"Realtek(R) Audio": {"Bus Type": "HDAUDIO", "Device ID": "10EC-0892", "Subsystem ID": "1462CC34", "Audio Endpoints": ["Alto-falantes"], "Controller Device ID": "8086-A3F0"}},
+  "USB Controllers": {"Intel(R) USB 3.1 eXtensible Host Controller - 1.10 (Microsoft)": {"Bus Type": "PCI", "Device ID": "8086-A3AF", "Subsystem ID": "7C831462", "PCI Path": "PciRoot(0x0)/Pci(0x14,0x0)", "ACPI Path": "\\_SB.PCI0.XHC_"}},
+  "Input": {"Teclado USB": {"Bus Type": "USB", "Device ID": "1A2C-4C5E"}},
+  "Storage Controllers": {"Intel RST VMD Controller 09AB": {"Bus Type": "PCI", "Device ID": "8086-09AB", "Subsystem ID": "7C831462", "PCI Path": "PciRoot(0x0)/Pci(0xe,0x0)", "ACPI Path": "\\_SB.PCI0.VMD0", "Disk Drives": ["KINGSTON SA400S37480G"]}},
+  "System Devices": {"Recursos da placa-mãe": {"Bus Type": "ACPI", "Device": "PNP0C02", "ACPI Path": "\\_SB.PCI0.LPCB.LDRC"}}
+}

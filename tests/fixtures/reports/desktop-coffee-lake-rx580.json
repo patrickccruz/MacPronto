@@ -1,0 +1,25 @@
+{
+  "Motherboard": {"Name": "GIGABYTE Z390 AORUS PRO", "Chipset": "Z390", "Platform": "Desktop"},
+  "BIOS": {"Version": "F12", "Release Date": "2021-10-12", "System Type": "x64-based", "Firmware Type": "UEFI", "Secure Boot": "Enabled"},
+  "CPU": {"Manufacturer": "Intel", "Processor Name": "Intel(R) Core(TM) i7-9700K", "Codename": "Coffee Lake-S", "Core Count": "08", "CPU Count": "01", "SIMD Features": "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2"},
+  "GPU": {
+    "Radeon RX 580 Series": {"Manufacturer": "AMD", "Codename": "Ellesmere", "Device ID": "1002-67DF", "Device Type": "Discrete GPU", "Subsystem ID": "E3661DA2", "PCI Path": "PciRoot(0x0)/Pci(0x1,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.PEG0.PEGP", "Resizable BAR": "Disabled"},
+    "Intel(R) UHD Graphics 630": {"Manufacturer": "Intel", "Codename": "Coffee Lake", "Device ID": "8086-3E98", "Device Type": "Integrated GPU", "Subsystem ID": "D0001458", "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)", "ACPI Path": "\\_SB.PCI0.GFX0", "Resizable BAR": "Disabled"}
+  },
+  "Monitor": {"DELL P2419H": {"Connector Type": "DP", "Resolution": "1920x1080", "Connected GPU": "Radeon RX 580 Series"}},
+  "Network": {"Intel(R) Ethernet Connection (7) I219-V": {"Bus Type": "PCI", "Device ID": "8086-15BC", "Subsystem ID": "E0001458", "PCI Path": "PciRoot(0x0)/Pci(0x1f,0x6)", "ACPI Path": "\\_SB.PCI0.GLAN"}},
+  "Sound": {
+    "Realtek(R) Audio": {"Bus Type": "HDAUDIO", "Device ID": "10EC-1220", "Subsystem ID": "1458A0C3", "Audio Endpoints": ["Alto-falantes"], "Controller Device ID": "8086-A348"},
+    "AMD High Definition Audio Device": {"Bus Type": "HDAUDIO", "Device ID": "1002-AA01", "Subsystem ID": "00AA0100", "Audio Endpoints": ["DELL P2419H"], "Controller Device ID": "1002-AAF0"}
+  },
+  "USB Controllers": {"Intel(R) USB 3.1 eXtensible Host Controller - 1.10 (Microsoft)": {"Bus Type": "PCI", "Device ID": "8086-A36D", "Subsystem ID": "50071458", "PCI Path": "PciRoot(0x0)/Pci(0x14,0x0)", "ACPI Path": "\\_SB.PCI0.XHC_"}},
+  "Input": {"Logitech Unifying Receiver": {"Bus Type": "USB", "Device ID": "046D-C52B"}},
+  "Storage Controllers": {
+    "Samsung SSD 970 EVO Plus": {"Bus Type": "PCI", "Device ID": "144D-A808", "Subsystem ID": "A801144D", "PCI Path": "PciRoot(0x0)/Pci(0x1d,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.RP09.PXSX", "Disk Drives": ["Samsung SSD 970 EVO Plus 500GB"]},
+    "Intel(R) 300 Series Chipset Family SATA AHCI Controller": {"Bus Type": "PCI", "Device ID": "8086-A352", "Subsystem ID": "B0051458", "PCI Path": "PciRoot(0x0)/Pci(0x17,0x0)", "ACPI Path": "\\_SB.PCI0.SAT0", "Disk Drives": ["ST2000DM008-2FR102"]}
+  },
+  "System Devices": {
+    "Controlador de Áudio de Alta Definição": {"Bus Type": "PCI", "Device ID": "8086-A348", "Subsystem ID": "A0C31458", "PCI Path": "PciRoot(0x0)/Pci(0x1f,0x3)", "ACPI Path": "\\_SB.PCI0.HDAS"},
+    "Recursos da placa-mãe": {"Bus Type": "ACPI", "Device": "PNP0C02", "ACPI Path": "\\_SB.PCI0.LPCB.LDRC"}
+  }
+}

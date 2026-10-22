@@ -435,10 +435,12 @@ def _usb(report: dict, plan: dict | None) -> list[Component]:
     components = []
     for name, props in report.get("USB Controllers", {}).items():
         details = ["O macOS aceita no máximo 15 portas por controladora; o mapeamento USB do MacPronto resolve isso."]
-        status, summary = "native", "Controladora USB compatível."
-        if checked & {"XHCI-unsupported", "GenericUSBXHCI"}:
-            status, summary = "tweak", "Controladora USB que precisa de kext extra (incluído na EFI)."
-        components.append(Component("usb", name, status, summary, details, props.get("Device ID")))
+        extra = sorted(checked & {"XHCI-unsupported", "GenericUSBXHCI"})
+        if extra:
+            details.insert(0, f"A EFI inclui o kext {extra[0]}, que esta controladora exige.")
+        components.append(
+            Component("usb", name, "native", "Controladora USB compatível.", details, props.get("Device ID"))
+        )
     return components
 
 
@@ -551,11 +553,12 @@ def _verdict(components: list[Component], fatal: list[dict], recommended: int | 
 
     caveats = [c for c in components if c.status in ("tweak", "replace", "incompatible") and not c.blocking]
     if status in ("compatible", "caveats") and recommended:
-        summary = f"Versão recomendada: {macos.label(recommended)}."
         if len(caveats) == 1:
-            summary += " 1 item com ressalva abaixo."
+            summary = "Tudo o que importa funciona. Há 1 item com ressalva abaixo."
         elif caveats:
-            summary += f" {len(caveats)} itens com ressalvas abaixo."
+            summary = f"Tudo o que importa funciona. Há {len(caveats)} itens com ressalvas abaixo."
+        else:
+            summary = "Tudo o que importa funciona com a EFI padrão."
     elif status == "needs-bios":
         summary = "Corrija o item da BIOS indicado e refaça o diagnóstico."
     elif status == "needs-hardware":
@@ -647,7 +650,7 @@ def _machine(report: dict, extras: dict, is_laptop: bool) -> dict:
     }
 
 
-def _plan_section(plan: dict | None) -> dict | None:
+def plan_section(plan: dict | None) -> dict | None:
     if not plan:
         return None
     return {
@@ -665,7 +668,7 @@ def _plan_section(plan: dict | None) -> dict | None:
             if p["checked"]
         ],
         "disabled_devices": plan["disabled_devices"],
-        "decisions": plan["decisions"],
+        "decisions": [knowledge.translate_decision(d) for d in plan["decisions"]],
     }
 
 
@@ -701,9 +704,19 @@ def build(scan: dict, analysis: dict, plan: dict | None = None) -> dict:
 
     fatal = []
     for item in analysis.get("fatal", []):
-        info = knowledge.FATAL.get(
-            item["code"], {"kind": "incompatible", "title": "Impedimento", "message": item.get("message", "")}
+        info = dict(
+            knowledge.FATAL.get(
+                item["code"], {"kind": "incompatible", "title": "Impedimento", "message": item.get("message", "")}
+            )
         )
+        if item["code"] == "gpu-unsupported" and is_laptop:
+            info["kind"] = "incompatible"
+            info["message"] = (
+                "O macOS precisa de aceleração gráfica, e o vídeo deste notebook não é compatível. "
+                "Em notebooks não há como trocar a placa de vídeo."
+            )
+        elif item["code"] == "gpu-unsupported":
+            info["message"] += " Instale uma placa compatível: " + knowledge.REPLACEMENTS["gpu-desktop"]
         fatal.append({"code": item["code"], **info, "original": item.get("message", "")})
 
     has_network = any(c.category == "ethernet" and c.status == "native" for c in components)
@@ -726,7 +739,7 @@ def build(scan: dict, analysis: dict, plan: dict | None = None) -> dict:
             "com um diagnóstico feito no próprio computador."
         )
 
-    plan_section = _plan_section(plan)
+    efi_plan = plan_section(plan)
     bios_requirements = [knowledge.bios_requirement(req) for req in (plan or {}).get("bios_requirements", [])]
     verdict = _verdict(components, fatal, recommended)
     difficulty = (
@@ -763,5 +776,5 @@ def build(scan: dict, analysis: dict, plan: dict | None = None) -> dict:
         "fatal": fatal,
         "bios_requirements": bios_requirements,
         "warnings": warnings,
-        "efi_plan": plan_section,
+        "efi_plan": efi_plan,
     }

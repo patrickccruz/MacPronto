@@ -1,0 +1,1986 @@
+{
+ "scan": {
+  "id": "20261022-090000-desktop-coffee-lake-rx580",
+  "created_at": "2026-10-22T09:00:00",
+  "source": "local",
+  "label": "GIGABYTE Z390 AORUS PRO",
+  "has_acpi": true
+ },
+ "report": {
+  "Motherboard": {
+   "Name": "GIGABYTE Z390 AORUS PRO",
+   "Chipset": "Z390",
+   "Platform": "Desktop"
+  },
+  "BIOS": {
+   "Version": "F12",
+   "Release Date": "2021-10-12",
+   "System Type": "x64-based",
+   "Firmware Type": "UEFI",
+   "Secure Boot": "Enabled"
+  },
+  "CPU": {
+   "Manufacturer": "Intel",
+   "Processor Name": "Intel(R) Core(TM) i7-9700K",
+   "Codename": "Coffee Lake-S",
+   "Core Count": "08",
+   "CPU Count": "01",
+   "SIMD Features": "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2"
+  },
+  "GPU": {
+   "Radeon RX 580 Series": {
+    "Manufacturer": "AMD",
+    "Codename": "Ellesmere",
+    "Device ID": "1002-67DF",
+    "Device Type": "Discrete GPU",
+    "Subsystem ID": "E3661DA2",
+    "PCI Path": "PciRoot(0x0)/Pci(0x1,0x0)/Pci(0x0,0x0)",
+    "ACPI Path": "\\_SB.PCI0.PEG0.PEGP",
+    "Resizable BAR": "Disabled"
+   },
+   "Intel(R) UHD Graphics 630": {
+    "Manufacturer": "Intel",
+    "Codename": "Coffee Lake",
+    "Device ID": "8086-3E98",
+    "Device Type": "Integrated GPU",
+    "Subsystem ID": "D0001458",
+    "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)",
+    "ACPI Path": "\\_SB.PCI0.GFX0",
+    "Resizable BAR": "Disabled"
+   }
+  },
+  "Monitor": {
+   "DELL P2419H": {
+    "Connector Type": "DP",
+    "Resolution": "1920x1080",
+    "Connected GPU": "Radeon RX 580 Series"
+   }
+  },
+  "Network": {
+   "Intel(R) Ethernet Connection (7) I219-V": {
+    "Bus Type": "PCI",
+    "Device ID": "8086-15BC",
+    "Subsystem ID": "E0001458",
+    "PCI Path": "PciRoot(0x0)/Pci(0x1f,0x6)",
+    "ACPI Path": "\\_SB.PCI0.GLAN"
+   }
+  },
+  "Sound": {
+   "Realtek(R) Audio": {
+    "Bus Type": "HDAUDIO",
+    "Device ID": "10EC-1220",
+    "Subsystem ID": "1458A0C3",
+    "Audio Endpoints": [
+     "Alto-falantes"
+    ],
+    "Controller Device ID": "8086-A348"
+   },
+   "AMD High Definition Audio Device": {
+    "Bus Type": "HDAUDIO",
+    "Device ID": "1002-AA01",
+    "Subsystem ID": "00AA0100",
+    "Audio Endpoints": [
+     "DELL P2419H"
+    ],
+    "Controller Device ID": "1002-AAF0"
+   }
+  },
+  "USB Controllers": {
+   "Intel(R) USB 3.1 eXtensible Host Controller - 1.10 (Microsoft)": {
+    "Bus Type": "PCI",
+    "Device ID": "8086-A36D",
+    "Subsystem ID": "50071458",
+    "PCI Path": "PciRoot(0x0)/Pci(0x14,0x0)",
+    "ACPI Path": "\\_SB.PCI0.XHC_"
+   }
+  },
+  "Input": {
+   "Logitech Unifying Receiver": {
+    "Bus Type": "USB",
+    "Device ID": "046D-C52B"
+   }
+  },
+  "Storage Controllers": {
+   "Samsung SSD 970 EVO Plus": {
+    "Bus Type": "PCI",
+    "Device ID": "144D-A808",
+    "Subsystem ID": "A801144D",
+    "PCI Path": "PciRoot(0x0)/Pci(0x1d,0x0)/Pci(0x0,0x0)",
+    "ACPI Path": "\\_SB.PCI0.RP09.PXSX",
+    "Disk Drives": [
+     "Samsung SSD 970 EVO Plus 500GB"
+    ]
+   },
+   "Intel(R) 300 Series Chipset Family SATA AHCI Controller": {
+    "Bus Type": "PCI",
+    "Device ID": "8086-A352",
+    "Subsystem ID": "B0051458",
+    "PCI Path": "PciRoot(0x0)/Pci(0x17,0x0)",
+    "ACPI Path": "\\_SB.PCI0.SAT0",
+    "Disk Drives": [
+     "ST2000DM008-2FR102"
+    ]
+   }
+  },
+  "System Devices": {
+   "Controlador de Áudio de Alta Definição": {
+    "Bus Type": "PCI",
+    "Device ID": "8086-A348",
+    "Subsystem ID": "A0C31458",
+    "PCI Path": "PciRoot(0x0)/Pci(0x1f,0x3)",
+    "ACPI Path": "\\_SB.PCI0.HDAS"
+   },
+   "Recursos da placa-mãe": {
+    "Bus Type": "ACPI",
+    "Device": "PNP0C02",
+    "ACPI Path": "\\_SB.PCI0.LPCB.LDRC"
+   }
+  }
+ },
+ "extras": {
+  "system": {
+   "manufacturer": "Gigabyte Technology Co., Ltd.",
+   "model": "Z390 AORUS PRO",
+   "family": "",
+   "form_factor": "desktop",
+   "chassis_types": [
+    3
+   ],
+   "pc_system_type": 1,
+   "is_virtual_machine": false
+  },
+  "baseboard": {
+   "manufacturer": "Gigabyte Technology Co., Ltd.",
+   "product": "Z390 AORUS PRO-CF"
+  },
+  "bios": {
+   "vendor": "American Megatrends Inc.",
+   "version": "F12",
+   "date": "2021-10-12"
+  },
+  "os": {
+   "caption": "Microsoft Windows 11 Pro",
+   "version": "10.0.26100",
+   "build": "26100",
+   "architecture": "64 bits"
+  },
+  "memory": {
+   "total_gb": 31.9,
+   "modules": [
+    {
+     "capacity_gb": 16.0,
+     "speed_mhz": 3200,
+     "manufacturer": "Corsair"
+    },
+    {
+     "capacity_gb": 16.0,
+     "speed_mhz": 3200,
+     "manufacturer": "Corsair"
+    }
+   ]
+  },
+  "battery": {
+   "present": false,
+   "count": 0
+  },
+  "disks": [
+   {
+    "number": 0,
+    "model": "Samsung SSD 970 EVO Plus 500GB",
+    "size_gb": 500,
+    "bus": "NVMe",
+    "media": "SSD",
+    "system": true
+   },
+   {
+    "number": 1,
+    "model": "ST2000DM008-2FR102",
+    "size_gb": 2000,
+    "bus": "SATA",
+    "media": "HDD",
+    "system": false
+   }
+  ]
+ },
+ "acpi_tables": [
+  "dsdt.aml",
+  "ssdt1.aml",
+  "ssdt2.aml"
+ ],
+ "laudo": {
+  "generated_at": "2026-10-22T16:22:25",
+  "app_version": "0.1.0",
+  "scan_id": "20261022-090000-desktop-coffee-lake-rx580",
+  "source": "local",
+  "machine": {
+   "name": "GIGABYTE Z390 AORUS PRO",
+   "form_factor": "desktop",
+   "form_label": "Desktop",
+   "manufacturer": "Gigabyte Technology Co., Ltd.",
+   "model": "Z390 AORUS PRO",
+   "board": "Gigabyte Technology Co., Ltd. Z390 AORUS PRO-CF",
+   "chipset": "Z390",
+   "cpu": "Intel(R) Core(TM) i7-9700K",
+   "cpu_codename": "Coffee Lake-S",
+   "gpus": [
+    "Radeon RX 580 Series",
+    "Intel(R) UHD Graphics 630"
+   ],
+   "ram_gb": 32.0,
+   "firmware": "UEFI",
+   "secure_boot": "Enabled",
+   "bios_vendor": "American Megatrends Inc.",
+   "os": "Microsoft Windows 11 Pro",
+   "virtual_machine": false
+  },
+  "verdict": {
+   "status": "compatible",
+   "headline": "Pode virar um Hackintosh.",
+   "summary": "Tudo o que importa funciona com a EFI padrão."
+  },
+  "difficulty": {
+   "score": 1,
+   "label": "Muito fácil",
+   "reasons": [
+    "Hardware muito parecido com o de Macs reais."
+   ]
+  },
+  "macos": {
+   "recommended": 24,
+   "recommended_label": "macOS Sequoia 15",
+   "reason": "O hardware aceita até o macOS Tahoe 26, mas o Sequoia é a versão mais estável para Hackintosh.",
+   "native": {
+    "min": "17.0.0",
+    "max": "25.99.99"
+   },
+   "oclp": null,
+   "maximum": 25,
+   "versions": [
+    {
+     "darwin": 17,
+     "name": "High Sierra",
+     "version": "10.13",
+     "year": 2017,
+     "label": "macOS High Sierra 10.13",
+     "note": "Última com drivers NVIDIA Web para placas Maxwell e Pascal.",
+     "status": "supported"
+    },
+    {
+     "darwin": 18,
+     "name": "Mojave",
+     "version": "10.14",
+     "year": 2018,
+     "label": "macOS Mojave 10.14",
+     "note": "Última com suporte a aplicativos de 32 bits.",
+     "status": "supported"
+    },
+    {
+     "darwin": 19,
+     "name": "Catalina",
+     "version": "10.15",
+     "year": 2019,
+     "label": "macOS Catalina 10.15",
+     "note": "",
+     "status": "supported"
+    },
+    {
+     "darwin": 20,
+     "name": "Big Sur",
+     "version": "11",
+     "year": 2020,
+     "label": "macOS Big Sur 11",
+     "note": "",
+     "status": "supported"
+    },
+    {
+     "darwin": 21,
+     "name": "Monterey",
+     "version": "12",
+     "year": 2021,
+     "label": "macOS Monterey 12",
+     "note": "Última com suporte nativo a placas NVIDIA Kepler.",
+     "status": "supported"
+    },
+    {
+     "darwin": 22,
+     "name": "Ventura",
+     "version": "13",
+     "year": 2022,
+     "label": "macOS Ventura 13",
+     "note": "Exige AVX2 no processador, ou o kext CryptexFixup.",
+     "status": "supported"
+    },
+    {
+     "darwin": 23,
+     "name": "Sonoma",
+     "version": "14",
+     "year": 2023,
+     "label": "macOS Sonoma 14",
+     "note": "Removeu o suporte nativo a Wi-Fi Broadcom antigo.",
+     "status": "supported"
+    },
+    {
+     "darwin": 24,
+     "name": "Sequoia",
+     "version": "15",
+     "year": 2024,
+     "label": "macOS Sequoia 15",
+     "note": "Versão padrão do MacPronto: a mais estável para Hackintosh.",
+     "status": "recommended"
+    },
+    {
+     "darwin": 25,
+     "name": "Tahoe",
+     "version": "26",
+     "year": 2025,
+     "label": "macOS Tahoe 26",
+     "note": "Última versão com suporte a Intel. Removeu o AppleHDA (áudio).",
+     "status": "supported"
+    }
+   ]
+  },
+  "components": [
+   {
+    "category": "cpu",
+    "name": "Intel(R) Core(TM) i7-9700K",
+    "status": "native",
+    "summary": "Processador Intel compatível.",
+    "details": [
+     "Arquitetura Coffee Lake-S, 8 núcleos."
+    ],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "gpu",
+    "name": "Radeon RX 580 Series",
+    "status": "native",
+    "summary": "Compatível com todas as versões, do High Sierra ao Tahoe.",
+    "details": [
+     "Vídeo dedicado AMD (Ellesmere).",
+     "Monitores: DELL P2419H (DP, 1920x1080)."
+    ],
+    "device_id": "1002-67DF",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "gpu",
+    "name": "Intel(R) UHD Graphics 630",
+    "status": "native",
+    "summary": "Compatível com todas as versões, do High Sierra ao Tahoe.",
+    "details": [
+     "Vídeo integrado Intel (Coffee Lake)."
+    ],
+    "device_id": "8086-3E98",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "audio",
+    "name": "Realtek(R) Audio",
+    "status": "native",
+    "summary": "Funciona com o AppleALC.",
+    "details": [
+     "Saídas: Alto-falantes.",
+     "Se não sair som depois da instalação, teste outro layout-id (o guia explica como).",
+     "No macOS Tahoe a Apple removeu o driver de áudio; a EFI usa o SimpleHDA para repô-lo."
+    ],
+    "device_id": "10EC-1220",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "audio",
+    "name": "AMD High Definition Audio Device",
+    "status": "native",
+    "summary": "Áudio pelo HDMI ou DisplayPort.",
+    "details": [
+     "Saídas: DELL P2419H."
+    ],
+    "device_id": "1002-AA01",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "ethernet",
+    "name": "Intel(R) Ethernet Connection (7) I219-V",
+    "status": "native",
+    "summary": "Rede cabeada compatível.",
+    "details": [],
+    "device_id": "8086-15BC",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "storage",
+    "name": "Samsung SSD 970 EVO Plus",
+    "status": "native",
+    "summary": "SSD NVMe compatível.",
+    "details": [
+     "Disco: Samsung SSD 970 EVO Plus 500GB."
+    ],
+    "device_id": "144D-A808",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "storage",
+    "name": "Intel(R) 300 Series Chipset Family SATA AHCI Controller",
+    "status": "native",
+    "summary": "Controladora de disco compatível.",
+    "details": [
+     "Disco: ST2000DM008-2FR102."
+    ],
+    "device_id": "8086-A352",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "disk",
+    "name": "Samsung SSD 970 EVO Plus 500GB",
+    "status": "info",
+    "summary": "500 GB, NVMe, SSD. Contém o Windows atual.",
+    "details": [],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "disk",
+    "name": "ST2000DM008-2FR102",
+    "status": "info",
+    "summary": "2000 GB, SATA, HDD.",
+    "details": [
+     "HD mecânico: o macOS funciona, mas fica bem mais lento que num SSD."
+    ],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "usb",
+    "name": "Intel(R) USB 3.1 eXtensible Host Controller - 1.10 (Microsoft)",
+    "status": "native",
+    "summary": "Controladora USB compatível.",
+    "details": [
+     "A EFI inclui o kext XHCI-unsupported, que esta controladora exige.",
+     "O macOS aceita no máximo 15 portas por controladora; o mapeamento USB do MacPronto resolve isso."
+    ],
+    "device_id": "8086-A36D",
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "firmware",
+    "name": "BIOS",
+    "status": "native",
+    "summary": "Firmware UEFI.",
+    "details": [
+     "Versão F12 (2021-10-12).",
+     "O Secure Boot está ligado: desative-o antes de instalar."
+    ],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   }
+  ],
+  "fatal": [],
+  "bios_requirements": [
+   "Desativar o Secure Boot."
+  ],
+  "warnings": [],
+  "efi_plan": {
+   "macos": 24,
+   "smbios": "iMac19,1",
+   "needs_oclp": false,
+   "kexts": [
+    {
+     "name": "Lilu",
+     "description": "Base para os demais kexts: permite aplicar patches no sistema."
+    },
+    {
+     "name": "VirtualSMC",
+     "description": "Emula o chip SMC dos Macs. Sem ele o macOS não inicia."
+    },
+    {
+     "name": "SMCProcessor",
+     "description": "Lê a temperatura do processador Intel."
+    },
+    {
+     "name": "SMCSuperIO",
+     "description": "Lê sensores da placa-mãe e a velocidade das ventoinhas."
+    },
+    {
+     "name": "WhateverGreen",
+     "description": "Correções de vídeo: aceleração, saídas de vídeo e tela."
+    },
+    {
+     "name": "AppleALC",
+     "description": "Ativa o áudio onboard (codec Realtek, Conexant etc.) com o driver da Apple."
+    },
+    {
+     "name": "IntelMausiEthernet",
+     "description": "Rede cabeada Intel (I217, I218, I219 e similares)."
+    },
+    {
+     "name": "USBToolBox",
+     "description": "Base do mapeamento de portas USB."
+    },
+    {
+     "name": "UTBDefault",
+     "description": "Ativa todas as portas USB até o mapeamento ser feito."
+    },
+    {
+     "name": "XHCI-unsupported",
+     "description": "Ativa o USB 3.0 em controladoras que o macOS não reconhece."
+    },
+    {
+     "name": "RestrictEvents",
+     "description": "Bloqueia processos problemáticos e libera recursos do sistema."
+    }
+   ],
+   "acpi_patches": [
+    {
+     "name": "BUS0",
+     "description": "Cria o dispositivo SMBus que o macOS espera."
+    },
+    {
+     "name": "FakeEC",
+     "description": "Cria o controlador embarcado (EC) que o macOS exige."
+    },
+    {
+     "name": "MCHC",
+     "description": "Cria o controlador de memória que o macOS espera."
+    },
+    {
+     "name": "PMC",
+     "description": "Ativa a NVRAM em placas-mãe Intel série 300."
+    },
+    {
+     "name": "PLUG",
+     "description": "Ativa o gerenciamento de energia nativo do processador."
+    },
+    {
+     "name": "RTCAWAC",
+     "description": "Ativa o relógio RTC no lugar do AWAC, que o macOS não reconhece."
+    },
+    {
+     "name": "USBX",
+     "description": "Informa ao macOS a energia disponível nas portas USB."
+    }
+   ],
+   "disabled_devices": [],
+   "decisions": [
+    {
+     "key": "combination-gpu",
+     "label": "Combinação de dispositivos",
+     "prompt": "Select a GPU combination (1-3):",
+     "options": [
+      {
+       "value": "1",
+       "label": "Radeon RX 580 Series",
+       "details": [
+        "Compatibilidade: até o macOS Tahoe 26"
+       ],
+       "label_pt": null
+      },
+      {
+       "value": "2",
+       "label": "Intel(R) UHD Graphics 630",
+       "details": [
+        "Compatibilidade: até o macOS Tahoe 26"
+       ],
+       "label_pt": null
+      },
+      {
+       "value": "3",
+       "label": "Radeon RX 580 Series + Intel(R) UHD Graphics 630",
+       "details": [
+        "Compatibilidade: até o macOS Tahoe 26"
+       ],
+       "label_pt": null
+      }
+     ],
+     "recommended": "3",
+     "chosen": "3",
+     "help": "Mais de uma placa de vídeo compatível. Escolha quais ficam ativas no macOS."
+    },
+    {
+     "key": "audio-layout-id",
+     "label": "Layout de áudio (layout-id)",
+     "prompt": "Enter the ID of the codec layout you want to use (default: 7):",
+     "options": [
+      {
+       "value": "1",
+       "label": "Toleda -  Realtek ALC1220",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "2",
+       "label": "Toleda -  Realtek ALC1220",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "3",
+       "label": "Toleda -  Realtek ALC1220",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "5",
+       "label": "Mirone - Realtek ALC1220",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "7",
+       "label": "Mirone - Realtek ALC1220",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "11",
+       "label": "Custom Realtek ALC1220 by truesoldier",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "13",
+       "label": "MacPeet - ALC1220 for Clevo P950HR",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "15",
+       "label": "fleaplus - ALC1220 for MSI WT75",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "16",
+       "label": "MacPeet - ALC1220 for Gigabyte Z390",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "17",
+       "label": "NIBLIZE - ALC1220 for Gigabyte Z490 Vision G manual SP/HP",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "18",
+       "label": "hgsshaanxi- ALC1220 for Gigabyte Z490 Aorus Master",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "20",
+       "label": "CaseySJ - ALC1220 for Gigabyte B550 Vision D",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "21",
+       "label": "ALC1220 for MSI GE63 Raider RGB 8RF",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "25",
+       "label": "Realtek ALC1220 for MSI GE73 Raider RGB 8RF by Ardhi96",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "27",
+       "label": "lostwolf - ALC1220 for Gigabyte Z370-HD3P",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "28",
+       "label": "MacPeet- ALC1220 for Z390 Aorus Ultra - Output SP/HP Manualm",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "29",
+       "label": "MacPeet- ALC1220 for Z390 Aorus Ultra - Output SP/HP SwitchM",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "30",
+       "label": "MacPeet- ALC1220 for Z370 AORUS Gaming 7 - Output SP/HP Swit",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "34",
+       "label": "Custom ALC1220 for MSI P65 Creator by CleverCoder",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "35",
+       "label": "Custom ALC1220 for MSI GP75 9SD by Win7GM",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "69",
+       "label": "Lorys89 ALC1220 for AMD B450/B550 - SwitchMode",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "98",
+       "label": "Custom ALC1220 for Mi Gaming Notebook Creator by Xsixu",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "99",
+       "label": "MiBook 2019 by Dynamix1997",
+       "label_pt": null,
+       "details": []
+      },
+      {
+       "value": "100",
+       "label": "Hasee_G8-CU7PK",
+       "label_pt": null,
+       "details": []
+      }
+     ],
+     "recommended": "1",
+     "chosen": "1",
+     "help": "Cada placa-mãe liga o codec de um jeito. Se não sair som, teste outro layout."
+    }
+   ]
+  }
+ },
+ "plan": {
+  "macos": 24,
+  "smbios": "iMac19,1",
+  "needs_oclp": false,
+  "kexts": [
+   {
+    "name": "Lilu",
+    "description": "Base para os demais kexts: permite aplicar patches no sistema."
+   },
+   {
+    "name": "VirtualSMC",
+    "description": "Emula o chip SMC dos Macs. Sem ele o macOS não inicia."
+   },
+   {
+    "name": "SMCProcessor",
+    "description": "Lê a temperatura do processador Intel."
+   },
+   {
+    "name": "SMCSuperIO",
+    "description": "Lê sensores da placa-mãe e a velocidade das ventoinhas."
+   },
+   {
+    "name": "WhateverGreen",
+    "description": "Correções de vídeo: aceleração, saídas de vídeo e tela."
+   },
+   {
+    "name": "AppleALC",
+    "description": "Ativa o áudio onboard (codec Realtek, Conexant etc.) com o driver da Apple."
+   },
+   {
+    "name": "IntelMausiEthernet",
+    "description": "Rede cabeada Intel (I217, I218, I219 e similares)."
+   },
+   {
+    "name": "USBToolBox",
+    "description": "Base do mapeamento de portas USB."
+   },
+   {
+    "name": "UTBDefault",
+    "description": "Ativa todas as portas USB até o mapeamento ser feito."
+   },
+   {
+    "name": "XHCI-unsupported",
+    "description": "Ativa o USB 3.0 em controladoras que o macOS não reconhece."
+   },
+   {
+    "name": "RestrictEvents",
+    "description": "Bloqueia processos problemáticos e libera recursos do sistema."
+   }
+  ],
+  "acpi_patches": [
+   {
+    "name": "BUS0",
+    "description": "Cria o dispositivo SMBus que o macOS espera."
+   },
+   {
+    "name": "FakeEC",
+    "description": "Cria o controlador embarcado (EC) que o macOS exige."
+   },
+   {
+    "name": "MCHC",
+    "description": "Cria o controlador de memória que o macOS espera."
+   },
+   {
+    "name": "PMC",
+    "description": "Ativa a NVRAM em placas-mãe Intel série 300."
+   },
+   {
+    "name": "PLUG",
+    "description": "Ativa o gerenciamento de energia nativo do processador."
+   },
+   {
+    "name": "RTCAWAC",
+    "description": "Ativa o relógio RTC no lugar do AWAC, que o macOS não reconhece."
+   },
+   {
+    "name": "USBX",
+    "description": "Informa ao macOS a energia disponível nas portas USB."
+   }
+  ],
+  "disabled_devices": [],
+  "decisions": [
+   {
+    "key": "combination-gpu",
+    "label": "Combinação de dispositivos",
+    "prompt": "Select a GPU combination (1-3):",
+    "options": [
+     {
+      "value": "1",
+      "label": "Radeon RX 580 Series",
+      "details": [
+       "Compatibilidade: até o macOS Tahoe 26"
+      ],
+      "label_pt": null
+     },
+     {
+      "value": "2",
+      "label": "Intel(R) UHD Graphics 630",
+      "details": [
+       "Compatibilidade: até o macOS Tahoe 26"
+      ],
+      "label_pt": null
+     },
+     {
+      "value": "3",
+      "label": "Radeon RX 580 Series + Intel(R) UHD Graphics 630",
+      "details": [
+       "Compatibilidade: até o macOS Tahoe 26"
+      ],
+      "label_pt": null
+     }
+    ],
+    "recommended": "3",
+    "chosen": "3",
+    "help": "Mais de uma placa de vídeo compatível. Escolha quais ficam ativas no macOS."
+   },
+   {
+    "key": "audio-layout-id",
+    "label": "Layout de áudio (layout-id)",
+    "prompt": "Enter the ID of the codec layout you want to use (default: 7):",
+    "options": [
+     {
+      "value": "1",
+      "label": "Toleda -  Realtek ALC1220",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "2",
+      "label": "Toleda -  Realtek ALC1220",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "3",
+      "label": "Toleda -  Realtek ALC1220",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "5",
+      "label": "Mirone - Realtek ALC1220",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "7",
+      "label": "Mirone - Realtek ALC1220",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "11",
+      "label": "Custom Realtek ALC1220 by truesoldier",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "13",
+      "label": "MacPeet - ALC1220 for Clevo P950HR",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "15",
+      "label": "fleaplus - ALC1220 for MSI WT75",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "16",
+      "label": "MacPeet - ALC1220 for Gigabyte Z390",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "17",
+      "label": "NIBLIZE - ALC1220 for Gigabyte Z490 Vision G manual SP/HP",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "18",
+      "label": "hgsshaanxi- ALC1220 for Gigabyte Z490 Aorus Master",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "20",
+      "label": "CaseySJ - ALC1220 for Gigabyte B550 Vision D",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "21",
+      "label": "ALC1220 for MSI GE63 Raider RGB 8RF",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "25",
+      "label": "Realtek ALC1220 for MSI GE73 Raider RGB 8RF by Ardhi96",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "27",
+      "label": "lostwolf - ALC1220 for Gigabyte Z370-HD3P",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "28",
+      "label": "MacPeet- ALC1220 for Z390 Aorus Ultra - Output SP/HP Manualm",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "29",
+      "label": "MacPeet- ALC1220 for Z390 Aorus Ultra - Output SP/HP SwitchM",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "30",
+      "label": "MacPeet- ALC1220 for Z370 AORUS Gaming 7 - Output SP/HP Swit",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "34",
+      "label": "Custom ALC1220 for MSI P65 Creator by CleverCoder",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "35",
+      "label": "Custom ALC1220 for MSI GP75 9SD by Win7GM",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "69",
+      "label": "Lorys89 ALC1220 for AMD B450/B550 - SwitchMode",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "98",
+      "label": "Custom ALC1220 for Mi Gaming Notebook Creator by Xsixu",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "99",
+      "label": "MiBook 2019 by Dynamix1997",
+      "label_pt": null,
+      "details": []
+     },
+     {
+      "value": "100",
+      "label": "Hasee_G8-CU7PK",
+      "label_pt": null,
+      "details": []
+     }
+    ],
+    "recommended": "1",
+    "chosen": "1",
+    "help": "Cada placa-mãe liga o codec de um jeito. Se não sair som, teste outro layout."
+   }
+  ],
+  "smbios_candidates": [
+   {
+    "name": "iMac19,1",
+    "cpu": "i9-9900K",
+    "generation": "Coffee Lake",
+    "gpu": "AMD Radeon Pro 570X"
+   },
+   {
+    "name": "iMac19,2",
+    "cpu": "i5-8500",
+    "generation": "Coffee Lake",
+    "gpu": "AMD Radeon Pro 555X"
+   },
+   {
+    "name": "iMac20,1",
+    "cpu": "i5-10500",
+    "generation": "Comet Lake",
+    "gpu": "AMD Radeon Pro 5300"
+   },
+   {
+    "name": "iMac20,2",
+    "cpu": "i9-10910",
+    "generation": "Comet Lake",
+    "gpu": "AMD Radeon Pro 5300"
+   },
+   {
+    "name": "MacBookAir8,1",
+    "cpu": "i5-8210Y",
+    "generation": "Amber Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookAir8,2",
+    "cpu": "i5-8210Y",
+    "generation": "Amber Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookAir9,1",
+    "cpu": "i3-1000NG4",
+    "generation": "Ice Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookPro15,1",
+    "cpu": "i7-8750H",
+    "generation": "Coffee Lake",
+    "gpu": "AMD Radeon Pro 555X"
+   },
+   {
+    "name": "MacBookPro15,2",
+    "cpu": "i7-8559U",
+    "generation": "Coffee Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookPro15,3",
+    "cpu": "i7-8850H",
+    "generation": "Coffee Lake",
+    "gpu": "AMD Radeon Pro Vega 16"
+   },
+   {
+    "name": "MacBookPro15,4",
+    "cpu": "i5-8257U",
+    "generation": "Coffee Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookPro16,1",
+    "cpu": "i7-9750H",
+    "generation": "Coffee Lake",
+    "gpu": "AMD Radeon Pro 5300"
+   },
+   {
+    "name": "MacBookPro16,2",
+    "cpu": "i5-1038NG7",
+    "generation": "Ice Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookPro16,3",
+    "cpu": "i5-8257U",
+    "generation": "Coffee Lake",
+    "gpu": null
+   },
+   {
+    "name": "MacBookPro16,4",
+    "cpu": "i7-9750H",
+    "generation": "Coffee Lake",
+    "gpu": "AMD Radeon Pro 5600M"
+   },
+   {
+    "name": "Macmini8,1",
+    "cpu": "i7-8700B",
+    "generation": "Coffee Lake",
+    "gpu": null
+   },
+   {
+    "name": "iMacPro1,1",
+    "cpu": "W-2140B",
+    "generation": "Skylake-W",
+    "gpu": "AMD Radeon RX Vega 56"
+   },
+   {
+    "name": "MacPro7,1",
+    "cpu": "W-3245M",
+    "generation": "Cascade Lake-W",
+    "gpu": "AMD Radeon Pro 580X"
+   }
+  ],
+  "default_smbios": "iMac19,1",
+  "all_kexts": [
+   {
+    "name": "Lilu",
+    "description": "For arbitrary kext, library, and program patching",
+    "category": "Required",
+    "checked": true,
+    "required": true
+   },
+   {
+    "name": "VirtualSMC",
+    "description": "Advanced Apple SMC emulator in the kernel",
+    "category": "Required",
+    "checked": true,
+    "required": true
+   },
+   {
+    "name": "SMCBatteryManager",
+    "description": "Manages, monitors, and reports on battery status",
+    "category": "VirtualSMC Plugins",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "SMCDellSensors",
+    "description": "Enables fan monitoring and control on Dell computers",
+    "category": "VirtualSMC Plugins",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "SMCLightSensor",
+    "description": "Allows system utilize ambient light sensor device",
+    "category": "VirtualSMC Plugins",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "SMCProcessor",
+    "description": "Manages Intel CPU temperature sensors",
+    "category": "VirtualSMC Plugins",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "SMCRadeonSensors",
+    "description": "Provides temperature readings for AMD GPUs",
+    "category": "VirtualSMC Plugins",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "SMCSuperIO",
+    "description": "Monitoring hardware sensors and controlling fan speeds",
+    "category": "VirtualSMC Plugins",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "NootRX",
+    "description": "The rDNA 2 dGPU support patch kext",
+    "category": "Graphics",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "NootedRed",
+    "description": "The AMD Vega iGPU support kext",
+    "category": "Graphics",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "WhateverGreen",
+    "description": "Various patches necessary for GPUs are pre-supported",
+    "category": "Graphics",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "AppleALC",
+    "description": "Native macOS HD audio for not officially supported codecs",
+    "category": "Audio",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "SimpleHDA",
+    "description": "Restore AppleHDA on Tahoe through OpenCore without root patches",
+    "category": "Audio",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AirPortAtheros40-Tahoe",
+    "description": "Enable Atheros Wi-Fi adapters on macOS Tahoe",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AirportBrcmFixup",
+    "description": "Patches required for non-native Broadcom Wi-Fi cards",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AirPortBrcmNIC-Tahoe",
+    "description": "Enable Broadcom Wi-Fi adapters on macOS Tahoe",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AirportItlwm",
+    "description": "Intel Wi-Fi drivers support the native macOS Wi-Fi interface",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AirportItlwm-laobamac",
+    "description": "Intel Wi-Fi drivers support the native macOS Wi-Fi interface (Sequoia 15.2+ and Tahoe without root patches)",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "corecaptureElCap",
+    "description": "Enable legacy Qualcomm Atheros Wireless cards",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "Feixiao",
+    "description": "Realtek WLAN (rtw88) driver for macOS",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IO80211ElCap",
+    "description": "Enable legacy Qualcomm Atheros Wireless cards",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IO80211FamilyLegacy",
+    "description": "Enable legacy Apple Wireless adapters",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IOSkywalkFamily",
+    "description": "Enable legacy Apple Wireless adapters",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "itlwm",
+    "description": "Intel Wi-Fi drivers. Spoofs as Ethernet and connects to Wi-Fi via Heliport",
+    "category": "Wi-Fi",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "Ath3kBT",
+    "description": "Uploads firmware to enable Atheros Bluetooth support",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "Ath3kBTInjector",
+    "description": "Uploads firmware to enable Atheros Bluetooth support",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BlueToolFixup",
+    "description": "Patches Bluetooth stack to support third-party cards",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BrcmBluetoothInjector",
+    "description": "Enables the Broadcom Bluetooth on/off switch on older versions",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BrcmFirmwareData",
+    "description": "Applies PatchRAM updates for Broadcom RAMUSB based devices",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BrcmPatchRAM2",
+    "description": "Applies PatchRAM updates for Broadcom RAMUSB based devices",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BrcmPatchRAM3",
+    "description": "Applies PatchRAM updates for Broadcom RAMUSB based devices",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IntelBluetoothFirmware",
+    "description": "Uploads firmware to enable Intel Bluetooth support",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IntelBTPatcher",
+    "description": "Fixes Intel Bluetooth bugs for better connectivity",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IntelBluetoothInjector",
+    "description": "Enables the Intel Bluetooth on/off switch on older versions",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RealtekBluetoothFirmware",
+    "description": "Uploads firmware to enable Realtek Bluetooth support",
+    "category": "Bluetooth",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AppleIGB",
+    "description": "Provides support for Intel's IGB Ethernet controllers",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AppleIGC",
+    "description": "Provides support for Intel 2.5G Ethernet(i225/i226)",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AtherosE2200Ethernet",
+    "description": "Provides support for Atheros E2200 family",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "CatalinaBCM5701Ethernet",
+    "description": "Provides support for Broadcom BCM57XX Ethernet series",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "HoRNDIS",
+    "description": "Use the USB tethering mode of the Android phone to access the Internet",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IntelLucy",
+    "description": "Provides support for Intel X500 family",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "IntelMausiEthernet",
+    "description": "Intel Ethernet LAN driver for macOS",
+    "category": "Ethernet",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "LucyRTL8125Ethernet",
+    "description": "Provides support for Realtek RTL8125 family",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "NullEthernet",
+    "description": "Creates a Null Ethernet when no supported network hardware is present",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RealtekRTL8100",
+    "description": "Provides support for Realtek RTL8100 family",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RealtekRTL8111",
+    "description": "Provides support for Realtek RTL8111/8168 family",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RTL812xLucy",
+    "description": "A new macOS driver for the Realtek RTL812x family",
+    "category": "Ethernet",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "GenericUSBXHCI",
+    "description": "Fixes USB 3.0 issues found on some Ryzen APU-based",
+    "category": "USB",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "USBToolBox",
+    "description": "Flexible USB mapping",
+    "category": "USB",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "UTBDefault",
+    "description": "Enables all USB ports (assumes no port limit)",
+    "category": "USB",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "XHCI-unsupported",
+    "description": "Enables USB 3.0 support for unsupported xHCI controllers",
+    "category": "USB",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "AlpsHID",
+    "description": "Brings native multitouch support to the Alps I2C touchpad",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooInput",
+    "description": "Provides Magic Trackpad 2 software emulation for arbitrary input sources",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooPS2Controller",
+    "description": "Provides support for PS/2 keyboards, trackpads, and mouse",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooRMI",
+    "description": "Synaptic Trackpad kext over SMBus/I2C",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooSMBus",
+    "description": "i2c-i801 + ELAN SMBus Touchpad kext",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooI2C",
+    "description": "Intel I2C controller and slave device drivers",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooI2CAtmelMXT",
+    "description": "A satellite kext for Atmel MXT I2C touchscreen",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooI2CELAN",
+    "description": "A satellite kext for ELAN I2C touchpads",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooI2CFTE",
+    "description": "A satellite kext for FTE based touchpads",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooI2CHID",
+    "description": "A satellite kext for HID I2C or ELAN1200+ input devices",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooI2CSynaptics",
+    "description": "A satellite kext for Synaptics I2C touchpads",
+    "category": "Input",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AsusSMC",
+    "description": "Supports ALS, keyboard backlight, and Fn keys on ASUS laptops",
+    "category": "Brand Specific",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BigSurface",
+    "description": "A fully intergrated kext for all Surface related hardwares",
+    "category": "Brand Specific",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "YogaSMC",
+    "description": "Enables support for syncing SMC keys, controlling sensors and managing vendor-specific features",
+    "category": "Brand Specific",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "CtlnaAHCIPort",
+    "description": "Improves support for certain SATA controllers",
+    "category": "Storage",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "SATA-unsupported",
+    "description": "Improves support for certain SATA controllers",
+    "category": "Storage",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "NVMeFix",
+    "description": "Addresses compatibility and performance issues with NVMe SSDs",
+    "category": "Storage",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "PC711Probe",
+    "description": "A probe kext for SK Hynix PC711 NVMe SSDs",
+    "category": "Storage",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "PC711ProbeForce",
+    "description": "Applies the MSI-X compatibility path to all NVMe controllers",
+    "category": "Storage",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RealtekCardReader",
+    "description": "Realtek PCIe/USB-based SD card reader driver",
+    "category": "Card Reader",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RealtekCardReaderFriend",
+    "description": "Makes System Information recognize your Realtek card reader",
+    "category": "Card Reader",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "Sinetek-rtsx",
+    "description": "Realtek PCIe-based SD card reader driver",
+    "category": "Card Reader",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AmdTscSync",
+    "description": "A modified version of VoodooTSCSync for AMD CPUs",
+    "category": "TSC Synchronization",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "VoodooTSCSync",
+    "description": "A kernel extension which will synchronize the TSC on Intel CPUs",
+    "category": "TSC Synchronization",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "CpuTscSync",
+    "description": "Lilu plugin for TSC sync and disabling xcpm_urgency on Intel CPUs",
+    "category": "TSC Synchronization",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "ForgedInvariant",
+    "description": "The plug & play kext for syncing the TSC on AMD & Intel",
+    "category": "TSC Synchronization",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AMFIPass",
+    "description": "A replacement for amfi=0x80 boot argument",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "ASPP-Override",
+    "description": "Re-enable CPU power management for Intel Sandy Bridge CPUs",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AppleIntelCPUPowerManagement",
+    "description": "Re-enable CPU power management on legacy Intel CPUs",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AppleIntelCPUPowerManagementClient",
+    "description": "Re-enable CPU power management on legacy Intel CPUs",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "AppleMCEReporterDisabler",
+    "description": "Disables AppleMCEReporter.kext to prevent kernel panics",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "BrightnessKeys",
+    "description": "Handler for brightness keys without DSDT patches",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "CPUFriend",
+    "description": "Dynamic power management data injection (requires CPUFriendDataProvider)",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "CpuTopologyRebuild",
+    "description": "Optimizes the core configuration of Intel Alder Lake CPUs+",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "CryptexFixup",
+    "description": "Various patches to install Rosetta cryptex",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "ECEnabler",
+    "description": "Allows reading Embedded Controller fields over 1 byte long",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "FeatureUnlock",
+    "description": "Enable additional features on unsupported hardware",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "HibernationFixup",
+    "description": "Fixes hibernation compatibility issues",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "NoTouchID",
+    "description": "Avoid lag in authentication dialogs for board IDs with Touch ID sensors",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   },
+   {
+    "name": "RestrictEvents",
+    "description": "Blocking unwanted processes and unlocking features",
+    "category": "Extras",
+    "checked": true,
+    "required": false
+   },
+   {
+    "name": "RTCMemoryFixup",
+    "description": "Emulate some offsets in your CMOS (RTC) memory",
+    "category": "Extras",
+    "checked": false,
+    "required": false
+   }
+  ],
+  "all_acpi_patches": [
+   {
+    "name": "ALS",
+    "description": "Fake or enable Ambient Light Sensor device for storing the current brightness/auto-brightness level",
+    "checked": false
+   },
+   {
+    "name": "APIC",
+    "description": "Avoid kernel panic by pointing the first CPU entry to an active CPU on HEDT systems",
+    "checked": false
+   },
+   {
+    "name": "BATP",
+    "description": "Enables displaying the battery percentage on laptops",
+    "checked": false
+   },
+   {
+    "name": "BUS0",
+    "description": "Add a System Management Bus device to fix AppleSMBus issues",
+    "checked": true
+   },
+   {
+    "name": "Disable Devices",
+    "description": "Disable unsupported PCI devices such as the GPU, Wi-Fi card, and SD card reader",
+    "checked": false
+   },
+   {
+    "name": "FakeEC",
+    "description": "OS-Aware Fake EC (by CorpNewt)",
+    "checked": true
+   },
+   {
+    "name": "RCSP",
+    "description": "Remove conditional ACPI scope declaration",
+    "checked": false
+   },
+   {
+    "name": "CMOS",
+    "description": "Fix HP Real-Time Clock Power Loss (005) Post Error",
+    "checked": false
+   },
+   {
+    "name": "FixHPET",
+    "description": "Patch Out IRQ Conflicts (by CorpNewt)",
+    "checked": false
+   },
+   {
+    "name": "GPI0",
+    "description": "Enable GPIO device for a I2C TouchPads to function properly",
+    "checked": false
+   },
+   {
+    "name": "IMEI",
+    "description": "Creates a fake IMEI device to ensure Intel iGPUs acceleration functions properly",
+    "checked": false
+   },
+   {
+    "name": "MCHC",
+    "description": "Add a Memory Controller Hub Controller device to fix AppleSMBus",
+    "checked": true
+   },
+   {
+    "name": "PMC",
+    "description": "Add a PMCR device to enable NVRAM support for 300-series mainboards",
+    "checked": true
+   },
+   {
+    "name": "PM (Legacy)",
+    "description": "Block CpuPm and Cpu0Ist ACPI tables to avoid panics for Intel Ivy Bridge and older CPUs",
+    "checked": false
+   },
+   {
+    "name": "PLUG",
+    "description": "Redefines CPU Objects as Processor and sets plugin-type = 1 (by CorpNewt)",
+    "checked": true
+   },
+   {
+    "name": "PNLF",
+    "description": "Defines a PNLF device to enable backlight controls on laptops",
+    "checked": false
+   },
+   {
+    "name": "RMNE",
+    "description": "Creates a Null Ethernet to allow macOS system access to iServices",
+    "checked": false
+   },
+   {
+    "name": "RTC0",
+    "description": "Creates a new RTC device to resolve PCI Configuration issues on HEDT systems",
+    "checked": false
+   },
+   {
+    "name": "RTCAWAC",
+    "description": "Context-Aware AWAC Disable and RTC Enable/Fake/Range Fix (by CorpNewt)",
+    "checked": true
+   },
+   {
+    "name": "PRW",
+    "description": "Fix sleep state values in _PRW methods to prevent immediate wake in macOS",
+    "checked": false
+   },
+   {
+    "name": "Surface Patch",
+    "description": "Special Patch for all Surface Pro / Book / Laptop hardwares",
+    "checked": false
+   },
+   {
+    "name": "UNC",
+    "description": "Disables unused uncore bridges to prevent kenel panic on HEDT systems",
+    "checked": false
+   },
+   {
+    "name": "USB Reset",
+    "description": "Disable USB Hub devices to manually rebuild the ports",
+    "checked": false
+   },
+   {
+    "name": "USBX",
+    "description": "Creates an USBX device to inject USB power properties",
+    "checked": true
+   },
+   {
+    "name": "WMIS",
+    "description": "Certain models forget to return result from ThermalZone",
+    "checked": false
+   },
+   {
+    "name": "XOSI",
+    "description": "Spoofs the operating system to Windows, enabling devices locked behind non-Windows systems on macOS",
+    "checked": false
+   }
+  ],
+  "bios_requirements": [
+   "Disable Secure Boot"
+  ]
+ },
+ "selection": {
+  "darwin": 24,
+  "answers": {},
+  "smbios_model": null,
+  "acpi_overrides": {},
+  "kext_overrides": {}
+ }
+}

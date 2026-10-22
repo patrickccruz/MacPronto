@@ -98,7 +98,12 @@ def machine_label(report: dict) -> str:
 
 def _new_id(label: str) -> str:
     slug = re.sub(r"[^A-Za-z0-9]+", "-", label).strip("-")[:40] or "computador"
-    return f"{datetime.now():%Y%m%d-%H%M%S}-{slug}"
+    base = f"{datetime.now():%Y%m%d-%H%M%S}-{slug}"
+    candidate, counter = base, 2
+    while (paths.scans_dir() / candidate).exists():
+        candidate = f"{base}-{counter}"
+        counter += 1
+    return candidate
 
 
 def run_scan(on_event: Callable[[EngineEvent], None] | None = None, cancel: threading.Event | None = None) -> Scan:

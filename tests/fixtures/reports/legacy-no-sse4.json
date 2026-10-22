@@ -1,0 +1,13 @@
+{
+  "Motherboard": {"Name": "ASUS M2N-E", "Chipset": "Unknown", "Platform": "Desktop"},
+  "BIOS": {"Version": "1701", "Release Date": "2008-09-04", "System Type": "x64-based", "Firmware Type": "Legacy", "Secure Boot": "Unsupported"},
+  "CPU": {"Manufacturer": "AMD", "Processor Name": "AMD Athlon(tm) 64 X2 Dual Core Processor 5000+", "Codename": "Windsor", "Core Count": "02", "CPU Count": "01", "SIMD Features": "SSE, SSE2, SSE3"},
+  "GPU": {"NVIDIA GeForce GT 210": {"Manufacturer": "NVIDIA", "Codename": "Tesla", "Device ID": "10DE-0A65", "Device Type": "Discrete GPU", "Subsystem ID": "34EA1462", "PCI Path": "PciRoot(0x0)/Pci(0xe,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PCI0.PEGP.VGA_"}},
+  "Monitor": {"Samsung SyncMaster": {"Connector Type": "VGA", "Resolution": "1440x900", "Connected GPU": "NVIDIA GeForce GT 210"}},
+  "Network": {"NVIDIA nForce Networking Controller": {"Bus Type": "PCI", "Device ID": "10DE-0373", "Subsystem ID": "81AD1043", "PCI Path": "PciRoot(0x0)/Pci(0x8,0x0)", "ACPI Path": "\\_SB.PCI0.MMAC"}},
+  "Sound": {"High Definition Audio Device": {"Bus Type": "HDAUDIO", "Device ID": "10EC-0883", "Subsystem ID": "104381F6", "Audio Endpoints": ["Alto-falantes"]}},
+  "USB Controllers": {"Standard OpenHCD USB Host Controller": {"Bus Type": "PCI", "Device ID": "10DE-036C", "Subsystem ID": "81E31043", "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)", "ACPI Path": "\\_SB.PCI0.USB0"}},
+  "Input": {"Teclado PS/2 padrão": {"Bus Type": "ACPI", "Device": "PNP0303", "Device Type": "PS/2"}},
+  "Storage Controllers": {"Standard Dual Channel PCI IDE Controller": {"Bus Type": "PCI", "Device ID": "10DE-037F", "Subsystem ID": "81F21043", "PCI Path": "PciRoot(0x0)/Pci(0x5,0x0)", "ACPI Path": "\\_SB.PCI0.SATA", "Disk Drives": ["WDC WD3200AAKS-00B3A0"]}},
+  "System Devices": {"Recursos da placa-mãe": {"Bus Type": "ACPI", "Device": "PNP0C02", "ACPI Path": "\\_SB.PCI0.SBRG.RMSC"}}
+}

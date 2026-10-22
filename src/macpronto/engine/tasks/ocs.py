@@ -596,6 +596,11 @@ def _prepare(ctx: TaskContext, ocs: OCS, ocpe) -> dict:
     ocpe.s.smbios_specific_options(customized, smbios_model, macos_version, ocpe.ac.patches, ocpe.k)
     _apply_overrides(ocs, ocpe, macos_version, params)
 
+    # Antecipa a escolha do layout de áudio para que ela apareça no plano. Na montagem,
+    # o config_prodigy pergunta de novo e recebe a mesma resposta.
+    if any(kext.checked and kext.name == "AppleALC" for kext in ocs.kext_data.kexts):
+        ocpe.co.select_audio_codec_layout(customized)
+
     bios_requirements = ocs.main.OCPE.check_bios_requirements(SimpleNamespace(u=ocpe.u), hardware_report, customized)
 
     return {

@@ -1,0 +1,533 @@
+{
+ "scan": {
+  "id": "20261022-090000-laptop-tiger-lake",
+  "created_at": "2026-10-22T09:00:00",
+  "source": "local",
+  "label": "DELL INSPIRON 15 5502",
+  "has_acpi": true
+ },
+ "report": {
+  "Motherboard": {
+   "Name": "DELL INSPIRON 15 5502",
+   "Chipset": "Tiger Lake-LP",
+   "Platform": "Laptop"
+  },
+  "BIOS": {
+   "Version": "1.19.0",
+   "Release Date": "2023-03-01",
+   "System Type": "x64-based",
+   "Firmware Type": "UEFI",
+   "Secure Boot": "Enabled"
+  },
+  "CPU": {
+   "Manufacturer": "Intel",
+   "Processor Name": "11th Gen Intel(R) Core(TM) i5-1135G7",
+   "Codename": "Tiger Lake-UP3",
+   "Core Count": "04",
+   "CPU Count": "01",
+   "SIMD Features": "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2"
+  },
+  "GPU": {
+   "NVIDIA GeForce MX450": {
+    "Manufacturer": "NVIDIA",
+    "Codename": "Turing",
+    "Device ID": "10DE-1F9D",
+    "Device Type": "Discrete GPU",
+    "Subsystem ID": "0A611028",
+    "PCI Path": "PciRoot(0x0)/Pci(0x6,0x0)/Pci(0x0,0x0)",
+    "ACPI Path": "\\_SB.PC00.PEG0.PEGP"
+   },
+   "Intel(R) Iris(R) Xe Graphics": {
+    "Manufacturer": "Intel",
+    "Codename": "Tiger Lake",
+    "Device ID": "8086-9A49",
+    "Device Type": "Integrated GPU",
+    "Subsystem ID": "0A611028",
+    "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)",
+    "ACPI Path": "\\_SB.PC00.GFX0"
+   }
+  },
+  "Monitor": {
+   "Tela interna": {
+    "Connector Type": "Internal",
+    "Resolution": "1920x1080",
+    "Connected GPU": "Intel(R) Iris(R) Xe Graphics"
+   }
+  },
+  "Network": {
+   "Intel(R) Wi-Fi 6 AX201 160MHz": {
+    "Bus Type": "PCI",
+    "Device ID": "8086-A0F0",
+    "Subsystem ID": "02448086",
+    "PCI Path": "PciRoot(0x0)/Pci(0x14,0x3)",
+    "ACPI Path": "\\_SB.PC00.CNVW"
+   }
+  },
+  "Sound": {
+   "Realtek(R) Audio": {
+    "Bus Type": "HDAUDIO",
+    "Device ID": "10EC-0256",
+    "Subsystem ID": "10280A61",
+    "Audio Endpoints": [
+     "Alto-falantes"
+    ],
+    "Controller Device ID": "8086-A0C8"
+   }
+  },
+  "USB Controllers": {
+   "Intel(R) USB 3.20 eXtensible Host Controller - 1.20 (Microsoft)": {
+    "Bus Type": "PCI",
+    "Device ID": "8086-A0ED",
+    "Subsystem ID": "0A611028",
+    "PCI Path": "PciRoot(0x0)/Pci(0x14,0x0)",
+    "ACPI Path": "\\_SB.PC00.XHCI"
+   }
+  },
+  "Input": {
+   "Teclado PS/2 padrão": {
+    "Bus Type": "ACPI",
+    "Device": "PNP0303",
+    "Device Type": "PS/2"
+   },
+   "Dispositivo HID I2C": {
+    "Bus Type": "ACPI",
+    "Device": "DELL0A61",
+    "Device Type": "Dispositivo HID I2C"
+   }
+  },
+  "Storage Controllers": {
+   "WDC PC SN530 SDBPNPZ-512G-1002": {
+    "Bus Type": "PCI",
+    "Device ID": "15B7-5008",
+    "Subsystem ID": "500815B7",
+    "PCI Path": "PciRoot(0x0)/Pci(0x1d,0x0)/Pci(0x0,0x0)",
+    "ACPI Path": "\\_SB.PC00.RP09.PXSX",
+    "Disk Drives": [
+     "WDC PC SN530 SDBPNPZ-512G-1002"
+    ]
+   }
+  },
+  "Biometric": {
+   "Goodix MOC Fingerprint": {
+    "Bus Type": "USB",
+    "Device ID": "27C6-538C"
+   }
+  },
+  "Bluetooth": {
+   "Intel(R) Wireless Bluetooth(R)": {
+    "Bus Type": "USB",
+    "Device ID": "8087-0026"
+   }
+  },
+  "System Devices": {
+   "Recursos da placa-mãe": {
+    "Bus Type": "ACPI",
+    "Device": "PNP0C02",
+    "ACPI Path": "\\_SB.PC00.LPCB.LDRC"
+   }
+  }
+ },
+ "extras": {
+  "system": {
+   "manufacturer": "Dell Inc.",
+   "model": "Inspiron 15 5502",
+   "family": "Inspiron",
+   "form_factor": "laptop",
+   "chassis_types": [
+    10
+   ],
+   "pc_system_type": 2,
+   "is_virtual_machine": false
+  },
+  "baseboard": {
+   "manufacturer": "Dell Inc.",
+   "product": "0X4F9T"
+  },
+  "bios": {
+   "vendor": "Dell Inc.",
+   "version": "1.19.0",
+   "date": "2023-03-01"
+  },
+  "os": {
+   "caption": "Microsoft Windows 11 Home",
+   "version": "10.0.22631",
+   "build": "22631",
+   "architecture": "64 bits"
+  },
+  "memory": {
+   "total_gb": 7.7,
+   "modules": [
+    {
+     "capacity_gb": 8.0,
+     "speed_mhz": 3200,
+     "manufacturer": "SK Hynix"
+    }
+   ]
+  },
+  "battery": {
+   "present": true,
+   "count": 1
+  },
+  "disks": [
+   {
+    "number": 0,
+    "model": "WDC PC SN530 SDBPNPZ-512G-1002",
+    "size_gb": 512,
+    "bus": "NVMe",
+    "media": "SSD",
+    "system": true
+   }
+  ]
+ },
+ "acpi_tables": [
+  "dsdt.aml",
+  "ssdt1.aml",
+  "ssdt2.aml"
+ ],
+ "laudo": {
+  "generated_at": "2026-10-22T16:22:27",
+  "app_version": "0.1.0",
+  "scan_id": "20261022-090000-laptop-tiger-lake",
+  "source": "local",
+  "machine": {
+   "name": "DELL INSPIRON 15 5502",
+   "form_factor": "laptop",
+   "form_label": "Notebook",
+   "manufacturer": "Dell Inc.",
+   "model": "Inspiron 15 5502",
+   "board": "Dell Inc. 0X4F9T",
+   "chipset": "Tiger Lake-LP",
+   "cpu": "11th Gen Intel(R) Core(TM) i5-1135G7",
+   "cpu_codename": "Tiger Lake-UP3",
+   "gpus": [
+    "NVIDIA GeForce MX450",
+    "Intel(R) Iris(R) Xe Graphics"
+   ],
+   "ram_gb": 8.0,
+   "firmware": "UEFI",
+   "secure_boot": "Enabled",
+   "bios_vendor": "Dell Inc.",
+   "os": "Microsoft Windows 11 Home",
+   "virtual_machine": false
+  },
+  "verdict": {
+   "status": "incompatible",
+   "headline": "Este computador não pode rodar o macOS.",
+   "summary": "Veja abaixo o motivo."
+  },
+  "difficulty": null,
+  "macos": {
+   "recommended": null,
+   "recommended_label": null,
+   "reason": "Nenhuma versão é compatível com este computador.",
+   "native": null,
+   "oclp": null,
+   "maximum": null,
+   "versions": [
+    {
+     "darwin": 17,
+     "name": "High Sierra",
+     "version": "10.13",
+     "year": 2017,
+     "label": "macOS High Sierra 10.13",
+     "note": "Última com drivers NVIDIA Web para placas Maxwell e Pascal.",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 18,
+     "name": "Mojave",
+     "version": "10.14",
+     "year": 2018,
+     "label": "macOS Mojave 10.14",
+     "note": "Última com suporte a aplicativos de 32 bits.",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 19,
+     "name": "Catalina",
+     "version": "10.15",
+     "year": 2019,
+     "label": "macOS Catalina 10.15",
+     "note": "",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 20,
+     "name": "Big Sur",
+     "version": "11",
+     "year": 2020,
+     "label": "macOS Big Sur 11",
+     "note": "",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 21,
+     "name": "Monterey",
+     "version": "12",
+     "year": 2021,
+     "label": "macOS Monterey 12",
+     "note": "Última com suporte nativo a placas NVIDIA Kepler.",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 22,
+     "name": "Ventura",
+     "version": "13",
+     "year": 2022,
+     "label": "macOS Ventura 13",
+     "note": "Exige AVX2 no processador, ou o kext CryptexFixup.",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 23,
+     "name": "Sonoma",
+     "version": "14",
+     "year": 2023,
+     "label": "macOS Sonoma 14",
+     "note": "Removeu o suporte nativo a Wi-Fi Broadcom antigo.",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 24,
+     "name": "Sequoia",
+     "version": "15",
+     "year": 2024,
+     "label": "macOS Sequoia 15",
+     "note": "Versão padrão do MacPronto: a mais estável para Hackintosh.",
+     "status": "unsupported"
+    },
+    {
+     "darwin": 25,
+     "name": "Tahoe",
+     "version": "26",
+     "year": 2025,
+     "label": "macOS Tahoe 26",
+     "note": "Última versão com suporte a Intel. Removeu o AppleHDA (áudio).",
+     "status": "unsupported"
+    }
+   ]
+  },
+  "components": [
+   {
+    "category": "cpu",
+    "name": "11th Gen Intel(R) Core(TM) i5-1135G7",
+    "status": "native",
+    "summary": "Processador Intel compatível.",
+    "details": [
+     "Arquitetura Tiger Lake-UP3, 4 núcleos."
+    ],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "gpu",
+    "name": "NVIDIA GeForce MX450",
+    "status": "incompatible",
+    "summary": "Vídeo sem suporte no macOS, e em notebook não há como trocar.",
+    "details": [
+     "Vídeo dedicado NVIDIA (Turing)."
+    ],
+    "device_id": "10DE-1F9D",
+    "blocking": true,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "gpu",
+    "name": "Intel(R) Iris(R) Xe Graphics",
+    "status": "incompatible",
+    "summary": "Vídeo sem suporte no macOS, e em notebook não há como trocar.",
+    "details": [
+     "Vídeo integrado Intel (Tiger Lake).",
+     "Monitores: Tela interna (Internal, 1920x1080)."
+    ],
+    "device_id": "8086-9A49",
+    "blocking": true,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "audio",
+    "name": "Realtek(R) Audio",
+    "status": "native",
+    "summary": "Funciona com o AppleALC.",
+    "details": [
+     "Saídas: Alto-falantes.",
+     "Se não sair som depois da instalação, teste outro layout-id (o guia explica como).",
+     "No macOS Tahoe a Apple removeu o driver de áudio; a EFI usa o SimpleHDA para repô-lo."
+    ],
+    "device_id": "10EC-0256",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "wifi",
+    "name": "Intel(R) Wi-Fi 6 AX201 160MHz",
+    "status": "tweak",
+    "summary": "Wi-Fi Intel: funciona com driver da comunidade, sem AirDrop.",
+    "details": [
+     "Handoff e Área de Transferência Universal funcionam com o AirportItlwm.",
+     "Para ter todos os recursos da Apple, a troca por uma placa Broadcom resolve: Placa M.2 Broadcom BCM94360NG (ou DW1560/DW1820A), que traz Wi-Fi e Bluetooth nativos."
+    ],
+    "device_id": "8086-A0F0",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "bluetooth",
+    "name": "Intel(R) Wireless Bluetooth(R)",
+    "status": "tweak",
+    "summary": "Bluetooth Intel: funciona com fones, teclados e mouses.",
+    "details": [
+     "Sem AirDrop e sem Handoff."
+    ],
+    "device_id": "8087-0026",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "storage",
+    "name": "WDC PC SN530 SDBPNPZ-512G-1002",
+    "status": "native",
+    "summary": "Controladora de disco compatível.",
+    "details": [
+     "Disco: WDC PC SN530 SDBPNPZ-512G-1002."
+    ],
+    "device_id": "15B7-5008",
+    "blocking": false,
+    "disabled": false,
+    "range": {
+     "max": 25,
+     "min": 17
+    },
+    "oclp_range": null
+   },
+   {
+    "category": "disk",
+    "name": "WDC PC SN530 SDBPNPZ-512G-1002",
+    "status": "info",
+    "summary": "512 GB, NVMe, SSD. Contém o Windows atual.",
+    "details": [],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "usb",
+    "name": "Intel(R) USB 3.20 eXtensible Host Controller - 1.20 (Microsoft)",
+    "status": "native",
+    "summary": "Controladora USB compatível.",
+    "details": [
+     "O macOS aceita no máximo 15 portas por controladora; o mapeamento USB do MacPronto resolve isso."
+    ],
+    "device_id": "8086-A0ED",
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "input",
+    "name": "Teclado PS/2 padrão",
+    "status": "native",
+    "summary": "Teclado ou touchpad PS/2: funciona com o VoodooPS2.",
+    "details": [],
+    "device_id": "PNP0303",
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "input",
+    "name": "Dispositivo HID I2C",
+    "status": "tweak",
+    "summary": "Touchpad I2C: funciona com o VoodooI2C.",
+    "details": [
+     "Alguns modelos precisam de ajuste fino depois da instalação."
+    ],
+    "device_id": "DELL0A61",
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "biometric",
+    "name": "Goodix MOC Fingerprint",
+    "status": "incompatible",
+    "summary": "Leitor de digital: nunca funciona em Hackintosh.",
+    "details": [
+     "O Touch ID exige o chip de segurança dos Macs (T2 ou Apple Silicon)."
+    ],
+    "device_id": "27C6-538C",
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   },
+   {
+    "category": "firmware",
+    "name": "BIOS",
+    "status": "native",
+    "summary": "Firmware UEFI.",
+    "details": [
+     "Versão 1.19.0 (2023-03-01).",
+     "O Secure Boot está ligado: desative-o antes de instalar."
+    ],
+    "device_id": null,
+    "blocking": false,
+    "disabled": false,
+    "range": null,
+    "oclp_range": null
+   }
+  ],
+  "fatal": [
+   {
+    "code": "gpu-unsupported",
+    "kind": "incompatible",
+    "title": "Nenhum vídeo compatível",
+    "message": "O macOS precisa de aceleração gráfica, e o vídeo deste notebook não é compatível. Em notebooks não há como trocar a placa de vídeo.",
+    "original": "Checking compatibility with macOS for the following devices: 1. CPU:    - 11th Gen Intel(R) Core(TM) i5-1135G7: Up to macOS Tahoe 26 2. GPU:    - NVIDIA GeForce MX450: Unsupported    - Intel(R) Iris(R) Xe Graphics: Unsupported       - Connected Monitor: Tela interna (Internal) You cannot install macOS without a supported GPU. Please do NOT spam my inbox or issue tracker about this issue anymore!"
+   }
+  ],
+  "bios_requirements": [],
+  "warnings": [
+   "Não há rede cabeada compatível. O instalador baixa o macOS pela internet: use um adaptador USB-Ethernet RTL8153 ou a ancoragem USB de um celular Android durante a instalação."
+  ],
+  "efi_plan": null
+ },
+ "plan": null,
+ "selection": {
+  "darwin": null,
+  "answers": {},
+  "smbios_model": null,
+  "acpi_overrides": {},
+  "kext_overrides": {}
+ }
+}

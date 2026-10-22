@@ -1,0 +1,21 @@
+{
+  "Motherboard": {"Name": "DELL INSPIRON 15 5502", "Chipset": "Tiger Lake-LP", "Platform": "Laptop"},
+  "BIOS": {"Version": "1.19.0", "Release Date": "2023-03-01", "System Type": "x64-based", "Firmware Type": "UEFI", "Secure Boot": "Enabled"},
+  "CPU": {"Manufacturer": "Intel", "Processor Name": "11th Gen Intel(R) Core(TM) i5-1135G7", "Codename": "Tiger Lake-UP3", "Core Count": "04", "CPU Count": "01", "SIMD Features": "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2"},
+  "GPU": {
+    "NVIDIA GeForce MX450": {"Manufacturer": "NVIDIA", "Codename": "Turing", "Device ID": "10DE-1F9D", "Device Type": "Discrete GPU", "Subsystem ID": "0A611028", "PCI Path": "PciRoot(0x0)/Pci(0x6,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PC00.PEG0.PEGP"},
+    "Intel(R) Iris(R) Xe Graphics": {"Manufacturer": "Intel", "Codename": "Tiger Lake", "Device ID": "8086-9A49", "Device Type": "Integrated GPU", "Subsystem ID": "0A611028", "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)", "ACPI Path": "\\_SB.PC00.GFX0"}
+  },
+  "Monitor": {"Tela interna": {"Connector Type": "Internal", "Resolution": "1920x1080", "Connected GPU": "Intel(R) Iris(R) Xe Graphics"}},
+  "Network": {"Intel(R) Wi-Fi 6 AX201 160MHz": {"Bus Type": "PCI", "Device ID": "8086-A0F0", "Subsystem ID": "02448086", "PCI Path": "PciRoot(0x0)/Pci(0x14,0x3)", "ACPI Path": "\\_SB.PC00.CNVW"}},
+  "Sound": {"Realtek(R) Audio": {"Bus Type": "HDAUDIO", "Device ID": "10EC-0256", "Subsystem ID": "10280A61", "Audio Endpoints": ["Alto-falantes"], "Controller Device ID": "8086-A0C8"}},
+  "USB Controllers": {"Intel(R) USB 3.20 eXtensible Host Controller - 1.20 (Microsoft)": {"Bus Type": "PCI", "Device ID": "8086-A0ED", "Subsystem ID": "0A611028", "PCI Path": "PciRoot(0x0)/Pci(0x14,0x0)", "ACPI Path": "\\_SB.PC00.XHCI"}},
+  "Input": {
+    "Teclado PS/2 padrão": {"Bus Type": "ACPI", "Device": "PNP0303", "Device Type": "PS/2"},
+    "Dispositivo HID I2C": {"Bus Type": "ACPI", "Device": "DELL0A61", "Device Type": "Dispositivo HID I2C"}
+  },
+  "Storage Controllers": {"WDC PC SN530 SDBPNPZ-512G-1002": {"Bus Type": "PCI", "Device ID": "15B7-5008", "Subsystem ID": "500815B7", "PCI Path": "PciRoot(0x0)/Pci(0x1d,0x0)/Pci(0x0,0x0)", "ACPI Path": "\\_SB.PC00.RP09.PXSX", "Disk Drives": ["WDC PC SN530 SDBPNPZ-512G-1002"]}},
+  "Biometric": {"Goodix MOC Fingerprint": {"Bus Type": "USB", "Device ID": "27C6-538C"}},
+  "Bluetooth": {"Intel(R) Wireless Bluetooth(R)": {"Bus Type": "USB", "Device ID": "8087-0026"}},
+  "System Devices": {"Recursos da placa-mãe": {"Bus Type": "ACPI", "Device": "PNP0C02", "ACPI Path": "\\_SB.PC00.LPCB.LDRC"}}
+}

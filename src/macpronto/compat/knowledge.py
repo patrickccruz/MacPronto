@@ -177,6 +177,69 @@ REPLACEMENTS = {
     "audio": "Adaptador de áudio USB, que funciona sem configuração.",
 }
 
+# Tradução das opções das decisões, pelo início do rótulo original do OpCore Simplify.
+DECISION_OPTIONS = {
+    "intel-wifi-kext": {
+        "laobamac AirportItlwm": "AirportItlwm (versão laobamac): menu de Wi-Fi nativo, sem patches de sistema no Sequoia 15.2+ e no Tahoe.",
+        "AirportItlwm": "AirportItlwm: menu de Wi-Fi nativo, com Handoff. No Sequoia e no Tahoe exige patches do OCLP.",
+        "itlwm": "itlwm: o mais estável. Usa o aplicativo HeliPort no lugar do menu de Wi-Fi.",
+    },
+    "tahoe-audio": {
+        "AppleALC + OCLP": "AppleALC + OCLP: repõe o driver de áudio com um patch de sistema.",
+        "AppleALC + SimpleHDA": "AppleALC + SimpleHDA: áudio pelo OpenCore, sem patches de sistema.",
+    },
+    "amd-gpu-kext": {
+        "NootRX": "NootRX: usa o firmware mais recente da placa.",
+        "WhateverGreen": "WhateverGreen: usa o firmware original da Apple.",
+    },
+}
+
+DECISION_HELP = {
+    "intel-wifi-kext": "O Wi-Fi Intel não tem driver da Apple. Escolha qual driver da comunidade usar.",
+    "tahoe-audio": "O macOS Tahoe removeu o driver de áudio (AppleHDA). Escolha como repô-lo.",
+    "amd-gpu-kext": "Placas AMD RDNA 2 funcionam com dois kexts diferentes. Dá para trocar depois de instalar.",
+    "audio-layout-id": "Cada placa-mãe liga o codec de um jeito. Se não sair som, teste outro layout.",
+    "firmware-uefi": "A BIOS está em modo Legacy. Montar a EFI para UEFI exige ativar o modo UEFI na BIOS.",
+    "force-load-kexts": "Alguns kexts não declaram suporte a esta versão do macOS. Forçar pode causar instabilidade.",
+    "combination-gpu": "Mais de uma placa de vídeo compatível. Escolha quais ficam ativas no macOS.",
+    "device-wifi": "Há mais de uma placa Wi-Fi. O macOS funciona melhor com só uma ativa.",
+    "device-bluetooth": "Há mais de um Bluetooth. O macOS funciona melhor com só um ativo.",
+}
+
+
+_DETAIL_REPLACEMENTS = (
+    ("OCLP Compatibility", "Com OCLP"),
+    ("Compatibility", "Compatibilidade"),
+    ("Maximum support up to", "no máximo até o"),
+    ("Up to", "até o"),
+    (" to ", " ao "),
+    ("Device ID", "ID do dispositivo"),
+    ("Unsupported", "sem suporte"),
+)
+
+
+def _translate_detail(text: str) -> str:
+    for source, target in _DETAIL_REPLACEMENTS:
+        text = text.replace(source, target)
+    return text
+
+
+def translate_decision(decision: dict) -> dict:
+    translations = DECISION_OPTIONS.get(decision.get("key"), {})
+    options = []
+    for option in decision.get("options", []):
+        label = option.get("label", "")
+        name = label.split(" - ")[0].strip()
+        options.append(
+            {
+                **option,
+                "label_pt": translations.get(name),
+                "details": [_translate_detail(d) for d in option.get("details", [])],
+            }
+        )
+    return {**decision, "options": options, "help": DECISION_HELP.get(decision.get("key"), "")}
+
+
 DIFFICULTY_LABELS = {
     1: "Muito fácil",
     2: "Fácil",
