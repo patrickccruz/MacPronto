@@ -237,6 +237,10 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       if (session?.efi) session.efi = { ...session.efi, usb_map: true }
       return ok({ kext: `${SAMPLE_FOLDER}\\UTBMap.kext`, efi_updated: Boolean(session?.efi), efi: session?.efi ?? null })
     },
+    laudo_export: async (taskId: string) => {
+      await simulate(taskId, ["Salvando o laudo"])
+      return ok({ html: `${SAMPLE_FOLDER}\\Laudo.html`, pdf: `${SAMPLE_FOLDER}\\Laudo.pdf` })
+    },
     guide_build: async (taskId: string) => {
       await simulate(taskId, ["Gerando o guia personalizado"])
       const guide = {

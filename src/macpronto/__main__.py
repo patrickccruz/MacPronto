@@ -11,6 +11,12 @@ import sys
 
 
 def main() -> int:
+    from macpronto import paths
+
+    if paths.is_frozen():
+        # Garante no executável os módulos que o código de terceiros importa em tempo de execução
+        from macpronto import _runtime_imports  # noqa: F401
+
     if "--engine" in sys.argv:
         from macpronto.engine.worker import main as worker_main
 

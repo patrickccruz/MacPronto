@@ -432,3 +432,17 @@ class Api:
         if self._window is not None:
             self._window.destroy()
         return True
+
+    # ------------------------------------------------------------------ laudo
+
+    def laudo_export(self, task_id: str) -> dict:
+        def job(reporter: TaskReporter) -> dict:
+            from macpronto.guide import render
+
+            scan = self._require_scan()
+            if self._session.laudo is None:
+                raise UserFacingError("no-laudo", "Faça ou abra um diagnóstico primeiro.")
+            reporter.stage("Salvando o laudo")
+            return render.export_laudo(scan.to_dict(), self._session.laudo)
+
+        return self._tasks.run(task_id, job)

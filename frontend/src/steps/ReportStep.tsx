@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   ChevronDown,
+  FileText,
   CircleAlert,
   CircleCheckBig,
   CircleX,
@@ -24,6 +25,7 @@ import { api } from "@/lib/api"
 import { CATEGORY, CATEGORY_ORDER, STATUS_STYLE, VERDICT_TONE, VERSION_STATUS_LABEL } from "@/lib/labels"
 import { useApp } from "@/lib/store"
 import type { Laudo, LaudoComponent, VerdictStatus } from "@/lib/types"
+import { useTask } from "@/lib/useTask"
 
 const VERDICT_ICON: Record<VerdictStatus, typeof CircleCheckBig> = {
   compatible: CircleCheckBig,
@@ -194,6 +196,7 @@ function ComponentGroups({ components }: { components: LaudoComponent[] }) {
 
 export function ReportStep() {
   const { payload, go } = useApp()
+  const exporting = useTask()
   if (!payload) return null
   const { laudo } = payload
   const counts = laudo.components.reduce<Record<string, number>>((acc, component) => {
@@ -201,6 +204,14 @@ export function ReportStep() {
     return acc
   }, {})
   const canContinue = laudo.verdict.status !== "incompatible"
+
+  async function exportLaudo() {
+    const result = await exporting.run("laudo", api.laudoExport)
+    if (result) {
+      toast.success("Laudo salvo na pasta do diagnóstico.")
+      void api.openPath(result.pdf ?? result.html)
+    }
+  }
 
   async function exportScan() {
     try {
@@ -219,6 +230,10 @@ export function ReportStep() {
         description={`${laudo.machine.form_label} · ${laudo.machine.cpu}${laudo.machine.ram_gb ? ` · ${laudo.machine.ram_gb} GB de RAM` : ""}`}
         actions={
           <>
+            <Button variant="outline" disabled={exporting.running} onClick={() => void exportLaudo()}>
+              <FileText data-icon="inline-start" />
+              {exporting.running ? "Salvando..." : "Salvar laudo (PDF)"}
+            </Button>
             <Button variant="outline" onClick={() => void exportScan()}>
               <Download data-icon="inline-start" />
               Exportar diagnóstico

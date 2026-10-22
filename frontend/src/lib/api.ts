@@ -48,6 +48,7 @@ export const api = {
   usbReset: () => call<UsbState>("usb_reset"),
   usbBuild: () => call<UsbBuildResult>("usb_build"),
 
+  laudoExport: (taskId: string) => call<{ html: string; pdf: string | null }>("laudo_export", taskId),
   guideBuild: (taskId: string) => call<GuideInfo>("guide_build", taskId),
   guideShareStart: () => call<ShareInfo>("guide_share_start"),
   guideShareStop: () => call<void>("guide_share_stop"),

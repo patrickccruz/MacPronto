@@ -186,3 +186,30 @@ def build(scan: dict, laudo: dict, selection: dict, efi: dict | None, usb_mapped
         "vendor": context["vendor"].name,
         "generated": context["generated"],
     }
+
+
+def export_laudo(scan: dict, laudo: dict, with_pdf: bool = True) -> dict:
+    """Salva o laudo em HTML (e PDF) na pasta do diagnóstico."""
+    folder = paths.scans_dir() / scan["id"]
+    folder.mkdir(parents=True, exist_ok=True)
+    html = (
+        _environment()
+        .get_template("laudo.html.j2")
+        .render(
+            app_version=__version__,
+            generated=datetime.now().strftime("%d/%m/%Y %H:%M"),
+            machine=laudo["machine"],
+            verdict=laudo["verdict"],
+            difficulty=laudo.get("difficulty"),
+            macos=laudo["macos"],
+            fatal=laudo.get("fatal", []),
+            warnings=laudo.get("warnings", []),
+            bios_requirements=laudo.get("bios_requirements", []),
+            components=laudo.get("components", []),
+        )
+    )
+    html_file = folder / "Laudo.html"
+    html_file.write_text(html, encoding="utf-8")
+    pdf_file = folder / "Laudo.pdf"
+    pdf_ok = html_to_pdf(html_file, pdf_file) if with_pdf else False
+    return {"html": str(html_file), "pdf": str(pdf_file) if pdf_ok else None}

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laudo · {{ machine.name }}</title>
+{% include "_estilo.html.j2" %}
+</head>
+<body>
+<main>
+  <header>
+    <p>Laudo de compatibilidade com o macOS gerado pelo MacPronto</p>
+    <h1>{{ machine.name }}</h1>
+    <div class="meta">
+      <span class="chip">{{ machine.form_label }}</span>
+      {% if machine.cpu %}<span class="chip">{{ machine.cpu }}</span>{% endif %}
+      {% if machine.ram_gb %}<span class="chip">{{ machine.ram_gb }} GB de RAM</span>{% endif %}
+      <span class="chip">{{ generated }}</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="card">
+      <strong style="font-size:1.15rem">{{ verdict.headline }}</strong>
+      <p class="muted" style="margin:4px 0 0">{{ verdict.summary }}</p>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card stat"><div class="label">Versão recomendada</div><div class="value">{{ macos.recommended_label or "Nenhuma" }}</div></div>
+      {% if difficulty %}<div class="card stat"><div class="label">Dificuldade</div><div class="value">{{ difficulty.score }}/5 · {{ difficulty.label }}</div></div>{% endif %}
+      <div class="card stat"><div class="label">Firmware</div><div class="value">{{ machine.firmware }}{% if machine.secure_boot == "Enabled" %} · Secure Boot ligado{% endif %}</div></div>
+    </div>
+    {% if macos.reason %}<p class="muted">{{ macos.reason }}</p>{% endif %}
+    {% for item in fatal %}
+    <div class="card warn" style="margin-top:10px"><strong>{{ item.title }}</strong><br><span class="muted">{{ item.message }}</span></div>
+    {% endfor %}
+    {% for warning in warnings %}
+    <div class="card warn" style="margin-top:10px">{{ warning }}</div>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Versões do macOS</h2>
+    <div class="card">
+      {% for version in macos.versions %}
+      <div class="row">
+        <div><strong>{{ version.name }}</strong> <span class="muted">macOS {{ version.version }} · {{ version.year }}</span></div>
+        <div><span class="badge {{ {"recommended": "native", "supported": "native", "oclp": "tweak", "unsupported": "incompatible"}[version.status] }}">{{ {"recommended": "Recomendada", "supported": "Compatível", "oclp": "Requer OCLP", "unsupported": "Sem suporte"}[version.status] }}</span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if bios_requirements %}
+  <section>
+    <h2>Ajustes obrigatórios na BIOS</h2>
+    <div class="card"><ul style="margin:0;padding-left:20px">{% for item in bios_requirements %}<li>{{ item }}</li>{% endfor %}</ul></div>
+  </section>
+  {% endif %}
+
+  <section>
+    <h2>Componentes</h2>
+    <div class="card">
+      {% for item in components %}
+      <div class="row">
+        <div>
+          <strong>{{ item.name }}</strong>{% if item.disabled %} <span class="muted">(desativado na EFI)</span>{% endif %}<br>
+          <span class="muted">{{ item.summary }}</span>
+          {% if item.details %}<ul class="muted" style="margin:4px 0 0;padding-left:18px;font-size:.92rem">{% for detail in item.details %}<li>{{ detail }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div><span class="badge {{ item.status if item.status != 'info' else 'native' }}">{{ {"native": "Funciona", "tweak": "Com ajuste", "replace": "Trocar", "incompatible": "Incompatível", "info": "Informação"}[item.status] }}</span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if difficulty %}
+  <section>
+    <h2>Por que a dificuldade é “{{ difficulty.label | lower }}”</h2>
+    <div class="card"><ul style="margin:0;padding-left:20px">{% for reason in difficulty.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></div>
+  </section>
+  {% endif %}
+
+  <footer>
+    <p>Gerado pelo MacPronto {{ app_version }}. O laudo é uma estimativa feita com as regras da comunidade Hackintosh (OpCore Simplify) e não garante que tudo vá funcionar.
+       Este documento não contém números de série.</p>
+  </footer>
+</main>
+</body>
+</html>

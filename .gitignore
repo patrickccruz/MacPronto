@@ -38,3 +38,6 @@ cache/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Registro da build local
+build-log.txt
