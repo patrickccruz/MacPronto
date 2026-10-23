@@ -34,9 +34,9 @@ function PortRow({
   types: UsbState["connector_types"]
   onChange: (index: number, changes: { selected?: boolean; type?: number | null; comment?: string }) => void
 }) {
+  // O componente é recriado quando o apelido salvo muda (ver a key em ControllerCard)
   const [comment, setComment] = useState(port.comment ?? "")
   const active = port.current.length > 0
-  useEffect(() => setComment(port.comment ?? ""), [port.comment])
 
   return (
     <div
@@ -142,7 +142,7 @@ function ControllerCard({
         </div>
         {ports.length === 0 && <p className="px-2 py-3 text-sm text-muted-foreground">Nenhuma porta usada ainda.</p>}
         {ports.map((port) => (
-          <PortRow key={port.index} port={port} types={types} onChange={(index, changes) => onChange(controller.id, index, changes)} />
+          <PortRow key={`${port.index}:${port.comment ?? ""}`} port={port} types={types} onChange={(index, changes) => onChange(controller.id, index, changes)} />
         ))}
       </CardContent>
     </Card>
@@ -172,7 +172,22 @@ export function UsbStep() {
   }, [])
 
   useEffect(() => {
-    void refresh()
+    // Primeira leitura: o estado só muda quando a resposta chega
+    let active = true
+    api.usbRefresh().then(
+      (fresh) => {
+        if (active) setState(fresh)
+      },
+      (caught) => {
+        if (active) setError(caught instanceof BridgeError ? caught.message : String(caught))
+      },
+    )
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
     if (!discovering) return
     const timer = window.setInterval(() => void refresh(), 2000)
     return () => window.clearInterval(timer)

@@ -147,8 +147,20 @@ export function PendriveStep() {
   }, [])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    // Primeira leitura: o estado só muda quando a resposta chega
+    let active = true
+    api.mediaDisks().then(
+      (list) => {
+        if (active) setDisks(list)
+      },
+      (caught) => {
+        if (active) setError(caught instanceof BridgeError ? caught.message : String(caught))
+      },
+    )
+    return () => {
+      active = false
+    }
+  }, [])
 
   if (!payload) return null
   const version = payload.laudo.macos.versions.find((item) => item.darwin === payload.selection.darwin)
