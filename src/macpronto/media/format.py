@@ -10,6 +10,7 @@ from pathlib import Path
 
 from macpronto import winutil
 from macpronto.media import disks
+from macpronto.tasks import UserFacingError
 
 log = logging.getLogger(__name__)
 
@@ -19,8 +20,9 @@ MAX_PARTITION_MB = 16 * 1024
 CREATE_NO_WINDOW = 0x08000000
 
 
-class FormatError(Exception):
-    pass
+class FormatError(UserFacingError):
+    def __init__(self, message: str, details: str | None = None) -> None:
+        super().__init__("format", message, details)
 
 
 def partition_size_mb(size_bytes: int) -> int:
@@ -35,7 +37,9 @@ def build_script(number: int, size_bytes: int, label: str = LABEL) -> str:
         [
             f"select disk {number}",
             "clean",
-            "convert gpt",
+            # Pendrives que já eram GPT continuam GPT depois do clean, e o convert gpt
+            # falha neles ("não está formatado em MBR"); com noerr o script segue.
+            "convert gpt noerr",
             f"create partition primary size={partition_size_mb(size_bytes)}",
             f'format fs=fat32 quick label="{label}"',
             "assign",
@@ -76,11 +80,18 @@ def format_disk(number: int, unique_id: str, size_bytes: int) -> str:
         output = completed.stdout.decode("cp850", errors="replace")
     log.debug("Saída do diskpart:\n%s", output)
     if completed.returncode != 0:
-        raise FormatError(f"O diskpart falhou (código {completed.returncode}).\n{output.strip()[-800:]}")
+        raise FormatError(
+            f"O diskpart não conseguiu preparar o pendrive (código {completed.returncode}). "
+            "O pendrive pode ter sido apagado; tente de novo ou use outro pendrive.",
+            output.strip()[-1500:],
+        )
 
     for _ in range(30):
         for disk in disks.list_disks():
             if disk["number"] == number and disk["letters"]:
+                log.info(
+                    "Pendrive formatado: unidade %s:, partição %s", disk["letters"][0], disk.get("partition_style")
+                )
                 return disk["letters"][0]
         time.sleep(1)
     raise FormatError("O pendrive foi formatado, mas o Windows não atribuiu uma letra de unidade.")

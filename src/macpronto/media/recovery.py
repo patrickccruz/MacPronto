@@ -20,6 +20,7 @@ from urllib.parse import urlparse
 
 from macpronto import paths
 from macpronto.net import DownloadCancelled, download
+from macpronto.tasks import UserFacingError
 
 log = logging.getLogger(__name__)
 
@@ -41,8 +42,9 @@ BOARDS = {
 Progress = Callable[[float, float, str], None]
 
 
-class RecoveryError(Exception):
-    pass
+class RecoveryError(UserFacingError):
+    def __init__(self, message: str, details: str | None = None) -> None:
+        super().__init__("recovery", message, details)
 
 
 @lru_cache(maxsize=1)

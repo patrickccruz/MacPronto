@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 BUS_USB = 7
 MIN_BYTES = 4 * 1000**3
 MAX_BYTES = 256 * 1000**3
+PARTITION_STYLES = {0: "vazio", 1: "MBR", 2: "GPT"}
 BUS_NAMES = {7: "USB", 11: "SATA", 17: "NVMe", 8: "RAID", 12: "SD", 13: "MMC", 10: "SAS"}
 
 
@@ -29,6 +30,7 @@ class Disk:
     system: bool
     boot: bool
     read_only: bool
+    partition_style: str = ""
     letters: list[str] = field(default_factory=list)
     labels: list[str] = field(default_factory=list)
     eligible: bool = False
@@ -98,6 +100,7 @@ def list_disks() -> list[dict]:
             system=bool(raw.IsSystem),
             boot=bool(raw.IsBoot),
             read_only=bool(raw.IsReadOnly),
+            partition_style=PARTITION_STYLES.get(int(raw.PartitionStyle or 0), "?"),
             letters=disk_letters,
             labels=[labels.get(letter, "") for letter in disk_letters],
         )

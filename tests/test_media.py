@@ -61,7 +61,7 @@ def test_script_do_diskpart():
     script = formatter.build_script(3, 64 * GB)
     lines = script.splitlines()
     assert lines[0] == "select disk 3"
-    assert "clean" in lines and "convert gpt" in lines
+    assert "clean" in lines and "convert gpt noerr" in lines
     assert "create partition primary size=16384" in lines  # FAT32 limitado a 16 GB
     assert 'format fs=fat32 quick label="MACPRONTO"' in lines
     small = formatter.build_script(3, 8 * GB)
