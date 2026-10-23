@@ -21,6 +21,8 @@ from macpronto import __version__, paths
 log = logging.getLogger(__name__)
 
 STAMP_FILE = ".macpronto-stamp"
+# Muda quando a forma de preparar a cópia muda (força uma nova sincronização)
+LAYOUT = "2"
 _lock = threading.Lock()
 
 
@@ -85,7 +87,7 @@ def ensure_from(source: Path, name: str, commit: str) -> Path:
     """Sincroniza ``source`` para engine/<name>, se a versão mudou."""
     with _lock:
         target = paths.engine_dir() / name
-        expected = f"{commit}:{__version__}"
+        expected = f"{commit}:{__version__}:{LAYOUT}"
         stamp = target / STAMP_FILE
 
         if stamp.exists() and stamp.read_text(encoding="utf-8").strip() == expected:
@@ -93,8 +95,24 @@ def ensure_from(source: Path, name: str, commit: str) -> Path:
 
         log.info("Preparando %s (%s) em %s", name, commit[:12], target)
         _sync(source, target)
+        _ensure_packages(target)
         stamp.write_text(expected, encoding="utf-8")
         return target
+
+
+def _ensure_packages(target: Path) -> None:
+    """Cria __init__.py vazios nas pastas de módulos da cópia.
+
+    O OpCore Simplify e o Hardware Sniffer usam pacotes de namespace (pastas sem
+    __init__.py). No executável do Nuitka, subpacotes de namespace carregados como
+    fonte não são encontrados (Scripts.datasets), então a cópia vira pacotes normais.
+    """
+    ignored = {"OCK_Files", "Results", "SysReport", "__pycache__", "bin"}
+    for folder in target.rglob("*"):
+        if not folder.is_dir() or folder == target or ignored & set(folder.relative_to(target).parts):
+            continue
+        if any(child.suffix == ".py" for child in folder.iterdir()) and not (folder / "__init__.py").exists():
+            (folder / "__init__.py").write_text("", encoding="utf-8")
 
 
 def _sync(source: Path, target: Path) -> None:
@@ -111,6 +129,7 @@ def _sync(source: Path, target: Path) -> None:
             shutil.copy2(item, destination)
 
     # Remove módulos Python que deixaram de existir na versão nova, sem tocar nos caches baixados.
+    # Os __init__.py criados por _ensure_packages são recriados logo em seguida.
     for item in target.rglob("*.py"):
         relative = item.relative_to(target)
         if relative not in source_files:

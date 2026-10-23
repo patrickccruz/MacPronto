@@ -63,7 +63,10 @@ def build_executable() -> Path:
         "--enable-plugin=pywebview",
         "--include-package=macpronto",
         "--include-package-data=macpronto",
-        "--nofollow-import-to=pytest,ruff,PIL,tkinter,unittest",
+        # Scripts e HardwareSniffer são o código de terceiros carregado como fonte na área de trabalho.
+        # Sem isto o Nuitka compila a pasta scripts/ do repositório (o Windows ignora maiúsculas)
+        # como se fosse o pacote Scripts, e ela esconde o verdadeiro em tempo de execução.
+        "--nofollow-import-to=Scripts,HardwareSniffer,pytest,ruff,PIL,tkinter,unittest",
         "--windows-console-mode=disable",
         "--windows-uac-admin",
         f"--windows-icon-from-ico={ROOT / 'assets' / 'macpronto.ico'}",
