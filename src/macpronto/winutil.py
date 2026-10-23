@@ -56,10 +56,8 @@ def relaunch_as_admin() -> bool:
         return False
     from macpronto import paths
 
-    if paths.is_frozen():
-        executable, parameters = sys.executable, ""
-    else:
-        executable, parameters = sys.executable, "-m macpronto"
+    executable = str(paths.executable())
+    parameters = "" if paths.is_frozen() else "-m macpronto"
     result = ctypes.windll.shell32.ShellExecuteW(None, "runas", executable, parameters, os.getcwd(), 1)
     return int(result) > 32
 

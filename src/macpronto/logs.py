@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import sys
 from collections import deque
 from datetime import datetime
 
@@ -54,10 +55,12 @@ def setup(debug: bool = False) -> logging.Logger:
     file_handler.setFormatter(formatter)
     root.addHandler(file_handler)
 
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG if debug else logging.INFO)
-    console.setFormatter(formatter)
-    root.addHandler(console)
+    # No executável sem console, sys.stderr pode não existir
+    if sys.stderr is not None:
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG if debug else logging.INFO)
+        console.setFormatter(formatter)
+        root.addHandler(console)
 
     _memory_handler = MemoryHandler()
     _memory_handler.setLevel(logging.DEBUG if debug else logging.INFO)

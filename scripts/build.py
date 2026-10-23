@@ -67,6 +67,8 @@ def build_executable() -> Path:
         # Sem isto o Nuitka compila a pasta scripts/ do repositório (o Windows ignora maiúsculas)
         # como se fosse o pacote Scripts, e ela esconde o verdadeiro em tempo de execução.
         "--nofollow-import-to=Scripts,HardwareSniffer,pytest,ruff,PIL,tkinter,unittest",
+        # ...e eles precisam poder ser importados como fonte, sem a trava do modo de distribuição
+        "--no-deployment-flag=excluded-module-usage",
         "--windows-console-mode=disable",
         "--windows-uac-admin",
         f"--windows-icon-from-ico={ROOT / 'assets' / 'macpronto.ico'}",

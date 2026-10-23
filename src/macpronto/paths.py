@@ -14,6 +14,17 @@ def is_frozen() -> bool:
     return "__compiled__" in globals() or bool(getattr(sys, "frozen", False))
 
 
+def executable() -> Path:
+    """O programa que está rodando: o MacPronto.exe ou o python.exe do ambiente.
+
+    No executável do Nuitka, sys.executable aponta para um python.exe que não
+    existe; o caminho certo é sys.argv[0].
+    """
+    if is_frozen():
+        return Path(sys.argv[0]).resolve()
+    return Path(sys.executable)
+
+
 def resource_root() -> Path:
     """Pasta que contém third_party/ e a interface compilada."""
     override = os.environ.get("MACPRONTO_RESOURCE_DIR")

@@ -2,27 +2,38 @@
 
 O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implementação passou a ser feita de forma contínua, sem cadência de sprints; a lista abaixo continua organizada pelos blocos originais só para acompanhar o andamento.
 
-## Status em 22/10/2026
+## Status em 23/10/2026
 
-**Funciona de ponta a ponta no modo de desenvolvimento** (`python -m macpronto`), testado com o hardware real de um Lenovo ThinkCentre M80q (i5-10500T, UHD 630):
+**O executável funciona.** O `MacPronto.exe` gerado pelo Nuitka foi testado neste Lenovo ThinkCentre M80q (i5-10500T, UHD 630):
 
-- Diagnóstico, laudo, escolha da versão do macOS, montagem da EFI (validada pelo `ocvalidate`, sem problemas), mapeamento USB, download do macOS Recovery (884 MB do Sequoia, verificado com a assinatura da Apple) e geração do guia em HTML e PDF.
-- 39 testes automáticos passando (laudo com 5 máquinas sintéticas, EFI, USB, regras de segurança do pendrive e guia).
+- A janela abre com a interface completa e a ponte com o Python.
+- O autoteste (`MacPronto.exe --selftest --full`) passa nos 7 itens: recursos empacotados, motor em subprocesso, laudo e guia, QR code, portas USB, discos e coleta do hardware.
+- Uma EFI completa foi montada pelo próprio executável, do zero (download do OpenCore 1.0.9 e de 16 kexts, 7 SSDTs compiladas), em 83 segundos, e o `ocvalidate` não encontrou problemas.
+- O Windows Defender (assinaturas de 23/10/2026) não encontrou ameaças no executável, no instalador nem no portátil.
+- Saídas da build: instalador de 15,2 MB e versão portátil de 19,9 MB.
+- 43 testes automáticos passando.
+
+No modo de desenvolvimento também foram validados com o hardware real: diagnóstico, laudo, mapeamento USB, download do macOS Recovery (884 MB do Sequoia, conferido com a assinatura da Apple) e guia em HTML e PDF.
 
 **Implementado, mas ainda sem validação real:**
 
 - Formatação e gravação do pendrive: a lógica e as regras de segurança têm testes automáticos, mas nenhum pendrive foi formatado ainda.
-- Empacotamento: `scripts/build.py` (Nuitka), `installer/MacPronto.iss` (Inno Setup) e o workflow do GitHub Actions (`docs/ci/build.yml`) estão escritos. A primeira compilação com o Nuitka foi interrompida no início, a pedido.
+- Instalação pelo instalador e elevação a administrador ao abrir o `.exe`: os testes do executável rodaram sem elevação (`__COMPAT_LAYER=RunAsInvoker`).
 - Regras de notebooks, AMD e hardware antigo: vêm do OpCore Simplify e foram conferidas no laudo com relatórios sintéticos, mas nenhuma EFI foi testada nessas máquinas.
+
+**Corrigido nesta etapa:**
+
+- Os downloads do OpCore Simplify e do Hardware Sniffer desligavam a verificação TLS quando não achavam o `cert.pem` nem o `certifi`. Agora usam o repositório de certificados do Windows.
+- No executável, o código de terceiros não carregava (colisão da pasta `scripts/` com o pacote `Scripts` e caminho errado do worker).
 
 ### Próximos passos
 
-1. Concluir a compilação com o Nuitka e testar o `.exe` (abrir como administrador, worker do motor, WebView2).
-2. Testar a criação do pendrive com um pendrive de verdade e dar boot nesta máquina.
-3. Gerar o instalador e a versão portátil. Ativar o GitHub Actions: rodar `gh auth refresh -h github.com -s workflow` (o token atual não tem o escopo `workflow`) e mover `docs/ci/build.yml` para `.github/workflows/build.yml`. A build do executável roda só manualmente ou em tags `v*`.
-4. Testar o `.exe` contra o Windows Defender e outros antivírus.
-5. Atualização da base de regras sob demanda (baixar o OpCore Simplify mais novo, validar com os testes e permitir voltar à versão travada).
-6. Testes com amigos (desktops AMD, notebooks e máquinas antigas) usando o modo simulação e máquinas reais.
+1. Testar a criação do pendrive com um pendrive de verdade e dar boot nesta máquina.
+2. Testar o instalador (instalação, atalhos, desinstalação) e a elevação pelo UAC ao abrir.
+3. Ativar o GitHub Actions: rodar `gh auth refresh -h github.com -s workflow` (o token atual não tem o escopo `workflow`) e mover `docs/ci/build.yml` para `.github/workflows/build.yml`.
+4. Testar contra outros antivírus além do Windows Defender.
+5. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
+6. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
 
 ## Premissas
 
@@ -64,8 +75,9 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 
 ### Validação
 - [ ] Rodar o OpCore Simplify e o macrecovery em 2 ou 3 PCs reais (feito em 1 desktop Intel; faltam notebook e AMD)
-- [ ] Protótipo com pywebview + Nuitka executando como administrador (pywebview validado; compilação com o Nuitka pendente)
-- [ ] Testar o .exe contra o Windows Defender e outros antivírus
+- [x] Protótipo com pywebview + Nuitka (executável validado; falta testar a elevação pelo UAC)
+- [x] Testar o .exe contra o Windows Defender
+- [ ] Testar o .exe contra outros antivírus
 - [x] Confirmar as licenças das ferramentas de terceiros (BSD-3-Clause e MIT)
 
 ### Fundação
@@ -121,11 +133,11 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 - [x] Fluxo de pós-instalação com OCLP (no guia, quando a EFI exige)
 - [ ] CPUs sem AVX2, GPUs legadas, AMD Ryzen (laudo pronto; falta validar a EFI em máquinas reais)
 - [x] Atualização automática de kexts (sempre as versões mais novas na montagem da EFI)
-- [ ] Atualização da base de regras sob demanda
+- [x] Atualização da base de regras sob demanda (só ativa versões que passam no autoteste)
 
 ### Beta e acabamento
 - [ ] Testes com amigos e correções
-- [ ] Instalador (Inno Setup) e versão portátil (scripts escritos, ainda não gerados)
+- [ ] Instalador (Inno Setup) e versão portátil (gerados e sem ameaças no Defender; falta testar a instalação)
 - [x] Ícone, tela "Sobre" e créditos
 - [ ] Assinatura digital (opcional)
 
@@ -142,3 +154,4 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 | Formatar o disco errado | Só discos USB entre 4 e 256 GB que não sejam do Windows, confirmação dupla e nova conferência da identidade do disco logo antes do diskpart |
 | Variedade de hardware | Modo simulação com laudos de amigos e testes em máquinas reais |
 | Ferramentas que ignoram hardware real (ex.: usbdump com o Parsec) | Leitura própria das portas pelas APIs do Windows |
+| Caminhos com mais de 260 caracteres (pasta de usuário muito longa) | Dados em %LOCALAPPDATA%\MacPronto, com caminhos curtos; avaliar manifesto com suporte a caminhos longos |

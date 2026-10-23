@@ -69,7 +69,7 @@ def run(output: Path | None = None) -> int:
         plan = run_task("plan", {"report": report, "macos_version": "24"})
         state.update(report=report, analysis=analysis, plan=plan)
         kexts = [k["name"] for k in plan["kexts"] if k["checked"]]
-        return f"worker {sys.executable}; {len(kexts)} kexts, SMBIOS {plan['smbios_model']}"
+        return f"worker {paths.executable()}; {len(kexts)} kexts, SMBIOS {plan['smbios_model']}"
 
     def laudo_and_guide() -> str:
         from macpronto.compat import laudo
@@ -117,7 +117,8 @@ def run(output: Path | None = None) -> int:
     summary = {
         "version": __version__,
         "frozen": paths.is_frozen(),
-        "executable": sys.executable,
+        "executable": str(paths.executable()),
+        "sys_executable": sys.executable,
         "argv0": sys.argv[0],
         "admin": _is_admin(),
         "compat_layer": os.environ.get("__COMPAT_LAYER"),

@@ -38,8 +38,8 @@ class EngineEvent:
 
 def worker_command() -> list[str]:
     if paths.is_frozen():
-        return [sys.executable, "--engine"]
-    return [sys.executable, "-m", "macpronto", "--engine"]
+        return [str(paths.executable()), "--engine"]
+    return [str(paths.executable()), "-m", "macpronto", "--engine"]
 
 
 def _worker_env() -> dict[str, str]:
