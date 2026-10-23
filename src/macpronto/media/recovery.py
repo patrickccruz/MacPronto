@@ -11,8 +11,11 @@ import hashlib
 import importlib.util
 import json
 import logging
+import shutil
 import threading
+import time
 from collections.abc import Callable
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from types import SimpleNamespace
@@ -116,48 +119,162 @@ def verify(dmg: Path, chunklist: Path, progress: Progress | None = None, cancel:
         raise RecoveryError("O chunklist do macOS Recovery é inválido ou não tem a assinatura da Apple.") from exc
 
 
-def ensure(
-    darwin: int,
-    progress: Progress | None = None,
-    cancel: threading.Event | None = None,
-    force: bool = False,
-) -> dict:
-    """Garante o macOS Recovery da versão no cache, baixado e verificado."""
-    folder = cache_folder(darwin)
+def _read_cache(folder: Path) -> dict | None:
     meta_file = folder / "meta.json"
-    if not force and meta_file.exists():
-        try:
-            meta = json.loads(meta_file.read_text(encoding="utf-8"))
-            dmg, chunklist = folder / meta["image"], folder / meta["chunklist"]
-            if dmg.exists() and chunklist.exists():
-                verify(dmg, chunklist, progress, cancel)
-                log.info("macOS Recovery %s do cache (%s)", darwin, meta.get("product"))
-                return {**meta, "dmg": str(dmg), "chunklist_path": str(chunklist), "cached": True}
-        except (OSError, json.JSONDecodeError, KeyError, RecoveryError) as exc:
-            log.warning("Cache do macOS Recovery inválido, baixando de novo: %s", exc)
+    if not meta_file.exists():
+        return None
+    try:
+        meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        dmg, chunklist = folder / meta["image"], folder / meta["chunklist"]
+    except (OSError, json.JSONDecodeError, KeyError) as exc:
+        log.warning("Registro do cache do macOS Recovery ilegível (%s): %s", meta_file, exc)
+        return None
+    if not (dmg.exists() and chunklist.exists()):
+        log.warning("Cache do macOS Recovery incompleto em %s", folder)
+        return None
+    return {**meta, "dmg": str(dmg), "chunklist_path": str(chunklist)}
 
-    info = image_info(darwin)
+
+def _safe_name(product: str) -> str:
+    return "".join(c if c.isalnum() or c in "-_." else "_" for c in product) or "imagem"
+
+
+def _download_into_cache(folder: Path, info: dict, darwin: int, previous: dict | None, progress, cancel) -> dict:
+    """Baixa numa pasta à parte e só troca o cache depois de verificado."""
+    staging = folder / f"novo-{_safe_name(info['product'])}"
+    for leftover in folder.glob("novo-*"):  # downloads interrompidos de outras versões
+        if leftover != staging and leftover.is_dir():
+            shutil.rmtree(leftover, ignore_errors=True)
     image_name = Path(urlparse(info["image_url"]).path).name or "BaseSystem.dmg"
     chunklist_name = Path(urlparse(info["chunklist_url"]).path).name or "BaseSystem.chunklist"
-    chunklist = folder / chunklist_name
-    dmg = folder / image_name
 
     def report(done: int, total: int) -> None:
         if progress:
             progress(done, total, "Baixando")
 
+    started = time.monotonic()
     download(
         info["chunklist_url"],
-        chunklist,
+        staging / chunklist_name,
         headers=_headers(info["chunklist_url"], info["chunklist_token"]),
         cancel=cancel,
     )
     download(
-        info["image_url"], dmg, headers=_headers(info["image_url"], info["image_token"]), progress=report, cancel=cancel
+        info["image_url"],
+        staging / image_name,
+        headers=_headers(info["image_url"], info["image_token"]),
+        progress=report,
+        cancel=cancel,
     )
-    verify(dmg, chunklist, progress, cancel)
+    verify(staging / image_name, staging / chunklist_name, progress, cancel)
+    size = (staging / image_name).stat().st_size
+    log.info(
+        "macOS Recovery %s baixado e verificado: %s, %.0f MB em %.0f s",
+        darwin,
+        info["product"],
+        size / 1024**2,
+        time.monotonic() - started,
+    )
 
-    meta = {"darwin": darwin, "product": info["product"], "image": image_name, "chunklist": chunklist_name}
-    meta_file.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-    log.info("macOS Recovery %s baixado: %s", darwin, info["product"])
-    return {**meta, "dmg": str(dmg), "chunklist_path": str(chunklist), "cached": False}
+    if previous is not None:
+        for name in (previous.get("image"), previous.get("chunklist")):
+            if name:
+                (folder / name).unlink(missing_ok=True)
+    for name in (image_name, chunklist_name):
+        (staging / name).replace(folder / name)
+    shutil.rmtree(staging, ignore_errors=True)
+
+    meta = {
+        "darwin": darwin,
+        "product": info["product"],
+        "image": image_name,
+        "chunklist": chunklist_name,
+        "size": size,
+        "downloaded_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    (folder / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    return {**meta, "dmg": str(folder / image_name), "chunklist_path": str(folder / chunklist_name)}
+
+
+def ensure(
+    darwin: int,
+    progress: Progress | None = None,
+    cancel: threading.Event | None = None,
+    force: bool = False,
+    status: Callable[[str], None] | None = None,
+) -> dict:
+    """Garante o macOS Recovery da versão no cache, baixado e verificado.
+
+    Se já houver um no computador, pergunta à Apple qual é o atual: se for o mesmo,
+    usa o do computador; se a Apple tiver um mais novo, baixa o novo. Sem internet
+    (ou se a Apple não responder), usa o do computador.
+    """
+    folder = cache_folder(darwin)
+    cached = None if force else _read_cache(folder)
+    info = None
+
+    if cached is not None:
+        try:
+            info = image_info(darwin)
+        except RecoveryError as exc:
+            log.warning("Sem resposta da Apple (%s); usando o macOS Recovery do computador.", exc.message)
+        if info is None or info["product"] == cached["product"]:
+            if status:
+                status("Conferindo o macOS Recovery salvo no computador")
+            try:
+                verify(Path(cached["dmg"]), Path(cached["chunklist_path"]), progress, cancel)
+            except RecoveryError as exc:
+                log.warning("O macOS Recovery do computador está corrompido (%s); baixando de novo.", exc.message)
+            else:
+                log.info(
+                    "macOS Recovery %s do computador (produto %s, baixado em %s)%s",
+                    darwin,
+                    cached["product"],
+                    cached.get("downloaded_at", "?"),
+                    "" if info else "; não deu para conferir na Apple se há outro mais novo",
+                )
+                return {**cached, "cached": True, "replaced": None}
+        else:
+            log.info(
+                "A Apple tem um macOS Recovery mais novo para a versão %s: %s (no computador: %s).",
+                darwin,
+                info["product"],
+                cached["product"],
+            )
+
+    if info is None:
+        info = image_info(darwin)
+    if status:
+        status("Baixando a versão mais nova do macOS Recovery" if cached else "Baixando o macOS Recovery da Apple")
+    result = _download_into_cache(folder, info, darwin, cached, progress, cancel)
+    return {**result, "cached": False, "replaced": cached["product"] if cached else None}
+
+
+def cached_images() -> list[dict]:
+    """macOS Recovery guardados no computador, para mostrar e limpar."""
+    root = paths.cache_dir() / "recovery"
+    found = []
+    for folder in sorted(root.glob("*")) if root.exists() else []:
+        meta = _read_cache(folder) if folder.is_dir() else None
+        if meta is not None:
+            size = sum(f.stat().st_size for f in folder.rglob("*") if f.is_file())
+            found.append(
+                {
+                    "darwin": meta.get("darwin"),
+                    "product": meta.get("product"),
+                    "size": size,
+                    "downloaded_at": meta.get("downloaded_at"),
+                }
+            )
+    return found
+
+
+def clear_cache() -> int:
+    """Apaga todos os macOS Recovery guardados. Devolve quantos bytes foram liberados."""
+    root = paths.cache_dir() / "recovery"
+    if not root.exists():
+        return 0
+    freed = sum(f.stat().st_size for f in root.rglob("*") if f.is_file())
+    shutil.rmtree(root, ignore_errors=True)
+    log.info("Cache do macOS Recovery apagado (%.0f MB)", freed / 1024**2)
+    return freed

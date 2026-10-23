@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import urllib.request
+from pathlib import Path
 
 import pytest
 
 from macpronto.guide import content, render
 from macpronto.guide.share import GuideShare
-from macpronto.media import disks
+from macpronto.media import disks, recovery
 from macpronto.media import format as formatter
 
 GB = 1000**3
@@ -57,17 +58,87 @@ def test_disco_trocado_e_recusado(monkeypatch):
         disks.find_disk(5, "USBSTOR\\DISK", 32 * GB)
 
 
-def test_script_do_diskpart():
-    script = formatter.build_script(3, 64 * GB)
-    lines = script.splitlines()
-    assert lines[0] == "select disk 3"
-    assert "clean" in lines and "convert gpt noerr" in lines
-    assert "create partition primary size=16384" in lines  # FAT32 limitado a 16 GB
-    assert 'format fs=fat32 quick label="MACPRONTO"' in lines
-    small = formatter.build_script(3, 8 * GB)
-    assert "size=7565" in small
+def test_scripts_do_diskpart():
+    prepare = formatter.prepare_script(3, 64 * GB, "gpt", ["E"]).splitlines()
+    assert prepare[:2] == ["select volume E", "remove all dismount noerr"]
+    assert "select disk 3" in prepare and "clean" in prepare and "convert gpt noerr" in prepare
+    assert "create partition primary size=16384" in prepare  # FAT32 limitado a 16 GB
+    # A partição nasce sem letra, para o Explorer não perguntar se quer formatar a unidade vazia
+    assert prepare[prepare.index("create partition primary size=16384") + 1] == "gpt attributes=0x8000000000000000"
+    assert not any(line.startswith("format") for line in prepare)  # formatar só depois do volume aparecer
+
+    fmt = formatter.format_script(3, 2, "gpt").splitlines()
+    assert fmt[:3] == ["select disk 3", "select partition 2", 'format fs=fat32 quick label="MACPRONTO"']
+    assert fmt.index("gpt attributes=0x0000000000000000") < fmt.index("assign noerr")
+
+    mbr = formatter.prepare_script(3, 8 * GB, "mbr")
+    assert "convert mbr noerr" in mbr and "size=7565" in mbr and "gpt attributes" not in mbr
+    assert "gpt attributes" not in formatter.format_script(3, 1, "mbr")
     with pytest.raises(ValueError):
-        formatter.build_script(-1, 8 * GB)
+        formatter.prepare_script(-1, 8 * GB)
+    with pytest.raises(ValueError):
+        formatter.prepare_script(1, 8 * GB, "apm")
+
+
+def test_particao_de_dados_ignora_a_reservada():
+    msr = {"number": 1, "size": 16 * 1024**2, "gpt_type": "{e3c9e316-0b5c-4db8-817d-f92df00215ae}"}
+    data = {"number": 2, "size": 16 * GB, "gpt_type": formatter.GPT_BASIC_DATA}
+    assert formatter.pick_data_partition([msr, data])["number"] == 2
+    assert formatter.pick_data_partition([{"number": 1, "size": GB, "gpt_type": ""}])["number"] == 1  # MBR
+    assert formatter.pick_data_partition([]) is None
+
+
+class FakeApple:
+    """Simula os servidores da Apple e o download, sem rede."""
+
+    def __init__(self, monkeypatch, product="111-11111", online=True):
+        self.product = product
+        self.online = online
+        self.downloads = 0
+        monkeypatch.setattr(recovery, "image_info", self.image_info)
+        monkeypatch.setattr(recovery, "download", self.download)
+        monkeypatch.setattr(recovery, "verify", lambda *args, **kwargs: None)
+
+    def image_info(self, darwin):
+        if not self.online:
+            raise recovery.RecoveryError("sem internet")
+        return {
+            "product": self.product,
+            "image_url": "https://oscdn.apple.com/x/BaseSystem.dmg",
+            "image_token": "t",
+            "chunklist_url": "https://oscdn.apple.com/x/BaseSystem.chunklist",
+            "chunklist_token": "t",
+        }
+
+    def download(self, url, target, **kwargs):
+        self.downloads += 1
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(f"{self.product} {url}", encoding="utf-8")
+        return target
+
+
+def test_macos_recovery_reaproveitado_ou_atualizado(monkeypatch, tmp_path):
+    monkeypatch.setenv("MACPRONTO_DATA_DIR", str(tmp_path))
+    apple = FakeApple(monkeypatch)
+
+    first = recovery.ensure(24)
+    assert first["cached"] is False and apple.downloads == 2
+
+    again = recovery.ensure(24)  # a Apple tem o mesmo: usa o do computador
+    assert again["cached"] is True and apple.downloads == 2
+
+    apple.online = False  # sem internet: usa o do computador
+    assert recovery.ensure(24)["cached"] is True and apple.downloads == 2
+
+    apple.online, apple.product = True, "222-22222"  # a Apple publicou outro: baixa o novo
+    newer = recovery.ensure(24)
+    assert newer["cached"] is False and newer["product"] == "222-22222" and newer["replaced"] == "111-11111"
+    assert "222-22222" in Path(newer["dmg"]).read_text(encoding="utf-8")
+    assert not list(Path(newer["dmg"]).parent.glob("novo-*"))  # pasta temporária removida
+
+    listed = recovery.cached_images()
+    assert [item["product"] for item in listed] == ["222-22222"]
+    assert recovery.clear_cache() > 0 and recovery.cached_images() == []
 
 
 @pytest.mark.parametrize(

@@ -351,10 +351,13 @@ class Api:
         scan = self._require_scan()
         if self._session.laudo is None:
             raise UserFacingError("no-laudo", "Faça ou abra um diagnóstico primeiro.")
+        selection = dict(self._session.selection)
+        if self._session.efi and self._session.efi.get("macos"):
+            selection["darwin"] = self._session.efi["macos"]  # o guia segue a EFI montada
         info = render.build(
             scan.to_dict(),
             self._session.laudo,
-            self._session.selection,
+            selection,
             self._session.efi,
             usb_mapped=bool(self._session.efi and self._session.efi.get("usb_map")),
             with_pdf=with_pdf,
@@ -412,7 +415,8 @@ class Api:
                 disk_number=int(options_["number"]),
                 unique_id=str(options_["unique_id"]),
                 size_bytes=int(options_["size_bytes"]),
-                darwin=int(self._session.selection["darwin"]),
+                # A versão para a qual a EFI foi montada (a seleção pode ter mudado depois)
+                darwin=int(self._session.efi.get("macos") or self._session.selection["darwin"]),
                 efi_dir=Path(self._session.efi["efi_dir"]),
                 extra_folder=Path(guide["folder"]),
             )

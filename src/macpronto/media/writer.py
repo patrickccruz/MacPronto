@@ -11,6 +11,7 @@ Ordem pensada para não apagar o pendrive à toa:
 from __future__ import annotations
 
 import logging
+import os
 import threading
 from collections.abc import Callable
 from datetime import datetime
@@ -52,6 +53,9 @@ def _copy_file(source: Path, target: Path, on_bytes: Callable[[int], None], canc
                 break
             writer.write(block)
             on_bytes(len(block))
+        # Garante que os dados chegaram ao pendrive (e não só ao cache do Windows)
+        writer.flush()
+        os.fsync(writer.fileno())
 
 
 def _copy_tree(source: Path, target: Path, reporter: Reporter, label: str) -> None:
@@ -85,8 +89,8 @@ def create(
     disk = disks.find_disk(disk_number, unique_id, size_bytes)
     _check(reporter)
 
-    reporter.stage("Baixando o macOS Recovery da Apple")
-    image = recovery.ensure(darwin, progress=reporter.progress, cancel=reporter.cancel)
+    reporter.stage("Conferindo o macOS Recovery na Apple")
+    image = recovery.ensure(darwin, progress=reporter.progress, cancel=reporter.cancel, status=reporter.stage)
     _check(reporter)
 
     reporter.stage("Apagando e formatando o pendrive")
@@ -136,5 +140,6 @@ def create(
         "product": image["product"],
         "darwin": darwin,
         "recovery_cached": image["cached"],
+        "recovery_replaced": image.get("replaced"),
         "verified": True,
     }
