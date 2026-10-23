@@ -30,7 +30,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 ### Próximos passos
 
 1. Testar a criação do pendrive com um pendrive de verdade e dar boot nesta máquina.
-2. Ativar o GitHub Actions: rodar `gh auth refresh -h github.com -s workflow` (o token atual não tem o escopo `workflow`) e mover `docs/ci/build.yml` para `.github/workflows/build.yml`.
+2. Conferir a primeira build no GitHub Actions (`.github/workflows/build.yml`): testes a cada push; executável, portátil e instalador manualmente ou em tags `v*`.
 3. Testar contra outros antivírus além do Windows Defender.
 4. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
 5. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
@@ -86,7 +86,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 - [x] Kit visual: cores, tipografia, componentes, modo claro e escuro
 - [x] Navegação do assistente (passo a passo)
 - [x] Registros (logs)
-- [ ] Build automática do .exe no GitHub Actions (workflow escrito em `docs/ci/build.yml`, ainda não ativado)
+- [ ] Build automática do .exe no GitHub Actions (workflow ativado em 23/10/2026; primeira execução em andamento)
 
 ### Diagnóstico
 - [x] Coleta via WMI e IDs PCI

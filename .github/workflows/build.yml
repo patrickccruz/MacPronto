@@ -1,6 +1,3 @@
-# Inativo aqui. Para ativar, mova para .github/workflows/build.yml
-# (o token do gh precisa do escopo workflow: gh auth refresh -h github.com -s workflow).
-
 name: Build
 
 on:
