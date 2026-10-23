@@ -139,7 +139,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
   return {
     app_info: async () =>
       ok({
-        version: "0.1.0",
+        version: "0.1.0-beta.1",
         is_admin: false,
         documents_dir: "C:\\Users\\voce\\Documents\\MacPronto",
         logs_dir: "C:\\Users\\voce\\AppData\\Local\\MacPronto\\logs",

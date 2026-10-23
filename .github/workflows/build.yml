@@ -86,6 +86,13 @@ jobs:
 
       - name: Publicar versão
         if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" dist/*.zip dist/*-instalador.exe --title "MacPronto ${{ github.ref_name }}" --generate-notes
+          TAG: ${{ github.ref_name }}
+        run: |
+          # Notas em docs/releases/<tag>.md, se existirem; tags com hífen (ex.: v0.1.0-beta.1) viram pré-lançamento
+          args=(--title "MacPronto $TAG")
+          if [ -f "docs/releases/$TAG.md" ]; then args+=(--notes-file "docs/releases/$TAG.md"); else args+=(--generate-notes); fi
+          if [[ "$TAG" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$TAG" dist/*.zip dist/*-instalador.exe "${args[@]}"
