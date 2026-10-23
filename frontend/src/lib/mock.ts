@@ -145,6 +145,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
         }
       : null,
   })
+  let guideProfile: string | null = null
   let recoveryCache = [{ darwin: 24, product: "696-28424", size: 884321259, downloaded_at: "2026-10-23T15:11:20" }]
   let logId = 0
 
@@ -282,13 +283,31 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       await simulate(taskId, ["Salvando o laudo"])
       return ok({ html: `${SAMPLE_FOLDER}\\Laudo.html`, pdf: `${SAMPLE_FOLDER}\\Laudo.pdf` })
     },
-    guide_build: async (taskId: string) => {
+    guide_profiles: async () =>
+      ok({
+        choices: [
+          { id: "lenovo-thinkcentre", name: "Lenovo ThinkCentre e ThinkStation", group: "Marca e linha" },
+          { id: "dell-business", name: "Dell OptiPlex, Latitude e Precision", group: "Marca e linha" },
+          { id: "hp-consumer", name: "HP Pavilion, Envy, OMEN, Victus, Spectre e outros", group: "Marca e linha" },
+          { id: "gigabyte", name: "Placa-mãe Gigabyte", group: "Placa-mãe (PC montado)" },
+          { id: "asus", name: "Placa-mãe ASUS", group: "Placa-mãe (PC montado)" },
+          { id: "engine-ami", name: "BIOS AMI (Aptio)", group: "Tipo de BIOS" },
+          { id: "generic", name: "BIOS não reconhecida", group: "Genérico" },
+        ],
+        detected: { id: "gigabyte", name: "Placa-mãe Gigabyte" },
+        selected: guideProfile,
+      }),
+    guide_build: async (taskId: string, options: { profile: string } | null) => {
+      if (options) guideProfile = options.profile || null
       await simulate(taskId, ["Gerando o guia personalizado"])
+      const names: Record<string, string> = { "dell-business": "Dell OptiPlex, Latitude e Precision", "engine-ami": "BIOS AMI (Aptio)" }
+      const name = guideProfile ? (names[guideProfile] ?? guideProfile) : "Placa-mãe Gigabyte"
       const guide = {
         folder: SAMPLE_FOLDER,
         html: `${SAMPLE_FOLDER}\\Guia.html`,
         pdf: `${SAMPLE_FOLDER}\\Guia.pdf`,
-        vendor: "Gigabyte",
+        vendor: name,
+        profile: { id: guideProfile ?? "gigabyte", name, confidence: "documentacao", detected: guideProfile === null },
         generated: new Date().toLocaleString("pt-BR"),
       }
       if (session) session.guide = guide

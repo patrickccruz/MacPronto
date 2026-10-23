@@ -7,10 +7,12 @@ import { TaskPanel } from "@/components/TaskPanel"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
 import { BridgeError } from "@/lib/bridge"
 import { useApp } from "@/lib/store"
-import type { GuideInfo, ShareInfo } from "@/lib/types"
+import type { GuideInfo, GuideProfiles, ShareInfo } from "@/lib/types"
 import { useTask } from "@/lib/useTask"
 
 const SECTIONS = [
@@ -20,6 +22,7 @@ const SECTIONS = [
   "Pós-instalação: iniciar sem o pendrive, OCLP e ajustes finos",
   "Problemas e soluções por sintoma",
   "O que funciona e os detalhes técnicos da EFI",
+  "Teclas da BIOS e do menu de boot de todas as marcas",
 ]
 
 export function GuideStep() {
@@ -27,11 +30,26 @@ export function GuideStep() {
   const task = useTask()
   const [guide, setGuide] = useState<GuideInfo | null>(payload?.guide ?? null)
   const [share, setShare] = useState<ShareInfo | null>(null)
+  const [profiles, setProfiles] = useState<GuideProfiles | null>(null)
 
-  async function build() {
-    const result = await task.run("guia", api.guideBuild)
+  async function build(profile?: string) {
+    const result = await task.run("guia", (taskId) => api.guideBuild(taskId, profile === undefined ? undefined : { profile }))
     if (result) setGuide(result)
+    if (profile !== undefined) void api.guideProfiles().then(setProfiles, () => undefined)
   }
+
+  useEffect(() => {
+    let active = true
+    api.guideProfiles().then(
+      (list) => {
+        if (active) setProfiles(list)
+      },
+      () => undefined,
+    )
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!guide) void build()
@@ -94,6 +112,34 @@ export function GuideStep() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {profiles && (
+                <div className="space-y-1.5">
+                  <Label>Perfil de BIOS do guia</Label>
+                  <Select value={profiles.selected ?? "auto"} onValueChange={(value) => void build(value === "auto" ? "" : value)}>
+                    <SelectTrigger className="w-full max-w-md">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Detectado: {profiles.detected.name}</SelectItem>
+                      {[...new Set(profiles.choices.map((choice) => choice.group))].map((group) => (
+                        <SelectGroup key={group}>
+                          <SelectLabel>{group}</SelectLabel>
+                          {profiles.choices
+                            .filter((choice) => choice.group === group)
+                            .map((choice) => (
+                              <SelectItem key={choice.id} value={choice.id}>
+                                {choice.name}
+                              </SelectItem>
+                            ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Troque se o MacPronto errou a marca, por exemplo num PC com a placa-mãe trocada. O guia e o pendrive usam o perfil escolhido.
+                  </p>
+                </div>
+              )}
               <ol className="list-decimal space-y-1.5 pl-5 text-sm">
                 {SECTIONS.map((section) => (
                   <li key={section}>{section}</li>

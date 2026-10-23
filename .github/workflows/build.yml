@@ -76,6 +76,16 @@ jobs:
       - name: Build
         run: python scripts/build.py
 
+      # A atualização automática entrega cada versão a todos: o executável precisa passar no autoteste antes de publicar
+      - name: Autoteste do executável
+        shell: pwsh
+        run: |
+          $result = Join-Path $env:RUNNER_TEMP "macpronto-selftest.json"
+          # O executável não tem console: espera terminar e lê o resultado em JSON
+          $process = Start-Process -FilePath "dist\MacPronto\MacPronto.exe" -ArgumentList "--selftest", "`"$result`"" -Wait -PassThru
+          if (Test-Path $result) { Get-Content $result }
+          if ($process.ExitCode -ne 0) { throw "O autoteste do executável falhou (código $($process.ExitCode))." }
+
       - uses: actions/upload-artifact@v7
         with:
           name: MacPronto

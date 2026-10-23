@@ -12,7 +12,7 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 - O Windows Defender (assinaturas de 23/10/2026) não encontrou ameaças no executável, no instalador nem no portátil.
 - Saídas da build: instalador de 15,2 MB e versão portátil de 19,9 MB.
 - O instalador foi testado: instalação silenciosa em `C:\Program Files\MacPronto` (54 MB), atalhos no menu Iniciar, registro em Programas e Recursos e desinstalação completa. O programa instalado pede administrador pelo UAC ao abrir e passou no autoteste completo já elevado.
-- 62 testes automáticos passando.
+- 119 testes automáticos passando.
 
 No modo de desenvolvimento também foram validados com o hardware real: diagnóstico, laudo, mapeamento USB, download do macOS Recovery (884 MB do Sequoia, conferido com a assinatura da Apple) e guia em HTML e PDF.
 
@@ -30,6 +30,11 @@ Falta dar boot pelo pendrive.
 - Pendrive, EFI e diagnóstico continuam visíveis ao trocar de tela (cartão flutuante com a porcentagem).
 - Atualização automática: a cada minuto o programa lê o feed de versões do GitHub e, com autorização do usuário, baixa o instalador (conferido pelo SHA-256 do `macpronto-update.json`), instala em modo silencioso e reabre. Testada de ponta a ponta com o programa instalado e um servidor local no lugar do GitHub. O repositório passou a ser público em 23/10/2026.
 - A EFI e o mapa USB de uma sessão anterior voltam ao abrir o diagnóstico.
+- Primeira versão pública: `v0.1.0-beta.1`, publicada pelo GitHub Actions como pré-lançamento.
+- Guia por marca e linha de produto (`v0.1.0-beta.2`), em três níveis: linha de produto, tipo de BIOS e genérico.
+  - Os perfis ficam em `src/macpronto/guide/bios_profiles.json`: Lenovo, Dell e HP por linha; Acer, notebooks ASUS e MSI, Samsung, Positivo, Vaio, Compaq, Multilaser e Avell; placas-mãe de PC montado; e AMI, Insyde e Phoenix.
+  - Cada perfil traz o nível de confiança. Todos estão como "documentação" até alguém conferir numa máquina real e anotar o modelo em `checked_on`.
+  - Na tela do Guia dá para trocar o perfil à mão.
 
 **Implementado, mas ainda sem validação real:**
 
@@ -44,7 +49,7 @@ Falta dar boot pelo pendrive.
 ### Próximos passos
 
 1. Dar boot pelo pendrive nesta máquina e instalar o macOS.
-2. Guia por fabricante e linha de produto (BIOS de Dell, HP, Lenovo e outras marcas), com reserva por tipo de BIOS.
+2. Conferir os caminhos da BIOS do ThinkCentre M80q durante o boot e marcar o perfil como conferido; repetir com as máquinas dos amigos.
 3. Testar contra outros antivírus além do Windows Defender.
 4. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
 5. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
@@ -131,7 +136,7 @@ Falta dar boot pelo pendrive.
 - [x] Cópia da EFI e verificação final, testada com pendrive real
 
 ### Guia passo a passo (desktop)
-- [x] Configurações de BIOS por fabricante (ASUS, Gigabyte, MSI, ASRock)
+- [x] Configurações de BIOS por marca, linha de produto e tipo de BIOS (perfis em `bios_profiles.json`)
 - [x] Instalação e pós-instalação
 - [x] Solução de problemas por sintoma
 - [x] Exportação em HTML/PDF, cópia no pendrive e QR code
@@ -141,7 +146,7 @@ Falta dar boot pelo pendrive.
 ### Notebooks
 - [ ] Trackpad, bateria, brilho e desligamento da GPU dedicada (regras do OpCore Simplify no laudo e na EFI; falta testar em notebook real)
 - [x] Regras específicas no laudo (ex.: vídeo Iris Xe é incompatível)
-- [x] BIOS de Dell, Lenovo, HP e Acer no guia
+- [x] BIOS de notebooks Dell, Lenovo, HP, Acer, ASUS, MSI, Samsung, Positivo, Multilaser e Avell no guia
 
 ### Versões antigas e casos especiais
 - [x] Fluxo de pós-instalação com OCLP (no guia, quando a EFI exige)

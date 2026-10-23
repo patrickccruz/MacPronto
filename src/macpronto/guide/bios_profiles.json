@@ -1,0 +1,507 @@
+{
+  "_sobre": "Perfis de BIOS do guia. A detecção vai do mais específico ao mais genérico: linha de produto (oem), placa-mãe de PC montado (board), tipo de BIOS (engine) e genérico. Os caminhos estão em inglês, como aparecem na BIOS. confidence: conferido (testado numa máquina real, ver checked_on), documentacao (documentação do fabricante e guias da comunidade), tipo e generico. Ao conferir um perfil numa máquina real, mude para conferido e anote o modelo em checked_on.",
+  "keywords": {
+    "secure_boot": ["Secure Boot", "Secure Boot Control", "Secure Boot State"],
+    "fast_boot": ["Fast Boot", "Fastboot", "Quick Boot", "Fast BIOS Mode"],
+    "csm": ["CSM", "Legacy Support", "Boot Mode", "UEFI/Legacy Boot", "Legacy Option ROMs"],
+    "sata": ["SATA Mode", "SATA Operation", "SATA Controller Mode", "Configure SATA as", "Storage Controller"],
+    "vmd": ["VMD", "Intel VMD", "Volume Management Device", "RAID On", "Intel RST"],
+    "above4g": ["Above 4G Decoding", "Above 4GB MMIO", "4G Memory"],
+    "rebar": ["Re-Size BAR", "Resizable BAR", "Smart Access Memory"],
+    "xhci": ["XHCI Hand-off", "XHCI Legacy", "USB Legacy"],
+    "vtd": ["VT-d", "Directed I/O", "Intel VT for Direct I/O"],
+    "sgx": ["SGX", "Software Guard Extensions"],
+    "cfg": ["CFG Lock", "MSR 0xE2"],
+    "dvmt": ["DVMT Pre-Allocated", "UMA Frame Buffer", "IGD Memory", "Total Graphics Memory", "Video Memory Size"],
+    "iommu": ["IOMMU", "AMD-Vi"],
+    "svm": ["SVM Mode", "AMD-V", "Virtualization"]
+  },
+  "profiles": [
+    {
+      "id": "lenovo-thinkcentre",
+      "kind": "oem",
+      "brand": "Lenovo",
+      "name": "Lenovo ThinkCentre e ThinkStation",
+      "match": {"manufacturer": ["lenovo"], "family": ["thinkcentre", "thinkstation", "thinkedge"]},
+      "bios_key": "F1",
+      "boot_key": "F12",
+      "notes": [
+        "Se não der para desligar o Secure Boot, desligue antes o Device Guard, em Security.",
+        "Salve e saia com F10."
+      ],
+      "paths": {
+        "secure_boot": "Security > Secure Boot > Secure Boot: Disabled",
+        "fast_boot": "Startup > Boot Mode: Diagnostics (no lugar de Quick)",
+        "csm": "Startup > CSM: Disabled (e Boot Priority: UEFI First)",
+        "sata": "Devices > ATA Drive Setup > Configure SATA as: AHCI",
+        "vmd": "Devices > ATA Drive Setup (ou Devices > Storage) > Intel VMD: Disabled",
+        "vtd": "Advanced > CPU Setup > Intel Virtualization Technology for Directed I/O (VT-d)",
+        "sgx": "Security > Intel SGX: Disabled",
+        "dvmt": "Devices > Video Setup > Pre-Allocated Memory Size"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "lenovo-thinkpad",
+      "kind": "oem",
+      "brand": "Lenovo",
+      "name": "Lenovo ThinkPad",
+      "match": {"manufacturer": ["lenovo"], "family": ["thinkpad"]},
+      "bios_key": "F1 (ou Enter na tela da Lenovo e depois F1)",
+      "boot_key": "F12 (ou Enter e depois F12)",
+      "notes": [
+        "Se não der para desligar o Secure Boot, desligue antes o Device Guard, em Security.",
+        "Com Thunderbolt: em Config > Thunderbolt, deixe Security Level em No Security e Support in Pre Boot Environment ligado."
+      ],
+      "paths": {
+        "secure_boot": "Security > Secure Boot > Secure Boot: Off",
+        "fast_boot": "Startup > Boot Mode: Diagnostics (no lugar de Quick)",
+        "csm": "Startup > UEFI/Legacy Boot: UEFI Only (CSM Support: No)",
+        "sata": "Config > Serial ATA (SATA) > SATA Controller Mode Option: AHCI (nos mais novos, Config > Storage > Controller Mode)",
+        "vmd": "Config > Storage > Controller Mode: AHCI (desliga o Intel VMD/RST)",
+        "vtd": "Security > Virtualization > Intel VT-d Feature",
+        "sgx": "Security > Intel SGX > Intel SGX Control: Disabled",
+        "dvmt": "Config > Display > Total Graphics Memory: 512 MB"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "lenovo-consumer",
+      "kind": "oem",
+      "brand": "Lenovo",
+      "name": "Lenovo IdeaPad, IdeaCentre, Legion, Yoga, ThinkBook e LOQ",
+      "match": {"manufacturer": ["lenovo"]},
+      "bios_key": "F2 (nos notebooks, Fn + F2) ou o botão Novo",
+      "boot_key": "F12 (nos notebooks, Fn + F12)",
+      "notes": [
+        "Nos notebooks, com o computador desligado, o botão Novo (um furinho ou botão pequeno na lateral, com uma seta curva) abre um menu com BIOS Setup e Boot Menu.",
+        "Em muitos modelos recentes, o Intel VMD não pode ser desligado. Se o disco interno não aparecer no instalador do macOS, o modelo provavelmente não é compatível."
+      ],
+      "paths": {
+        "secure_boot": "Security > Secure Boot: Disabled",
+        "fast_boot": "Boot > Fast Boot: Disabled",
+        "csm": "Boot > Boot Mode: UEFI (Legacy Support desligado)",
+        "sata": "Configuration > SATA Controller Mode: AHCI (em alguns modelos, Configuration > Storage)",
+        "vmd": "Configuration > Intel VMD Controller: Disabled (nem todo modelo mostra a opção)",
+        "vtd": "Configuration > Intel Virtual Technology e VT-d",
+        "dvmt": "Configuration > Graphic Device ou UMA Frame Buffer Size",
+        "iommu": "Configuration > AMD IOMMU",
+        "svm": "Configuration > AMD SVM Technology"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "sgx"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "dell-business",
+      "kind": "oem",
+      "brand": "Dell",
+      "name": "Dell OptiPlex, Latitude e Precision",
+      "match": {"manufacturer": ["dell"], "family": ["optiplex", "latitude", "precision"]},
+      "bios_key": "F2",
+      "boot_key": "F12",
+      "notes": [
+        "A Dell tem dois visuais de BIOS: o clássico (menus General, System Configuration, Secure Boot) e o novo, dos modelos de 2020 em diante (Boot Configuration, Storage, Pre-boot Behavior). Os caminhos trazem os dois.",
+        "Clique em Apply depois de cada mudança e em Exit no fim."
+      ],
+      "paths": {
+        "secure_boot": "Secure Boot > Secure Boot Enable (clássica) ou Boot Configuration > Enable Secure Boot (nova)",
+        "fast_boot": "POST Behavior > Fastboot: Thorough (clássica) ou Pre-boot Behavior > Fastboot: Thorough (nova)",
+        "csm": "General > Advanced Boot Options > Enable Legacy Option ROMs: desligado (na BIOS nova, já é só UEFI)",
+        "sata": "System Configuration > SATA Operation: AHCI (clássica) ou Storage > SATA/NVMe Operation: AHCI/NVMe (nova)",
+        "vmd": "System Configuration > SATA Operation: AHCI (clássica) ou Storage > SATA/NVMe Operation: AHCI/NVMe (nova); RAID On é o que liga o VMD/RST",
+        "vtd": "Virtualization Support > VT for Direct I/O (clássica) ou Virtualization > Intel VT for Direct I/O (nova)",
+        "sgx": "Intel SGX > Intel SGX Enable: Disabled (clássica) ou Security > Intel SGX (nova)"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "dell-consumer",
+      "kind": "oem",
+      "brand": "Dell",
+      "name": "Dell Inspiron, Vostro, XPS, G-series e Alienware",
+      "match": {"manufacturer": ["dell", "alienware"]},
+      "bios_key": "F2",
+      "boot_key": "F12",
+      "notes": [
+        "Os modelos mais antigos usam uma BIOS com menus Main, Advanced, Security, Boot e Exit; os de 2020 em diante usam o visual novo, igual ao da linha empresarial. Os caminhos trazem os dois."
+      ],
+      "paths": {
+        "secure_boot": "Boot > Secure Boot: Disabled (antiga) ou Boot Configuration > Enable Secure Boot (nova)",
+        "fast_boot": "Advanced > Fastboot (antiga) ou Pre-boot Behavior > Fastboot: Thorough (nova)",
+        "csm": "Boot > Boot List Option: UEFI e Load Legacy Option ROM: Disabled (antiga; na nova, já é só UEFI)",
+        "sata": "Advanced > SATA Operation: AHCI (antiga) ou Storage > SATA/NVMe Operation: AHCI/NVMe (nova)",
+        "vmd": "Advanced > SATA Operation: AHCI (antiga) ou Storage > SATA/NVMe Operation: AHCI/NVMe (nova); RAID On é o que liga o VMD/RST",
+        "vtd": "Advanced > Virtualization (antiga) ou Virtualization > Intel VT for Direct I/O (nova)"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt", "sgx"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "hp-business",
+      "kind": "oem",
+      "brand": "HP",
+      "name": "HP EliteDesk, EliteBook, ProDesk, ProBook e ZBook",
+      "match": {"manufacturer": ["hp", "hewlett-packard", "hewlett packard"], "family": ["elite", "prodesk", "probook", "proone", "zbook", "workstation", " z2", " z4", " z6", " z8"]},
+      "bios_key": "F10 (ou Esc e depois F10)",
+      "boot_key": "F9 (ou Esc e depois F9)",
+      "notes": [
+        "Ao desligar o Secure Boot, a HP pede para digitar um código de 4 dígitos na inicialização seguinte, para confirmar a mudança.",
+        "Em alguns modelos, a opção vem junta: Configure Legacy Support and Secure Boot: Legacy Support Disable and Secure Boot Disable."
+      ],
+      "paths": {
+        "secure_boot": "Advanced > Secure Boot Configuration > Secure Boot: desmarcar",
+        "fast_boot": "Advanced > Boot Options > Fast Boot: desmarcar",
+        "csm": "Advanced > Secure Boot Configuration > Legacy Support: Disable",
+        "sata": "Advanced > System Options > Configure Storage Controller for RAID: desmarcar (fica em AHCI)",
+        "vmd": "Advanced > System Options > Configure Storage Controller for Intel VMD: desmarcar",
+        "vtd": "Advanced > System Options > Virtualization Technology for Directed I/O (VTd)",
+        "sgx": "Advanced > System Options > Intel Software Guard Extensions (SGX): Disable",
+        "dvmt": "Advanced > Built-In Device Options > Video memory size"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "hp-consumer",
+      "kind": "oem",
+      "brand": "HP",
+      "name": "HP Pavilion, Envy, OMEN, Victus, Spectre e outros",
+      "match": {"manufacturer": ["hp", "hewlett-packard", "hewlett packard"]},
+      "bios_key": "F10 (ou Esc e depois F10)",
+      "boot_key": "F9 (ou Esc e depois F9)",
+      "notes": [
+        "Ao desligar o Secure Boot, a HP pede para digitar um código de 4 dígitos na inicialização seguinte, para confirmar a mudança.",
+        "Muitos modelos não mostram as opções de SATA e VMD. Se o disco interno não aparecer no instalador do macOS, este modelo provavelmente não deixa desligar o Intel RST/VMD."
+      ],
+      "paths": {
+        "secure_boot": "System Configuration > Boot Options > Secure Boot: Disabled",
+        "fast_boot": "System Configuration > Boot Options > Fast Boot (nem todo modelo tem)",
+        "csm": "System Configuration > Boot Options > Legacy Support: Disabled",
+        "vtd": "System Configuration > Virtualization Technology",
+        "svm": "System Configuration > Virtualization Technology"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt", "sgx", "sata", "vmd"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "acer",
+      "kind": "oem",
+      "brand": "Acer",
+      "name": "Acer Aspire, Nitro, Predator, Swift e outros",
+      "match": {"manufacturer": ["acer"]},
+      "bios_key": "F2",
+      "boot_key": "F12 (ative antes em Main > F12 Boot Menu: Enabled)",
+      "notes": [
+        "O Secure Boot só pode ser desligado depois de definir uma senha de supervisor em Security > Set Supervisor Password. Depois de desligar, dá para apagar a senha deixando-a em branco.",
+        "Em vários modelos, as opções de SATA e VMD ficam escondidas: na aba Main, aperte Ctrl + S para mostrá-las."
+      ],
+      "paths": {
+        "secure_boot": "Boot > Secure Boot: Disabled (exige a senha de supervisor)",
+        "fast_boot": "Main > Fast Boot (nem todo modelo tem)",
+        "csm": "Boot > Boot Mode: UEFI",
+        "sata": "Main > SATA Mode: AHCI (aperte Ctrl + S se não aparecer)",
+        "vmd": "Main > VMD Controller: Disabled (aperte Ctrl + S se não aparecer)",
+        "vtd": "Main > Intel VT-d (nem todo modelo tem)"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt", "sgx"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "asus-notebook",
+      "kind": "oem",
+      "brand": "ASUS",
+      "name": "Notebooks ASUS (VivoBook, ZenBook, TUF, ROG e ExpertBook)",
+      "match": {"manufacturer": ["asus", "asustek"], "form": "laptop"},
+      "bios_key": "F2 (segure F2 e ligue o notebook)",
+      "boot_key": "Esc",
+      "notes": ["Aperte F7 para sair do modo simples (EZ Mode) e ver os menus avançados."],
+      "paths": {
+        "secure_boot": "Security > Secure Boot > Secure Boot Control: Disabled",
+        "fast_boot": "Boot > Fast Boot: Disabled",
+        "csm": "Boot > Launch CSM: Disabled",
+        "sata": "Advanced > SATA Configuration > SATA Mode Selection: AHCI",
+        "vmd": "Advanced > VMD setup menu > Enable VMD controller: Disabled",
+        "vtd": "Advanced > System Agent (SA) Configuration > VT-d",
+        "svm": "Advanced > CPU Configuration > SVM Mode"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "msi-notebook",
+      "kind": "oem",
+      "brand": "MSI",
+      "name": "Notebooks MSI",
+      "match": {"manufacturer": ["msi", "micro-star"], "form": "laptop"},
+      "bios_key": "Del",
+      "boot_key": "F11",
+      "notes": ["Muitas opções ficam escondidas: na tela da BIOS, aperte Shift direito + Ctrl direito + Alt esquerdo + F2 para mostrar o menu avançado."],
+      "paths": {
+        "secure_boot": "Security > Secure Boot > Secure Boot Support: Disabled",
+        "fast_boot": "Boot > Fast Boot: Disabled",
+        "csm": "Boot > Boot Mode Select: UEFI",
+        "sata": "Advanced > SATA Configuration (no menu avançado escondido)",
+        "vmd": "Advanced > VMD Configuration (no menu avançado escondido)"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt", "sgx"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "samsung",
+      "kind": "oem",
+      "brand": "Samsung",
+      "name": "Samsung (Galaxy Book e notebooks Samsung)",
+      "match": {"manufacturer": ["samsung"]},
+      "bios_key": "F2",
+      "boot_key": "F10 (em alguns modelos, Esc)",
+      "notes": [],
+      "paths": {
+        "secure_boot": "Boot > Secure Boot Control: Off",
+        "fast_boot": "Advanced > Fast BIOS Mode: Off",
+        "csm": "Boot > OS Mode Selection: UEFI OS",
+        "sata": "Advanced > SATA Mode (nem todo modelo mostra)"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci", "dvmt", "sgx"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "positivo",
+      "kind": "oem",
+      "brand": "Positivo",
+      "name": "Positivo, Vaio e Compaq",
+      "match": {"manufacturer": ["positivo", "vaio", "compaq"]},
+      "bios_key": "Del ou F2",
+      "boot_key": "F7 ou F12",
+      "notes": ["Estas marcas usam BIOS de fabricantes diferentes (AMI ou Insyde) conforme o modelo. Os caminhos seguem o tipo de BIOS desta máquina."],
+      "engine_paths": true,
+      "absent": ["above4g", "rebar", "cfg"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "multilaser",
+      "kind": "oem",
+      "brand": "Multilaser",
+      "name": "Multilaser",
+      "match": {"manufacturer": ["multilaser"]},
+      "bios_key": "Del ou F2",
+      "boot_key": "F7 ou F12",
+      "notes": ["Os caminhos seguem o tipo de BIOS desta máquina (AMI ou Insyde). Muitas opções avançadas não aparecem."],
+      "engine_paths": true,
+      "absent": ["above4g", "rebar", "cfg"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "avell",
+      "kind": "oem",
+      "brand": "Avell",
+      "name": "Avell",
+      "match": {"manufacturer": ["avell", "clevo", "tongfang"]},
+      "bios_key": "F2",
+      "boot_key": "F7",
+      "notes": ["Os Avell usam a base dos notebooks Clevo ou Tongfang. Os caminhos seguem o tipo de BIOS desta máquina, e muitas opções avançadas não aparecem."],
+      "engine_paths": true,
+      "absent": ["above4g", "rebar", "cfg"],
+      "confidence": "documentacao"
+    },
+    {
+      "id": "asus",
+      "kind": "board",
+      "brand": "ASUS",
+      "name": "Placa-mãe ASUS",
+      "match": {"board": ["asus", "asustek"]},
+      "bios_key": "Del ou F2",
+      "boot_key": "F8",
+      "notes": ["Aperte F7 para alternar entre o modo simples (EZ Mode) e o avançado (Advanced Mode)."],
+      "paths": {
+        "secure_boot": "Boot > Secure Boot > OS Type: Other OS",
+        "fast_boot": "Boot > Fast Boot",
+        "csm": "Boot > CSM (Compatibility Support Module) > Launch CSM",
+        "above4g": "Advanced > PCI Subsystem Settings > Above 4G Decoding",
+        "rebar": "Advanced > PCI Subsystem Settings > Re-Size BAR Support",
+        "vtd": "Advanced > System Agent (SA) Configuration > VT-d",
+        "sata": "Advanced > PCH Storage Configuration > SATA Mode",
+        "dvmt": "Advanced > System Agent (SA) Configuration > Graphics Configuration > DVMT Pre-Allocated",
+        "xhci": "Advanced > USB Configuration > XHCI Hand-off",
+        "vmd": "Advanced > System Agent (SA) Configuration > VMD setup menu",
+        "sgx": "Advanced > CPU Configuration > Software Guard Extensions (SGX)",
+        "cfg": "Advanced > CPU Configuration > CPU Power Management Control > CFG Lock",
+        "iommu": "Advanced > AMD CBS > NBIO Common Options > IOMMU",
+        "svm": "Advanced > CPU Configuration > SVM Mode"
+      },
+      "confidence": "documentacao"
+    },
+    {
+      "id": "gigabyte",
+      "kind": "board",
+      "brand": "Gigabyte",
+      "name": "Placa-mãe Gigabyte",
+      "match": {"board": ["gigabyte"]},
+      "bios_key": "Del",
+      "boot_key": "F12",
+      "notes": ["Aperte F2 para alternar entre o modo simples e o avançado."],
+      "paths": {
+        "secure_boot": "Boot > Secure Boot",
+        "fast_boot": "Boot > Fast Boot",
+        "csm": "Boot > CSM Support",
+        "above4g": "Settings > IO Ports > Above 4G Decoding",
+        "rebar": "Settings > IO Ports > Re-Size BAR Support",
+        "vtd": "Settings > Miscellaneous > Intel VT-d Technology",
+        "sata": "Settings > IO Ports > SATA And RST Configuration > SATA Mode Selection",
+        "dvmt": "Chipset > Internal Graphics > DVMT Pre-Allocated",
+        "xhci": "Settings > IO Ports > USB Configuration > XHCI Hand-off",
+        "vmd": "Settings > IO Ports > VMD setup menu",
+        "cfg": "Tweaker > Advanced CPU Settings > CFG Lock",
+        "iommu": "Settings > Miscellaneous > IOMMU",
+        "svm": "Tweaker > Advanced CPU Settings > SVM Mode"
+      },
+      "confidence": "documentacao"
+    },
+    {
+      "id": "msi",
+      "kind": "board",
+      "brand": "MSI",
+      "name": "Placa-mãe MSI",
+      "match": {"board": ["msi", "micro-star"]},
+      "bios_key": "Del",
+      "boot_key": "F11",
+      "notes": ["Aperte F7 para entrar no modo avançado."],
+      "paths": {
+        "secure_boot": "Settings > Advanced > Windows OS Configuration > Secure Boot",
+        "fast_boot": "Settings > Advanced > Windows OS Configuration > MSI Fast Boot e Fast Boot",
+        "csm": "Settings > Advanced > Windows OS Configuration > BIOS UEFI/CSM Mode: UEFI",
+        "above4g": "Settings > Advanced > PCI Subsystem Settings > Above 4G memory/Crypto Currency mining",
+        "rebar": "Settings > Advanced > PCI Subsystem Settings > Re-Size BAR Support",
+        "vtd": "OC > CPU Features > Intel VT-D Tech",
+        "sata": "Settings > Advanced > Integrated Peripherals > SATA Mode",
+        "dvmt": "Settings > Advanced > Integrated Graphics Configuration > DVMT Pre-Allocated",
+        "xhci": "Settings > Advanced > USB Configuration > XHCI Hand-off",
+        "vmd": "Settings > Advanced > Integrated Peripherals > VMD",
+        "cfg": "OC > CPU Features > CFG Lock",
+        "iommu": "OC > CPU Features > IOMMU",
+        "svm": "OC > CPU Features > SVM Mode"
+      },
+      "confidence": "documentacao"
+    },
+    {
+      "id": "asrock",
+      "kind": "board",
+      "brand": "ASRock",
+      "name": "Placa-mãe ASRock",
+      "match": {"board": ["asrock"]},
+      "bios_key": "F2 ou Del",
+      "boot_key": "F11",
+      "notes": [],
+      "paths": {
+        "secure_boot": "Security > Secure Boot",
+        "fast_boot": "Boot > Fast Boot",
+        "csm": "Boot > CSM (Compatibility Support Module)",
+        "above4g": "Advanced > Chipset Configuration > Above 4G Decoding",
+        "rebar": "Advanced > Chipset Configuration > Re-Size BAR Support",
+        "vtd": "Advanced > Chipset Configuration > VT-d",
+        "sata": "Advanced > Storage Configuration > SATA Mode Selection",
+        "dvmt": "Advanced > Chipset Configuration > Share Memory",
+        "xhci": "Advanced > USB Configuration > XHCI Hand-off",
+        "vmd": "Advanced > Storage Configuration > VMD Global Mapping",
+        "cfg": "Advanced > CPU Configuration > CFG Lock",
+        "iommu": "Advanced > AMD CBS > NBIO Common Options > IOMMU",
+        "svm": "Advanced > CPU Configuration > SVM Mode"
+      },
+      "confidence": "documentacao"
+    },
+    {
+      "id": "biostar",
+      "kind": "board",
+      "brand": "Biostar",
+      "name": "Placa-mãe Biostar",
+      "match": {"board": ["biostar"]},
+      "bios_key": "Del",
+      "boot_key": "F9",
+      "notes": ["Os caminhos seguem o padrão das BIOS AMI, que a Biostar usa."],
+      "engine_paths": true,
+      "confidence": "documentacao"
+    },
+    {
+      "id": "engine-ami",
+      "kind": "engine",
+      "brand": "AMI",
+      "name": "BIOS AMI (Aptio)",
+      "match": {"bios": ["american megatrends", "ami", "aptio"]},
+      "bios_key": "Del ou F2",
+      "boot_key": "F11, F12 ou F8",
+      "notes": ["Os menus costumam ser Main, Advanced, Chipset, Security, Boot e Save & Exit. Se a BIOS abrir num modo simples, procure um botão ou tecla (F7 ou F2) para o modo avançado."],
+      "paths": {
+        "secure_boot": "Security > Secure Boot > Secure Boot: Disabled",
+        "fast_boot": "Boot > Fast Boot: Disabled",
+        "csm": "Boot > CSM Configuration > CSM Support: Disabled",
+        "above4g": "Advanced > PCI Subsystem Settings > Above 4G Decoding",
+        "rebar": "Advanced > PCI Subsystem Settings > Re-Size BAR Support",
+        "vtd": "Chipset > System Agent (SA) Configuration > VT-d",
+        "sata": "Chipset > PCH-IO Configuration > SATA Configuration > SATA Mode Selection: AHCI",
+        "dvmt": "Chipset > System Agent (SA) Configuration > Graphics Configuration > DVMT Pre-Allocated",
+        "xhci": "Advanced > USB Configuration > XHCI Hand-off",
+        "vmd": "Chipset > System Agent (SA) Configuration > VMD setup menu > Enable VMD controller: Disabled",
+        "sgx": "Advanced > CPU Configuration > Software Guard Extensions (SGX)",
+        "cfg": "Advanced > CPU Configuration > CPU Power Management Control > CFG Lock",
+        "iommu": "Advanced > AMD CBS > NBIO Common Options > IOMMU",
+        "svm": "Advanced > CPU Configuration > SVM Mode"
+      },
+      "confidence": "tipo"
+    },
+    {
+      "id": "engine-insyde",
+      "kind": "engine",
+      "brand": "Insyde",
+      "name": "BIOS Insyde (InsydeH2O)",
+      "match": {"bios": ["insyde"]},
+      "bios_key": "F2 (nos notebooks, às vezes Fn + F2)",
+      "boot_key": "F12 ou Esc",
+      "notes": ["Os menus costumam ser Main (ou Information), Advanced (ou Configuration), Security, Boot e Exit. Esse tipo de BIOS esconde muitas opções avançadas: se algo não aparecer, siga em frente."],
+      "paths": {
+        "secure_boot": "Security > Secure Boot (ou Boot > Secure Boot): Disabled",
+        "fast_boot": "Boot > Fast Boot: Disabled",
+        "csm": "Boot > Boot Mode: UEFI (Legacy Support desligado)",
+        "sata": "Advanced (ou Configuration) > SATA Mode: AHCI",
+        "vmd": "Advanced (ou Configuration) > VMD Controller: Disabled",
+        "vtd": "Advanced (ou Configuration) > Intel Virtualization Technology e VT-d",
+        "dvmt": "Advanced (ou Configuration) > UMA Frame Buffer Size",
+        "svm": "Advanced (ou Configuration) > SVM Mode"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci"],
+      "confidence": "tipo"
+    },
+    {
+      "id": "engine-phoenix",
+      "kind": "engine",
+      "brand": "Phoenix",
+      "name": "BIOS Phoenix (SecureCore)",
+      "match": {"bios": ["phoenix"]},
+      "bios_key": "F2",
+      "boot_key": "F12",
+      "notes": ["Os menus costumam ser Main, Advanced, Security, Boot e Exit."],
+      "paths": {
+        "secure_boot": "Security > Secure Boot: Disabled",
+        "fast_boot": "Boot > Fast Boot: Disabled",
+        "csm": "Boot > Boot Mode: UEFI",
+        "sata": "Advanced > SATA Mode: AHCI",
+        "vtd": "Advanced > Intel Virtualization Technology e VT-d"
+      },
+      "absent": ["above4g", "rebar", "cfg", "xhci"],
+      "confidence": "tipo"
+    },
+    {
+      "id": "generic",
+      "kind": "generic",
+      "brand": "Genérico",
+      "name": "BIOS não reconhecida",
+      "match": {},
+      "bios_key": "Del ou F2 (às vezes F1, F10 ou Esc)",
+      "boot_key": "F12, F11, F8 ou Esc",
+      "notes": ["Os nomes mudam bastante entre fabricantes. Procure cada ajuste pelas palavras-chave da tabela e confira a tabela de teclas por marca no fim do guia."],
+      "paths": {},
+      "confidence": "generico"
+    }
+  ]
+}

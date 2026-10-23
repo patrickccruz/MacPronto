@@ -13,6 +13,7 @@ import type {
   EngineCheck,
   EngineComponent,
   GuideInfo,
+  GuideProfiles,
   MediaResult,
   RecoveryCacheItem,
   ShareInfo,
@@ -56,7 +57,8 @@ export const api = {
   usbBuild: () => call<UsbBuildResult>("usb_build"),
 
   laudoExport: (taskId: string) => call<{ html: string; pdf: string | null }>("laudo_export", taskId),
-  guideBuild: (taskId: string) => call<GuideInfo>("guide_build", taskId),
+  guideBuild: (taskId: string, options?: { profile: string }) => call<GuideInfo>("guide_build", taskId, options ?? null),
+  guideProfiles: () => call<GuideProfiles>("guide_profiles"),
   guideShareStart: () => call<ShareInfo>("guide_share_start"),
   guideShareStop: () => call<void>("guide_share_stop"),
 

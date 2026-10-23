@@ -35,15 +35,32 @@ def _environment() -> Environment:
     )
 
 
-def build_context(scan: dict, laudo: dict, selection: dict, efi: dict | None, usb_mapped: bool) -> dict:
+def machine_profile(scan: dict, laudo: dict, profile_id: str | None = None) -> tuple[content.Profile, bool]:
+    """Perfil de BIOS da máquina: o escolhido à mão ou o detectado. Devolve (perfil, foi_detectado)."""
+    extras = scan.get("extras") or {}
+    system = extras.get("system") or {}
+    bios_vendor = (extras.get("bios") or {}).get("vendor", "")
+    if profile_id:
+        return content.profile_by_id(profile_id, bios_vendor), False
+    machine = laudo["machine"]
+    profile = content.detect_profile(
+        system_manufacturer=system.get("manufacturer", machine.get("manufacturer", "")),
+        family=system.get("family", ""),
+        model=system.get("model", ""),
+        board_manufacturer=(extras.get("baseboard") or {}).get("manufacturer", ""),
+        bios_vendor=bios_vendor,
+        is_laptop=machine.get("form_factor") == "laptop",
+    )
+    return profile, True
+
+
+def build_context(
+    scan: dict, laudo: dict, selection: dict, efi: dict | None, usb_mapped: bool, profile_id: str | None = None
+) -> dict:
     machine = laudo["machine"]
     extras = scan.get("extras") or {}
-    is_laptop = machine.get("form_factor") == "laptop"
-    vendor = content.detect_vendor(
-        extras.get("system", {}).get("manufacturer", machine.get("manufacturer", "")),
-        extras.get("baseboard", {}).get("manufacturer", ""),
-        is_laptop,
-    )
+    vendor, detected = machine_profile(scan, laudo, profile_id)
+    system = extras.get("system") or {}
 
     darwin = selection.get("darwin") or laudo["macos"].get("recommended")
     version = macos.get(darwin)
@@ -53,8 +70,15 @@ def build_context(scan: dict, laudo: dict, selection: dict, efi: dict | None, us
 
     plan = (efi or {}).get("plan") or {}
     requirements = plan.get("bios_requirements") or []
+    terms = content.keywords()
     settings = [
-        {"setting": setting, "path": vendor.paths.get(setting.key)}
+        {
+            "setting": setting,
+            "path": vendor.paths.get(setting.key),
+            "keywords": terms.get(setting.key, [])[:3],
+            "absent": setting.key in vendor.absent and not vendor.paths.get(setting.key),
+            "absent_hint": content.ABSENT_HINTS.get(setting.key, content.DEFAULT_ABSENT_HINT),
+        }
         for setting in content.bios_settings(
             report.get("CPU", {}).get("Manufacturer", "Intel"), has_igpu, requirements, vmd
         )
@@ -122,6 +146,13 @@ def build_context(scan: dict, laudo: dict, selection: dict, efi: dict | None, us
         "macos_label": version.label if version else "macOS",
         "macos_note": version.note if version else "",
         "vendor": vendor,
+        "profile_detected": detected,
+        "key_table": content.key_table(),
+        # Para qual máquina o pendrive e o guia foram feitos (sem números de série)
+        "target": " ".join(
+            part for part in (system.get("manufacturer"), system.get("family") or system.get("model")) if part
+        )
+        or machine["name"],
         "bios_settings": settings,
         "bios_requirements": laudo.get("bios_requirements", []),
         "install_steps": install_steps,
@@ -170,10 +201,18 @@ def html_to_pdf(html_file: Path, pdf_file: Path) -> bool:
     return pdf_file.exists() and pdf_file.stat().st_size > 0
 
 
-def build(scan: dict, laudo: dict, selection: dict, efi: dict | None, usb_mapped: bool, with_pdf: bool = True) -> dict:
+def build(
+    scan: dict,
+    laudo: dict,
+    selection: dict,
+    efi: dict | None,
+    usb_mapped: bool,
+    with_pdf: bool = True,
+    profile_id: str | None = None,
+) -> dict:
     folder = paths.guides_dir() / scan["id"]
     folder.mkdir(parents=True, exist_ok=True)
-    context = build_context(scan, laudo, selection, efi, usb_mapped)
+    context = build_context(scan, laudo, selection, efi, usb_mapped, profile_id)
     html_file = folder / "Guia.html"
     html_file.write_text(render_html(context), encoding="utf-8")
     pdf_file = folder / "Guia.pdf"
@@ -184,6 +223,12 @@ def build(scan: dict, laudo: dict, selection: dict, efi: dict | None, usb_mapped
         "html": str(html_file),
         "pdf": str(pdf_file) if pdf_ok else None,
         "vendor": context["vendor"].name,
+        "profile": {
+            "id": context["vendor"].id,
+            "name": context["vendor"].name,
+            "confidence": context["vendor"].confidence,
+            "detected": context["profile_detected"],
+        },
         "generated": context["generated"],
     }
 

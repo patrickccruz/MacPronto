@@ -54,6 +54,7 @@ def run(output: Path | None = None) -> int:
             paths.third_party_dir() / "macrecovery" / "macrecovery.py",
             paths.frontend_dir() / "index.html",
             Path(__file__).resolve().parent / "guide" / "templates" / "guia.html.j2",
+            Path(__file__).resolve().parent / "guide" / "bios_profiles.json",
             SAMPLE,
         ]
         missing = [str(path) for path in required if not path.exists()]

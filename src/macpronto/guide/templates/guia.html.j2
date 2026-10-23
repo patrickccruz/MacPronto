@@ -15,7 +15,7 @@
       <span class="chip">{{ macos_label }}</span>
       <span class="chip">{{ machine.form_label }}</span>
       {% if difficulty %}<span class="chip">Dificuldade: {{ difficulty.label }}</span>{% endif %}
-      <span class="chip">BIOS {{ vendor.name }}</span>
+      <span class="chip">BIOS: {{ vendor.name }}</span>
       <span class="chip">{{ generated }}</span>
     </div>
   </header>
@@ -41,11 +41,16 @@
       <li><a href="#problemas">Problemas e soluções</a></li>
       <li><a href="#hardware">O que funciona</a></li>
       <li><a href="#efi">Detalhes da EFI</a></li>
+      <li><a href="#teclas">Teclas da BIOS por marca</a></li>
     </ol>
   </nav>
 
   <section id="antes">
     <h2>1. Antes de começar</h2>
+    <div class="card warn">
+      <strong>Este guia e o pendrive foram feitos para: {{ target }}.</strong>
+      <p class="muted" style="margin:4px 0 0">A EFI do pendrive é montada para o hardware deste computador e não serve para outro. Para instalar em outra máquina, rode o MacPronto nela (ou exporte o diagnóstico de lá e importe aqui) e gere outro pendrive.</p>
+    </div>
     <div class="card">
       <label class="check"><input type="checkbox"> <span><strong>Faça backup completo.</strong> A instalação apaga o disco de destino, inclusive o Windows.</span></label>
       <label class="check"><input type="checkbox"> <span>Deixe este guia aberto em outro aparelho (celular ou outro computador). Depois de formatar, o Windows deixa de existir.</span></label>
@@ -57,6 +62,10 @@
 
   <section id="bios">
     <h2>2. Ajustes da BIOS ({{ vendor.name }})</h2>
+    <div class="card">
+      <strong>Perfil de BIOS: {{ vendor.name }}</strong>{% if not profile_detected %} <span class="muted">(escolhido à mão)</span>{% endif %}
+      <p class="muted" style="margin:4px 0 0">{{ vendor.confidence_text }}</p>
+    </div>
     <div class="grid">
       <div class="card stat"><div class="label">Entrar na BIOS</div><div class="value">{{ vendor.bios_key }}</div></div>
       <div class="card stat"><div class="label">Menu de boot</div><div class="value">{{ vendor.boot_key }}</div></div>
@@ -76,7 +85,9 @@
         {% for item in bios_settings %}
           <tr>
             <td><strong>{{ item.setting.title }}</strong>{% if item.setting.optional %} <span class="muted">(se existir)</span>{% endif %}
-              {% if item.path %}<span class="path">{{ item.path }}</span>{% endif %}</td>
+              {% if item.path %}<span class="path">{{ item.path }}</span>{% endif %}
+              {% if item.absent %}<span class="hint">{{ item.absent_hint }}</span>{% endif %}
+              {% if item.keywords %}<span class="hint">Procure por: {{ item.keywords | join(", ") }}</span>{% endif %}</td>
             <td>{{ item.setting.action }}</td>
             <td class="muted">{{ item.setting.why }}</td>
           </tr>
@@ -84,7 +95,7 @@
         </tbody>
       </table>
     </div>
-    <p class="muted">Salve e saia com F10 (na maioria das BIOS). Os caminhos são os mais comuns para {{ vendor.name }}; os nomes podem variar um pouco conforme o modelo.</p>
+    <p class="muted">Salve e saia (F10 na maioria das BIOS). Se a tecla de entrada não funcionar, veja a <a href="#teclas">tabela de teclas por marca</a>.</p>
   </section>
 
   <section id="instalacao">
@@ -146,6 +157,21 @@
     {% else %}
     <p class="muted">A EFI ainda não foi montada.</p>
     {% endif %}
+  </section>
+
+  <section id="teclas">
+    <h2>8. Teclas da BIOS por marca</h2>
+    <p class="muted">Aperte a tecla repetidamente logo depois de ligar o computador. Em notebooks, às vezes é preciso segurar Fn junto.</p>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Marca ou linha</th><th>Entrar na BIOS</th><th>Menu de boot</th></tr></thead>
+        <tbody>
+        {% for row in key_table %}
+          <tr><td>{{ row.name }}</td><td>{{ row.bios_key }}</td><td>{{ row.boot_key }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 
   <footer>

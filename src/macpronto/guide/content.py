@@ -3,202 +3,174 @@
 Baseado no guia de instalação do OpenCore da Dortania
 (https://dortania.github.io/OpenCore-Install-Guide/), adaptado ao que a EFI do
 MacPronto já resolve sozinha.
+
+Os perfis de BIOS ficam em bios_profiles.json. A detecção vai do mais específico
+ao mais genérico: linha de produto (ex.: Lenovo ThinkPad), placa-mãe de PC montado,
+tipo de BIOS (AMI, Insyde, Phoenix) e, por fim, um perfil genérico com palavras-chave.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import json
+import re
+from dataclasses import dataclass, field, replace
+from functools import lru_cache
+from pathlib import Path
+
+PROFILES_FILE = Path(__file__).resolve().parent / "bios_profiles.json"
+CONFIDENCE = {
+    "conferido": "Caminhos conferidos numa máquina real ({checked_on}).",
+    "documentacao": "Caminhos tirados da documentação do fabricante e de guias da comunidade. Os nomes podem mudar um pouco "
+    "conforme o modelo e a versão da BIOS: se não achar, procure pelas palavras-chave.",
+    "tipo": "O MacPronto não reconheceu a linha deste computador; os caminhos seguem o tipo de BIOS ({name}). Os nomes "
+    "podem mudar bastante: use as palavras-chave.",
+    "generico": "O MacPronto não reconheceu a BIOS deste computador. Procure cada ajuste pelas palavras-chave.",
+}
 
 
 @dataclass(frozen=True)
-class Vendor:
-    key: str
+class Profile:
+    id: str
+    kind: str  # oem (linha de produto), board (placa-mãe), engine (tipo de BIOS) ou generic
+    brand: str
     name: str
     bios_key: str
     boot_key: str
     notes: tuple[str, ...] = ()
-    # Onde fica cada ajuste no menu deste fabricante (chave -> caminho)
+    # Onde fica cada ajuste no menu (chave do ajuste -> caminho)
     paths: dict[str, str] = field(default_factory=dict)
+    # Ajustes que normalmente não aparecem nesta BIOS
+    absent: frozenset[str] = frozenset()
+    confidence: str = "documentacao"
+    checked_on: tuple[str, ...] = ()
+    match: dict = field(default_factory=dict)
+    # Usa os caminhos do tipo de BIOS da máquina (marcas que trocam de fornecedor de BIOS)
+    engine_paths: bool = False
+
+    @property
+    def confidence_text(self) -> str:
+        return CONFIDENCE[self.confidence].format(name=self.name, checked_on=", ".join(self.checked_on))
 
 
-VENDORS = {
-    "asus": Vendor(
-        "asus",
-        "ASUS",
-        "Del ou F2",
-        "F8 (desktop) ou Esc (notebook)",
-        ("Aperte F7 para alternar entre o modo simples (EZ Mode) e o avançado (Advanced Mode).",),
-        {
-            "secure_boot": "Boot > Secure Boot > OS Type: Other OS",
-            "fast_boot": "Boot > Fast Boot",
-            "csm": "Boot > CSM (Compatibility Support Module) > Launch CSM",
-            "above4g": "Advanced > PCI Subsystem Settings > Above 4G Decoding",
-            "rebar": "Advanced > PCI Subsystem Settings > Re-Size BAR Support",
-            "vtd": "Advanced > System Agent (SA) Configuration > VT-d",
-            "sata": "Advanced > PCH Storage Configuration > SATA Mode",
-            "dvmt": "Advanced > System Agent (SA) Configuration > Graphics Configuration > DVMT Pre-Allocated",
-            "xhci": "Advanced > USB Configuration > XHCI Hand-off",
-            "vmd": "Advanced > System Agent (SA) Configuration > VMD setup menu",
-        },
-    ),
-    "gigabyte": Vendor(
-        "gigabyte",
-        "Gigabyte",
-        "Del",
-        "F12",
-        ("Aperte F2 para alternar entre o modo simples e o avançado.",),
-        {
-            "secure_boot": "Boot > Secure Boot",
-            "fast_boot": "Boot > Fast Boot",
-            "csm": "Boot > CSM Support",
-            "above4g": "Settings > IO Ports > Above 4G Decoding",
-            "rebar": "Settings > IO Ports > Re-Size BAR Support",
-            "vtd": "Settings > Miscellaneous > Intel VT-d Technology",
-            "sata": "Settings > IO Ports > SATA And RST Configuration > SATA Mode Selection",
-            "dvmt": "Chipset > Internal Graphics > DVMT Pre-Allocated",
-            "xhci": "Settings > IO Ports > USB Configuration > XHCI Hand-off",
-            "vmd": "Settings > IO Ports > VMD setup menu",
-        },
-    ),
-    "msi": Vendor(
-        "msi",
-        "MSI",
-        "Del",
-        "F11",
-        ("Aperte F7 para entrar no modo avançado.",),
-        {
-            "secure_boot": "Settings > Advanced > Windows OS Configuration > Secure Boot",
-            "fast_boot": "Settings > Advanced > Windows OS Configuration > MSI Fast Boot e Fast Boot",
-            "csm": "Settings > Advanced > Windows OS Configuration > BIOS UEFI/CSM Mode: UEFI",
-            "above4g": "Settings > Advanced > PCI Subsystem Settings > Above 4G memory/Crypto Currency mining",
-            "rebar": "Settings > Advanced > PCI Subsystem Settings > Re-Size BAR Support",
-            "vtd": "OC > CPU Features > Intel VT-D Tech",
-            "sata": "Settings > Advanced > Integrated Peripherals > SATA Mode",
-            "dvmt": "Settings > Advanced > Integrated Graphics Configuration > DVMT Pre-Allocated",
-            "xhci": "Settings > Advanced > USB Configuration > XHCI Hand-off",
-            "vmd": "Settings > Advanced > Integrated Peripherals > VMD",
-        },
-    ),
-    "asrock": Vendor(
-        "asrock",
-        "ASRock",
-        "F2 ou Del",
-        "F11",
-        (),
-        {
-            "secure_boot": "Security > Secure Boot",
-            "fast_boot": "Boot > Fast Boot",
-            "csm": "Boot > CSM (Compatibility Support Module)",
-            "above4g": "Advanced > Chipset Configuration > Above 4G Decoding",
-            "rebar": "Advanced > Chipset Configuration > Re-Size BAR Support",
-            "vtd": "Advanced > Chipset Configuration > VT-d",
-            "sata": "Advanced > Storage Configuration > SATA Mode Selection",
-            "dvmt": "Advanced > Chipset Configuration > Share Memory",
-            "xhci": "Advanced > USB Configuration > XHCI Hand-off",
-            "vmd": "Advanced > Storage Configuration > VMD Global Mapping",
-        },
-    ),
-    "dell": Vendor(
-        "dell",
-        "Dell",
-        "F2",
-        "F12",
-        ("Muitos ajustes ficam em General, System Configuration, Secure Boot e Virtualization Support.",),
-        {
-            "secure_boot": "Secure Boot > Secure Boot Enable",
-            "fast_boot": "POST Behavior > Fastboot: Thorough",
-            "csm": "General > Advanced Boot Options > Enable Legacy Option ROMs (desligado)",
-            "vtd": "Virtualization Support > VT for Direct I/O",
-            "sata": "System Configuration > SATA Operation: AHCI",
-            "vmd": "System Configuration > SATA Operation: AHCI",
-        },
-    ),
-    "lenovo": Vendor(
-        "lenovo",
-        "Lenovo",
-        "F1 (ThinkPad e ThinkCentre) ou F2 (IdeaPad e Legion)",
-        "F12",
-        (
-            "Nos IdeaPad também dá para usar o botão Novo (furinho na lateral) para abrir o menu de boot.",
-            "Nos ThinkPad e ThinkCentre, aperte Enter na tela da Lenovo e depois F1.",
-        ),
-        {
-            "secure_boot": "Security > Secure Boot",
-            "fast_boot": "Startup > Boot Mode: Diagnostics (no lugar de Quick)",
-            "csm": "Startup > CSM: Disabled e UEFI/Legacy Boot: UEFI Only",
-            "vtd": "Security > Virtualization > Intel VT-d Feature",
-            "sata": "Devices > ATA Drive Setup > SATA Controller Mode: AHCI",
-            "vmd": "Devices > Storage > Intel VMD Controller (ou Configure SATA as: AHCI)",
-        },
-    ),
-    "hp": Vendor(
-        "hp",
-        "HP",
-        "F10 (ou Esc e depois F10)",
-        "F9",
-        ("Depois de mudar o Secure Boot, a HP pede para digitar um código de 4 dígitos na próxima inicialização.",),
-        {
-            "secure_boot": "Advanced > Secure Boot Configuration > Secure Boot",
-            "fast_boot": "Advanced > Boot Options > Fast Boot",
-            "csm": "Advanced > Secure Boot Configuration > Legacy Support: Disable",
-            "vtd": "Advanced > System Options > Virtualization Technology for Directed I/O (VT-d)",
-            "sata": "Advanced > System Options > Configure Storage Controller for RAID/AHCI",
-            "vmd": "Advanced > System Options > Configure Storage Controller for Intel VMD (desligado)",
-        },
-    ),
-    "acer": Vendor(
-        "acer",
-        "Acer",
-        "F2",
-        'F12 (ative "F12 Boot Menu" em Main antes)',
-        ("Na Acer, o Secure Boot só pode ser desligado depois de definir uma senha de supervisor em Security.",),
-        {
-            "secure_boot": "Boot > Secure Boot (exige senha de supervisor em Security)",
-            "fast_boot": "Main > Fast Boot",
-            "csm": "Boot > Boot Mode: UEFI",
-            "sata": "Main > SATA Mode: AHCI",
-            "vmd": "Main > VMD Controller (desligado)",
-        },
-    ),
-    "generic": Vendor(
-        "generic",
-        "sua placa-mãe",
-        "Del ou F2 (às vezes F1, F10 ou Esc)",
-        "F12, F11 ou F8",
-        ("Os nomes mudam um pouco entre fabricantes. Procure pelas palavras-chave de cada ajuste.",),
-        {},
-    ),
-}
-
-VENDOR_MARKERS = (
-    ("asustek", "asus"),
-    ("asus", "asus"),
-    ("gigabyte", "gigabyte"),
-    ("micro-star", "msi"),
-    ("msi", "msi"),
-    ("asrock", "asrock"),
-    ("dell", "dell"),
-    ("lenovo", "lenovo"),
-    ("hewlett", "hp"),
-    ("hp", "hp"),
-    ("acer", "acer"),
-)
-
-OEM_BRANDS = {"dell", "lenovo", "hp", "acer"}
+@lru_cache(maxsize=1)
+def _data() -> dict:
+    return json.loads(PROFILES_FILE.read_text(encoding="utf-8"))
 
 
-def detect_vendor(system_manufacturer: str, board_manufacturer: str, is_laptop: bool) -> Vendor:
-    """Para notebooks e desktops de marca vale o fabricante do sistema; para PCs montados, o da placa."""
+@lru_cache(maxsize=1)
+def profiles() -> dict[str, Profile]:
+    result = {}
+    for raw in _data()["profiles"]:
+        result[raw["id"]] = Profile(
+            id=raw["id"],
+            kind=raw["kind"],
+            brand=raw["brand"],
+            name=raw["name"],
+            bios_key=raw["bios_key"],
+            boot_key=raw["boot_key"],
+            notes=tuple(raw.get("notes") or ()),
+            paths=dict(raw.get("paths") or {}),
+            absent=frozenset(raw.get("absent") or ()),
+            confidence=raw.get("confidence", "documentacao"),
+            checked_on=tuple(raw.get("checked_on") or ()),
+            match=dict(raw.get("match") or {}),
+            engine_paths=bool(raw.get("engine_paths")),
+        )
+    return result
+
+
+def keywords() -> dict[str, list[str]]:
+    return _data()["keywords"]
+
+
+def _has_marker(text: str, markers: list[str]) -> bool:
+    # Palavra inteira: "hp" não pode casar com "chipset", nem "ami" com "family"
+    return any(re.search(rf"(?<![a-z0-9]){re.escape(marker)}(?![a-z0-9])", text) for marker in markers)
+
+
+def engine_for(bios_vendor: str) -> Profile:
+    """Perfil do tipo de BIOS (AMI, Insyde, Phoenix) ou o genérico."""
+    bios = (bios_vendor or "").lower()
+    for profile in profiles().values():
+        if profile.kind == "engine" and _has_marker(bios, profile.match.get("bios", [])):
+            return profile
+    return profiles()["generic"]
+
+
+def detect_profile(
+    system_manufacturer: str = "",
+    family: str = "",
+    model: str = "",
+    board_manufacturer: str = "",
+    bios_vendor: str = "",
+    is_laptop: bool = False,
+) -> Profile:
+    """Escolhe o perfil de BIOS mais específico para a máquina."""
     system = (system_manufacturer or "").lower()
+    line = f" {family or ''} {model or ''} ".lower()
     board = (board_manufacturer or "").lower()
 
-    def match(text: str) -> str | None:
-        return next((key for marker, key in VENDOR_MARKERS if marker in text), None)
+    for profile in profiles().values():
+        if profile.kind != "oem" or not _has_marker(system, profile.match.get("manufacturer", [])):
+            continue
+        form = profile.match.get("form")
+        if form == "laptop" and not is_laptop:
+            continue
+        families = profile.match.get("family")
+        if families and not any(item in line for item in families):
+            continue
+        return resolve(profile, bios_vendor)
 
-    system_key, board_key = match(system), match(board)
-    if system_key in OEM_BRANDS or (is_laptop and system_key):
-        return VENDORS[system_key]
-    return VENDORS[board_key or system_key or "generic"]
+    # PC montado: vale a placa-mãe (o fabricante do sistema costuma vir genérico, como "To Be Filled By O.E.M.")
+    for candidate in (board, system):
+        for profile in profiles().values():
+            if profile.kind == "board" and _has_marker(candidate, profile.match.get("board", [])):
+                return resolve(profile, bios_vendor)
+    return engine_for(bios_vendor)
+
+
+def resolve(profile: Profile, bios_vendor: str = "") -> Profile:
+    """Completa os caminhos com os do tipo de BIOS quando o perfil depende dele."""
+    if not profile.engine_paths:
+        return profile
+    engine = engine_for(bios_vendor)
+    return replace(profile, paths={**engine.paths, **profile.paths}, absent=profile.absent | engine.absent)
+
+
+def profile_by_id(profile_id: str, bios_vendor: str = "") -> Profile:
+    profile = profiles().get(profile_id)
+    if profile is None:
+        raise ValueError(f"Perfil de BIOS desconhecido: {profile_id}")
+    return resolve(profile, bios_vendor)
+
+
+def profile_choices() -> list[dict]:
+    """Perfis que o usuário pode escolher à mão na tela do guia."""
+    groups = {
+        "oem": "Marca e linha",
+        "board": "Placa-mãe (PC montado)",
+        "engine": "Tipo de BIOS",
+        "generic": "Genérico",
+    }
+    return [{"id": profile.id, "name": profile.name, "group": groups[profile.kind]} for profile in profiles().values()]
+
+
+def key_table() -> list[dict]:
+    """Teclas da BIOS e do menu de boot de todas as marcas, para o fim do guia."""
+    return [
+        {"name": profile.name, "bios_key": profile.bios_key, "boot_key": profile.boot_key}
+        for profile in profiles().values()
+        if profile.kind in ("oem", "board")
+    ]
+
+
+# O que fazer quando um ajuste costuma não aparecer na BIOS deste perfil
+ABSENT_HINTS = {
+    "above4g": "Costuma não aparecer nesta BIOS: siga em frente. Se o boot travar em PCI Configuration, veja Problemas e soluções.",
+    "sata": "Costuma não aparecer nesta BIOS. Se o disco interno não aparecer no instalador, veja as observações acima.",
+    "vmd": "Costuma não aparecer nesta BIOS. Se o disco interno não aparecer no instalador, veja as observações acima.",
+}
+DEFAULT_ABSENT_HINT = "Costuma não aparecer nesta BIOS: se não achar, siga em frente."
 
 
 @dataclass(frozen=True)
@@ -342,6 +314,14 @@ TROUBLESHOOTING = (
         [
             "Confira os ajustes da BIOS, principalmente CSM desligado, Secure Boot desligado e Above 4G Decoding.",
             "Se a BIOS tiver a opção CFG Lock, desligue-a.",
+        ],
+    ),
+    (
+        'Trava numa linha com "PCI configuration begin" ou "PCI configuration end"',
+        [
+            "Ative o Above 4G Decoding na BIOS.",
+            "Se a BIOS não tem essa opção, acrescente npci=0x2000 aos boot-args do config.plist (com o ProperTree, em "
+            "NVRAM > Add > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > boot-args) e tente de novo.",
         ],
     ),
     (

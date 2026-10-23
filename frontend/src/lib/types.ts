@@ -278,7 +278,15 @@ export interface GuideInfo {
   html: string
   pdf: string | null
   vendor: string
+  profile?: { id: string; name: string; confidence: string; detected: boolean }
   generated: string
+}
+
+export interface GuideProfiles {
+  choices: { id: string; name: string; group: string }[]
+  detected: { id: string; name: string }
+  /** Perfil escolhido à mão (null = o detectado). */
+  selected: string | null
 }
 
 export interface ShareInfo {

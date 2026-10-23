@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from macpronto.guide import content, render
+from macpronto.guide import render
 from macpronto.guide.share import GuideShare
 from macpronto.media import disks, recovery
 from macpronto.media import format as formatter
@@ -136,21 +136,6 @@ def test_macos_recovery_reaproveitado_ou_atualizado(monkeypatch, tmp_path):
     listed = recovery.cached_images()
     assert [item["product"] for item in listed] == ["222-22222"]
     assert recovery.clear_cache() > 0 and recovery.cached_images() == []
-
-
-@pytest.mark.parametrize(
-    ("system", "board", "laptop", "expected"),
-    [
-        ("LENOVO", "LENOVO", False, "lenovo"),
-        ("Gigabyte Technology Co., Ltd.", "Gigabyte Technology Co., Ltd.", False, "gigabyte"),
-        ("To Be Filled By O.E.M.", "ASRock", False, "asrock"),
-        ("ASUS", "ASUSTeK COMPUTER INC.", True, "asus"),
-        ("Micro-Star International Co., Ltd.", "Micro-Star International Co., Ltd.", False, "msi"),
-        ("System manufacturer", "Desconhecida", False, "generic"),
-    ],
-)
-def test_fabricante_da_bios(system, board, laptop, expected):
-    assert content.detect_vendor(system, board, laptop).key == expected
 
 
 def test_guia_e_compartilhamento(tmp_path):

@@ -36,6 +36,8 @@ class Session:
     usb_map: Path | None = None
     guide: dict | None = None
     media: dict | None = None
+    # Perfil de BIOS escolhido à mão na tela do guia (None = detectar)
+    guide_profile: str | None = None
 
 
 class Api:
@@ -156,6 +158,8 @@ class Api:
         self._session.plan = result["plan"]
         self._session.laudo = result["laudo"]
         self._session.efi = None
+        self._session.guide = None
+        self._session.guide_profile = None
         # O mapa USB feito numa sessão anterior fica salvo em Documentos\MacPronto\USB\<diagnóstico>
         saved_map = paths.documents_dir() / "USB" / scan.id / "UTBMap.kext"
         self._session.usb_map = saved_map if saved_map.is_dir() else None
@@ -430,16 +434,41 @@ class Api:
             self._session.efi,
             usb_mapped=bool(self._session.efi and self._session.efi.get("usb_map")),
             with_pdf=with_pdf,
+            profile_id=self._session.guide_profile,
         )
         self._session.guide = info
         return info
 
-    def guide_build(self, task_id: str) -> dict:
+    def guide_build(self, task_id: str, options: dict | None = None) -> dict:
+        """Gera o guia. ``options["profile"]`` troca o perfil de BIOS (vazio volta para o detectado)."""
+        from macpronto.guide import content
+
         def job(reporter: TaskReporter) -> dict:
+            if options and "profile" in options:
+                profile = options.get("profile") or None
+                if profile is not None and profile not in content.profiles():
+                    raise UserFacingError("invalid", f"Perfil de BIOS desconhecido: {profile}")
+                self._session.guide_profile = profile
+                log.info("Perfil de BIOS do guia: %s", profile or "detectado automaticamente")
             reporter.stage("Gerando o guia personalizado")
             return self._build_guide()
 
         return self._tasks.run(task_id, job)
+
+    @guarded
+    def guide_profiles(self) -> dict:
+        """Perfis de BIOS para a escolha manual e o que foi detectado nesta máquina."""
+        from macpronto.guide import content, render
+
+        scan = self._require_scan()
+        if self._session.laudo is None:
+            raise UserFacingError("no-laudo", "Faça ou abra um diagnóstico primeiro.")
+        detected, _ = render.machine_profile(scan.to_dict(), self._session.laudo)
+        return {
+            "choices": content.profile_choices(),
+            "detected": {"id": detected.id, "name": detected.name},
+            "selected": self._session.guide_profile,
+        }
 
     @guarded
     def guide_share_start(self) -> dict:
