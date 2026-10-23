@@ -12,7 +12,7 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 - O Windows Defender (assinaturas de 23/10/2026) não encontrou ameaças no executável, no instalador nem no portátil.
 - Saídas da build: instalador de 15,2 MB e versão portátil de 19,9 MB.
 - O instalador foi testado: instalação silenciosa em `C:\Program Files\MacPronto` (54 MB), atalhos no menu Iniciar, registro em Programas e Recursos e desinstalação completa. O programa instalado pede administrador pelo UAC ao abrir e passou no autoteste completo já elevado.
-- 119 testes automáticos passando.
+- 122 testes automáticos passando.
 
 No modo de desenvolvimento também foram validados com o hardware real: diagnóstico, laudo, mapeamento USB, download do macOS Recovery (884 MB do Sequoia, conferido com a assinatura da Apple) e guia em HTML e PDF.
 
@@ -22,7 +22,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 - A formatação foi refeita em etapas: apaga e particiona, espera o volume (com `rescan`) e formata, com o PowerShell como alternativa.
 - No terceiro teste, o GPT ainda falhou (a partição removível demora a aparecer) e a reserva em MBR funcionou de primeira. Agora o MBR é a primeira tentativa, com GPT de reserva; os dois caminhos passaram num disco virtual.
 
-Falta dar boot pelo pendrive.
+Primeiro boot pelo pendrive: o OpenCore abriu, mas só mostrava o Windows (o `HideAuxiliary` do OpCore Simplify esconde o macOS Recovery). Contorno: barra de espaço no menu; desde a `v0.1.0-beta.3` a EFI sai com `HideAuxiliary = false`. Falta escolher o instalador e instalar.
 
 **Também nesta etapa:**
 

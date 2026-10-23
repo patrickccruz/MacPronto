@@ -257,8 +257,9 @@ INSTALL_STEPS = (
     ),
     (
         "Escolha o instalador no OpenCore",
-        'Aparece a tela do OpenCore. Escolha a opção com "macOS Base System" ou "Install macOS" e aperte Enter. Vão passar muitas '
-        "linhas de texto: é normal, a EFI liga o modo detalhado (verbose) para ajudar a diagnosticar problemas.",
+        'Aparece a tela do OpenCore. Escolha a opção com "macOS Base System" ou "Install macOS" e aperte Enter. Se só aparecer o '
+        "Windows, aperte a barra de espaço para mostrar as opções escondidas. Vão passar muitas linhas de texto: é normal, a EFI "
+        "liga o modo detalhado (verbose) para ajudar a diagnosticar problemas.",
     ),
     (
         "Apague o disco de destino",
@@ -309,6 +310,14 @@ POST_INSTALL = (
 )
 
 TROUBLESHOOTING = (
+    (
+        "No menu do OpenCore só aparece o Windows",
+        [
+            'Aperte a barra de espaço: o instalador ("macOS Base System") pode estar entre as opções escondidas.',
+            "Se mesmo assim não aparecer, confira no Windows se o pendrive tem a pasta com.apple.recovery.boot com o "
+            "BaseSystem.dmg e, se não tiver, grave o pendrive de novo no MacPronto.",
+        ],
+    ),
     (
         "Trava logo no início, numa linha com [EB|#LOG:EXITBS:START]",
         [

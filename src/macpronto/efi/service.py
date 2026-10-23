@@ -70,6 +70,7 @@ def build(
     if on_event:
         on_event(EngineEvent("stage", {"title": "Aplicando os ajustes do MacPronto"}))
     apply_keyboard(config_path, keyboard)
+    apply_installer_options(config_path)
     usb_applied = False
     if usb_map is not None and usb_map.is_dir():
         apply_usb_map(efi_dir, usb_map)
@@ -113,6 +114,20 @@ def apply_keyboard(config_path: Path, keyboard: str) -> None:
     with config_path.open("rb") as handle:
         config = plistlib.load(handle)
     config.setdefault("NVRAM", {}).setdefault("Add", {}).setdefault(NVRAM_GUID, {})["prev-lang:kbd"] = value.encode()
+    with config_path.open("wb") as handle:
+        plistlib.dump(config, handle)
+
+
+def apply_installer_options(config_path: Path) -> None:
+    """Deixa o instalador visível no menu do OpenCore.
+
+    O OpCore Simplify liga o HideAuxiliary, que esconde as entradas "auxiliares". O macOS
+    Recovery do pendrive (com.apple.recovery.boot) conta como auxiliar, então o menu só
+    mostrava o Windows até apertar a barra de espaço (visto num ThinkCentre M80q).
+    """
+    with config_path.open("rb") as handle:
+        config = plistlib.load(handle)
+    config.setdefault("Misc", {}).setdefault("Boot", {})["HideAuxiliary"] = False
     with config_path.open("wb") as handle:
         plistlib.dump(config, handle)
 

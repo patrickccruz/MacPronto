@@ -42,6 +42,12 @@ def test_teclado_abnt2(tmp_path):
     assert read_config(efi_dir)["NVRAM"]["Add"][efi.NVRAM_GUID]["prev-lang:kbd"] == b"pt-BR:128"
 
 
+def test_instalador_aparece_no_menu_do_opencore(tmp_path):
+    efi_dir = make_efi(tmp_path)
+    efi.apply_installer_options(efi_dir / "OC" / "config.plist")
+    assert read_config(efi_dir)["Misc"]["Boot"]["HideAuxiliary"] is False
+
+
 def test_mapa_usb_substitui_utbdefault(tmp_path):
     efi_dir = make_efi(tmp_path)
     usb_map = tmp_path / "UTBMap.kext"

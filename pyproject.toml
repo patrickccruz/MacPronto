@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "macpronto"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 description = "Analisa o PC no Windows, diz se ele pode virar Hackintosh e prepara o pendrive de instalação."
 readme = "README.md"
 license = "MIT"

@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Protocol
 
 from macpronto import __version__
+from macpronto.efi import service as efi_service
 from macpronto.media import disks, recovery
 from macpronto.media import format as formatter
 from macpronto.net import DownloadCancelled
@@ -114,6 +115,8 @@ def create(
 
     reporter.stage("Copiando a EFI")
     _copy_tree(efi_dir, root / "EFI", reporter, "Copiando a EFI")
+    # Vale também para EFIs montadas antes do ajuste (por exemplo, reaproveitadas de outra sessão)
+    efi_service.apply_installer_options(root / "EFI" / "OC" / "config.plist")
 
     if extra_folder is not None and extra_folder.is_dir():
         reporter.stage("Copiando o guia")
