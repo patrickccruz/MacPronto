@@ -12,23 +12,24 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 - O Windows Defender (assinaturas de 23/10/2026) não encontrou ameaças no executável, no instalador nem no portátil.
 - Saídas da build: instalador de 15,2 MB e versão portátil de 19,9 MB.
 - O instalador foi testado: instalação silenciosa em `C:\Program Files\MacPronto` (54 MB), atalhos no menu Iniciar, registro em Programas e Recursos e desinstalação completa. O programa instalado pede administrador pelo UAC ao abrir e passou no autoteste completo já elevado.
-- 61 testes automáticos passando.
+- 62 testes automáticos passando.
 
 No modo de desenvolvimento também foram validados com o hardware real: diagnóstico, laudo, mapeamento USB, download do macOS Recovery (884 MB do Sequoia, conferido com a assinatura da Apple) e guia em HTML e PDF.
 
-**Pendrive (em teste com pendrive real):** os dois primeiros testes, num SanDisk Cruzer Blade de 64 GB, falharam no diskpart. O primeiro erro foi o `convert gpt` num pendrive que já era GPT; o segundo, o `format` rodando antes de o Windows montar o volume da partição nova ("Nenhum volume foi selecionado"). A formatação foi refeita em etapas:
+**Pendrive criado do começo ao fim** num SanDisk Cruzer Blade de 64 GB: FAT32 de 16 GB, macOS Recovery reaproveitado do computador e conferido, EFI e guia. O caminho até aqui:
 
-- apaga e particiona;
-- espera o volume (com `rescan`);
-- formata e, se precisar, tenta pelo PowerShell e depois em MBR.
+- Os dois primeiros testes falharam no diskpart. O primeiro erro foi o `convert gpt` num pendrive que já era GPT; o segundo, o `format` rodando antes de o Windows montar a partição nova ("Nenhum volume foi selecionado").
+- A formatação foi refeita em etapas: apaga e particiona, espera o volume (com `rescan`) e formata, com o PowerShell como alternativa.
+- No terceiro teste, o GPT ainda falhou (a partição removível demora a aparecer) e a reserva em MBR funcionou de primeira. Agora o MBR é a primeira tentativa, com GPT de reserva; os dois caminhos passaram num disco virtual.
 
-A partição GPT nasce sem letra de unidade, para o Explorer não abrir a pergunta "Você precisa formatar o disco". Essa rotina passou num disco virtual (VHD) em GPT e em MBR; falta repetir no pendrive.
+Falta dar boot pelo pendrive.
 
 **Também nesta etapa:**
 
 - O macOS Recovery salvo no computador é reaproveitado: o MacPronto confere na Apple e só baixa de novo se houver uma imagem mais nova (sem internet, usa a salva).
 - Pendrive, EFI e diagnóstico continuam visíveis ao trocar de tela (cartão flutuante com a porcentagem).
-- Atualização automática: a cada minuto o programa lê o feed de versões do GitHub e, com autorização do usuário, baixa o instalador (conferido pelo SHA-256 do `macpronto-update.json`), instala em modo silencioso e reabre. **Só funciona para outras pessoas quando as versões estiverem num repositório público.**
+- Atualização automática: a cada minuto o programa lê o feed de versões do GitHub e, com autorização do usuário, baixa o instalador (conferido pelo SHA-256 do `macpronto-update.json`), instala em modo silencioso e reabre. Testada de ponta a ponta com o programa instalado e um servidor local no lugar do GitHub. O repositório passou a ser público em 23/10/2026.
+- A EFI e o mapa USB de uma sessão anterior voltam ao abrir o diagnóstico.
 
 **Implementado, mas ainda sem validação real:**
 
@@ -42,8 +43,8 @@ A partição GPT nasce sem letra de unidade, para o Explorer não abrir a pergun
 
 ### Próximos passos
 
-1. Repetir a criação do pendrive com o pendrive de verdade e dar boot nesta máquina.
-2. Tornar as versões públicas (o repositório é privado) e publicar a `v0.1.0-beta.1` pela tag, para a atualização automática funcionar.
+1. Dar boot pelo pendrive nesta máquina e instalar o macOS.
+2. Guia por fabricante e linha de produto (BIOS de Dell, HP, Lenovo e outras marcas), com reserva por tipo de BIOS.
 3. Testar contra outros antivírus além do Windows Defender.
 4. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
 5. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
@@ -125,9 +126,9 @@ A partição GPT nasce sem letra de unidade, para o Explorer não abrir a pergun
 ### Pendrive e mapeamento USB
 - [x] Mapeamento interativo das portas USB
 - [x] Listagem somente de discos removíveis, com confirmação dupla
-- [ ] Formatação do pendrive (GPT + FAT32, com MBR de reserva) (validada em disco virtual; falta o pendrive real)
+- [x] Formatação do pendrive (MBR + FAT32, com GPT de reserva), testada com pendrive real
 - [x] Download do macOS Recovery com barra de progresso e reaproveitamento da imagem salva
-- [ ] Cópia da EFI e verificação final (implementada; falta teste com pendrive real)
+- [x] Cópia da EFI e verificação final, testada com pendrive real
 
 ### Guia passo a passo (desktop)
 - [x] Configurações de BIOS por fabricante (ASUS, Gigabyte, MSI, ASRock)
@@ -135,7 +136,7 @@ A partição GPT nasce sem letra de unidade, para o Explorer não abrir a pergun
 - [x] Solução de problemas por sintoma
 - [x] Exportação em HTML/PDF, cópia no pendrive e QR code
 
-**🏁 Marco 2: MVP desktop** (falta validar o pendrive e o boot em máquina real)
+**🏁 Marco 2: MVP desktop** (falta dar boot pelo pendrive e instalar numa máquina real)
 
 ### Notebooks
 - [ ] Trackpad, bateria, brilho e desligamento da GPU dedicada (regras do OpCore Simplify no laudo e na EFI; falta testar em notebook real)
@@ -151,7 +152,7 @@ A partição GPT nasce sem letra de unidade, para o Explorer não abrir a pergun
 ### Beta e acabamento
 - [ ] Testes com amigos e correções
 - [x] Instalador (Inno Setup) e versão portátil
-- [x] Atualização automática pelas versões do GitHub (falta tornar as versões públicas)
+- [x] Atualização automática pelas versões do GitHub
 - [x] Ícone, tela "Sobre" e créditos
 - [ ] Assinatura digital (opcional)
 

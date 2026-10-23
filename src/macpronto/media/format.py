@@ -1,20 +1,19 @@
-"""Formatação do pendrive (GPT + FAT32). Exige administrador.
+"""Formatação do pendrive (MBR + FAT32, com GPT de reserva). Exige administrador.
 
-Em etapas separadas, porque o Windows demora alguns segundos para montar o volume
-de uma partição recém-criada (sobretudo em pendrives GPT). Se o "format" vier logo
-depois do "create partition" no mesmo script, o diskpart falha com
-"Nenhum volume foi selecionado":
+MBR primeiro: a especificação UEFI exige que o firmware dê boot por pendrive FAT32
+em MBR, e é o esquema que o Windows monta mais rápido em pendrives. Em GPT, num
+SanDisk Cruzer Blade, a partição recém-criada demorava a aparecer e os comandos
+seguintes falhavam ("Nenhum volume foi selecionado", "não pode encontrar o arquivo").
+
+Em etapas separadas, porque o Windows pode demorar para montar o volume da partição
+nova; se o "format" vier logo depois do "create partition", o diskpart falha:
 
 1. diskpart: desmonta, tira a proteção de gravação, apaga, converte e cria a partição;
 2. espera o volume da partição aparecer (com "rescan" se demorar);
 3. diskpart: seleciona a partição, formata em FAT32 e atribui uma letra;
    se falhar, tenta pelo PowerShell (Format-Volume).
 
-Em GPT a partição nasce com o atributo "sem letra de unidade": assim o Windows não
-monta uma unidade vazia (RAW) no meio do processo e o Explorer não abre a pergunta
-"Você precisa formatar o disco na unidade X:". O atributo sai depois de formatar.
-
-Se nada disso der certo em GPT, repete tudo em MBR, que todo firmware UEFI também lê.
+Se nada disso der certo em MBR, repete tudo em GPT.
 """
 
 from __future__ import annotations
@@ -40,8 +39,7 @@ VOLUME_WAIT_SECONDS = 40
 RESCAN_AFTER_SECONDS = 10
 LETTER_WAIT_SECONDS = 15
 GPT_BASIC_DATA = "{ebd0a0a2-b9e5-4433-87c0-68b6b72699c7}"
-GPT_NO_DRIVE_LETTER = "0x8000000000000000"
-STYLES = ("gpt", "mbr")
+STYLES = ("mbr", "gpt")  # ordem das tentativas
 
 
 class FormatError(UserFacingError):
@@ -59,7 +57,7 @@ def _check_number(number: int) -> None:
         raise ValueError("Número de disco inválido.")
 
 
-def prepare_script(number: int, size_bytes: int, style: str = "gpt", letters: list[str] | None = None) -> str:
+def prepare_script(number: int, size_bytes: int, style: str = "mbr", letters: list[str] | None = None) -> str:
     """Etapa 1: libera o disco, apaga, converte e cria a partição."""
     _check_number(number)
     if style not in STYLES:
@@ -74,24 +72,30 @@ def prepare_script(number: int, size_bytes: int, style: str = "gpt", letters: li
         "attributes disk clear readonly noerr",
         "online disk noerr",
         "clean",
-        # Pendrives que já eram GPT continuam GPT depois do clean, e o convert gpt
-        # falha neles ("não está formatado em MBR"); com noerr o script segue.
+        # Alguns pendrives continuam GPT depois do clean, e o convert gpt falha neles
+        # ("não está formatado em MBR"); com noerr o script segue.
         f"convert {style} noerr",
         f"create partition primary size={partition_size_mb(size_bytes)}",
+        "exit",
+        "",
     ]
-    if style == "gpt":
-        lines.append(f"gpt attributes={GPT_NO_DRIVE_LETTER}")
-    return "\n".join([*lines, "exit", ""])
+    return "\n".join(lines)
 
 
-def format_script(number: int, partition: int, style: str = "gpt", label: str = LABEL) -> str:
+def format_script(number: int, partition: int, label: str = LABEL) -> str:
     """Etapa 2: com o volume já montado, formata em FAT32 e atribui uma letra."""
     _check_number(number)
     _check_number(partition)
-    lines = [f"select disk {number}", f"select partition {partition}", f'format fs=fat32 quick label="{label}"']
-    if style == "gpt":
-        lines.append("gpt attributes=0x0000000000000000")
-    return "\n".join([*lines, "assign noerr", "exit", ""])
+    return "\n".join(
+        [
+            f"select disk {number}",
+            f"select partition {partition}",
+            f'format fs=fat32 quick label="{label}"',
+            "assign noerr",
+            "exit",
+            "",
+        ]
+    )
 
 
 def _decode(raw: bytes) -> str:
@@ -239,7 +243,7 @@ def _attempt(number: int, size_bytes: int, style: str, letters: list[str]) -> st
     if partition is None:
         raise FormatError("A partição do pendrive não apareceu depois de criada.", describe_partitions(number))
 
-    code, output = _run_diskpart(format_script(number, partition["number"], style), "formatar em FAT32")
+    code, output = _run_diskpart(format_script(number, partition["number"]), "formatar em FAT32")
     if code != 0:
         log.warning("O diskpart não formatou; tentando pelo PowerShell.")
         time.sleep(2)
@@ -290,7 +294,8 @@ def format_disk(number: int, unique_id: str, size_bytes: int) -> str:
         except FormatError as exc:
             errors.append((style, exc))
             if style != STYLES[-1]:
-                log.warning("Não deu certo em %s (%s). Tentando de novo em MBR.", style.upper(), exc.message)
+                following = STYLES[STYLES.index(style) + 1].upper()
+                log.warning("Não deu certo em %s (%s). Tentando de novo em %s.", style.upper(), exc.message, following)
             continue
         log.info(
             "Pendrive formatado em %s: unidade %s:. Partições: %s", style.upper(), letter, describe_partitions(number)

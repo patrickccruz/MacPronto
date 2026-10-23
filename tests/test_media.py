@@ -59,21 +59,18 @@ def test_disco_trocado_e_recusado(monkeypatch):
 
 
 def test_scripts_do_diskpart():
-    prepare = formatter.prepare_script(3, 64 * GB, "gpt", ["E"]).splitlines()
+    assert formatter.STYLES[0] == "mbr"  # MBR primeiro: funcionou de primeira no pendrive real
+    prepare = formatter.prepare_script(3, 64 * GB, "mbr", ["E"]).splitlines()
     assert prepare[:2] == ["select volume E", "remove all dismount noerr"]
-    assert "select disk 3" in prepare and "clean" in prepare and "convert gpt noerr" in prepare
+    assert "select disk 3" in prepare and "clean" in prepare and "convert mbr noerr" in prepare
     assert "create partition primary size=16384" in prepare  # FAT32 limitado a 16 GB
-    # A partição nasce sem letra, para o Explorer não perguntar se quer formatar a unidade vazia
-    assert prepare[prepare.index("create partition primary size=16384") + 1] == "gpt attributes=0x8000000000000000"
-    assert not any(line.startswith("format") for line in prepare)  # formatar só depois do volume aparecer
+    assert not any(line.startswith(("format", "gpt")) for line in prepare)  # formatar só depois do volume aparecer
 
-    fmt = formatter.format_script(3, 2, "gpt").splitlines()
-    assert fmt[:3] == ["select disk 3", "select partition 2", 'format fs=fat32 quick label="MACPRONTO"']
-    assert fmt.index("gpt attributes=0x0000000000000000") < fmt.index("assign noerr")
+    fmt = formatter.format_script(3, 2).splitlines()
+    assert fmt[:4] == ["select disk 3", "select partition 2", 'format fs=fat32 quick label="MACPRONTO"', "assign noerr"]
 
-    mbr = formatter.prepare_script(3, 8 * GB, "mbr")
-    assert "convert mbr noerr" in mbr and "size=7565" in mbr and "gpt attributes" not in mbr
-    assert "gpt attributes" not in formatter.format_script(3, 1, "mbr")
+    gpt = formatter.prepare_script(3, 8 * GB, "gpt")
+    assert "convert gpt noerr" in gpt and "size=7565" in gpt
     with pytest.raises(ValueError):
         formatter.prepare_script(-1, 8 * GB)
     with pytest.raises(ValueError):
