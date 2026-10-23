@@ -71,3 +71,45 @@ def test_resumo_detecta_vesa(tmp_path):
     summary = efi.summarize(config_path)
     assert summary["vesa"] is True
     assert summary["smbios"]["model"] == "iMac19,1"
+
+
+def make_build(root, name, scan_id, darwin, complete=True, selection=None):
+    folder = root / "EFI" / name
+    efi_dir = folder / "EFI"
+    for part in ("OC/OpenCore.efi", "OC/config.plist", "BOOT/BOOTx64.efi"):
+        if part == "OC/OpenCore.efi" and not complete:
+            continue
+        (efi_dir / part).parent.mkdir(parents=True, exist_ok=True)
+        (efi_dir / part).write_bytes(b"x")
+    info = {"created_at": name, "scan_id": scan_id, "folder": str(folder), "efi_dir": str(efi_dir), "macos": darwin}
+    if selection is not None:
+        info["selection"] = selection
+    (folder / efi.INFO_FILE).write_text(__import__("json").dumps(info), encoding="utf-8")
+    return info
+
+
+def test_efi_anterior_volta_ao_abrir_o_diagnostico(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    from macpronto.api import Api
+
+    monkeypatch.setenv("MACPRONTO_OUTPUT_DIR", str(tmp_path))
+    make_build(tmp_path, "20261023-100000-PC", "pc", 24)
+    make_build(tmp_path, "20261023-110000-PC", "pc", 24, complete=False)  # pasta mexida: ignorada
+    make_build(tmp_path, "20261023-090000-OUTRO", "outro", 24)
+    api = Api()
+    scan = SimpleNamespace(id="pc")
+
+    api._restore_efi(scan, 24)  # noqa: SLF001
+    assert api._session.efi["created_at"] == "20261023-100000-PC"  # noqa: SLF001
+
+    api._session.efi = None  # noqa: SLF001
+    api._restore_efi(scan, 25)  # recomendado mudou: não reaproveita  # noqa: SLF001
+    assert api._session.efi is None  # noqa: SLF001
+
+    custom = efi.default_selection(24) | {"smbios_model": "iMac20,1"}
+    make_build(tmp_path, "20261023-120000-PC", "pc", 24, selection=custom)
+    api._restore_efi(scan, 24)  # a mais nova tem escolhas próprias: fica só na lista  # noqa: SLF001
+    assert api._session.efi is None  # noqa: SLF001
+    assert efi.build_selection(efi.list_builds("pc")[0])["smbios_model"] == "iMac20,1"
+    assert efi.build_selection({"macos": 24}) == efi.default_selection(24)  # montagens antigas

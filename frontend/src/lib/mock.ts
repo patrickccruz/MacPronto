@@ -226,6 +226,24 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
         { value: "br-pro", label: "Português (Brasil), teclado Brasileiro Pro" },
         { value: "us", label: "Inglês (EUA), teclado americano" },
       ]),
+    efi_builds: async () => {
+      if (!session) return ok([])
+      const current = session.efi
+      const older = { ...sampleEfi(session, "abnt2"), created_at: "2026-10-22T18:40:00", folder: "C:\\Users\\voce\\Documents\\MacPronto\\EFI\\anterior", usb_map: true }
+      const items = [...(current ? [current] : []), older].map((item) => ({
+        ...item,
+        complete: true,
+        current: item.folder === current?.folder,
+        selection: session!.selection,
+      }))
+      return ok(items)
+    },
+    efi_use: async (taskId: string, folder: string) => {
+      await simulate(taskId, ["Abrindo a EFI anterior"])
+      if (!session) return { ok: false as const, error: { code: "no-scan", message: "Sem diagnóstico." } }
+      session = { ...session, efi: { ...sampleEfi(session, "abnt2"), folder, usb_map: true } }
+      return ok(session)
+    },
     efi_build: async (taskId: string, options: { keyboard: string }) => {
       await simulate(taskId, ["Preparando o iasl", "Carregando tabelas ACPI", "Baixando OpenCore e kexts", "Montando a EFI", "Validando o config.plist com o ocvalidate"])
       if (!session) return { ok: false as const, error: { code: "no-scan", message: "Sem diagnóstico." } }

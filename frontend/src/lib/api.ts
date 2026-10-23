@@ -1,6 +1,7 @@
 import { call } from "./bridge"
 import type {
   AppInfo,
+  EfiBuildItem,
   EfiInfo,
   LogLine,
   PlanPayload,
@@ -44,6 +45,8 @@ export const api = {
   efiBuild: (taskId: string, options: { keyboard: string; use_usb_map: boolean }) =>
     call<EfiInfo>("efi_build", taskId, options),
   efiKeyboards: () => call<{ value: string; label: string }[]>("efi_keyboards"),
+  efiBuilds: () => call<EfiBuildItem[]>("efi_builds"),
+  efiUse: (taskId: string, folder: string) => call<ScanPayload>("efi_use", taskId, folder),
 
   usbRefresh: () => call<UsbState>("usb_refresh"),
   usbUpdatePort: (controllerId: string, index: number, changes: { selected?: boolean; type?: number | null; comment?: string }) =>

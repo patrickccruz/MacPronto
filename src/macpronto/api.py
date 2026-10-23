@@ -156,16 +156,27 @@ class Api:
         self._session.plan = result["plan"]
         self._session.laudo = result["laudo"]
         self._session.efi = None
+        # O mapa USB feito numa sessão anterior fica salvo em Documentos\MacPronto\USB\<diagnóstico>
+        saved_map = paths.documents_dir() / "USB" / scan.id / "UTBMap.kext"
+        self._session.usb_map = saved_map if saved_map.is_dir() else None
         recommended = result["laudo"]["macos"]["recommended"]
-        self._session.selection = {
-            "darwin": recommended,
-            "answers": {},
-            "smbios_model": None,
-            "acpi_overrides": {},
-            "kext_overrides": {},
-        }
+        self._session.selection = efi_service.default_selection(recommended)
+        self._restore_efi(scan, recommended)
         settings.update({"last_scan_id": scan.id})
         return self._scan_payload()
+
+    def _restore_efi(self, scan: scans.Scan, recommended: int) -> None:
+        """Reaproveita a EFI mais recente deste diagnóstico, se ela bate com o plano recomendado."""
+        builds = [info for info in efi_service.list_builds(scan.id) if efi_service.is_complete(info)]
+        if not builds:
+            return
+        latest = builds[0]
+        selection = efi_service.build_selection(latest)
+        if int(selection["darwin"]) != int(recommended) or not efi_service.is_default_selection(selection):
+            log.info("EFI anterior (%s) foi montada com outras escolhas; fica na lista para usar", latest["folder"])
+            return
+        self._session.efi = latest
+        log.info("EFI anterior reaproveitada: %s (montada em %s)", latest["folder"], latest.get("created_at"))
 
     def _scan_payload(self) -> dict:
         scan = self._session.scan
@@ -303,6 +314,54 @@ class Api:
                 )
             self._session.efi = info
             return info
+
+        return self._tasks.run(task_id, job)
+
+    @guarded
+    def efi_builds(self) -> list[dict]:
+        """EFIs já montadas para o diagnóstico aberto, da mais nova para a mais antiga."""
+        scan = self._require_scan()
+        current = (self._session.efi or {}).get("folder")
+        return [
+            {
+                **info,
+                "complete": efi_service.is_complete(info),
+                "current": info.get("folder") == current,
+                "selection": efi_service.build_selection(info),
+            }
+            for info in efi_service.list_builds(scan.id)
+        ]
+
+    def efi_use(self, task_id: str, folder: str) -> dict:
+        """Volta a usar uma EFI montada antes. Recalcula o plano se ela foi feita com outras escolhas."""
+
+        def job(reporter: TaskReporter) -> dict:
+            scan = self._require_scan()
+            info = next((b for b in efi_service.list_builds(scan.id) if b.get("folder") == folder), None)
+            if info is None:
+                raise UserFacingError("not-found", "Essa EFI não foi encontrada. Ela pode ter sido apagada.")
+            if not efi_service.is_complete(info):
+                raise UserFacingError(
+                    "incomplete", "A pasta dessa EFI está incompleta (arquivos apagados). Monte de novo."
+                )
+            selection = efi_service.build_selection(info)
+            if selection != self._session.selection:
+                reporter.stage("Recalculando o plano para as escolhas dessa EFI")
+                with self._tasks.engine_lock:
+                    self._session.plan = compat.plan(
+                        scan,
+                        int(selection["darwin"]),
+                        answers=selection.get("answers"),
+                        smbios_model=selection.get("smbios_model"),
+                        acpi_overrides=selection.get("acpi_overrides"),
+                        kext_overrides=selection.get("kext_overrides"),
+                        on_event=reporter.engine_event,
+                        cancel=reporter.cancel,
+                    )
+                self._session.selection = selection
+            self._session.efi = info
+            log.info("Usando a EFI montada em %s (%s)", info.get("created_at"), info["folder"])
+            return self._scan_payload()
 
         return self._tasks.run(task_id, job)
 

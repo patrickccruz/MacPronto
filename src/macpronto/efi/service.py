@@ -88,6 +88,8 @@ def build(
         "size_mb": round(sum(f.stat().st_size for f in efi_dir.rglob("*") if f.is_file()) / 1024**2, 1),
         "opencore": result.get("opencore"),
         "macos": selection["darwin"],
+        # Escolhas completas usadas na montagem, para reabrir esta EFI numa próxima sessão
+        "selection": {key: selection.get(key) for key in SELECTION_KEYS},
         "keyboard": keyboard,
         "keyboard_label": KEYBOARDS.get(keyboard, KEYBOARDS["abnt2"])[1],
         "usb_map": usb_applied,
@@ -194,9 +196,40 @@ def summarize(config_path: Path) -> dict:
     }
 
 
+SELECTION_KEYS = ("darwin", "answers", "smbios_model", "acpi_overrides", "kext_overrides")
+
+
+def default_selection(darwin: int) -> dict:
+    return {"darwin": darwin, "answers": {}, "smbios_model": None, "acpi_overrides": {}, "kext_overrides": {}}
+
+
+def build_selection(info: dict) -> dict:
+    """Escolhas de uma EFI já montada (as montagens antigas só guardavam a versão do macOS)."""
+    stored = info.get("selection") or {}
+    selection = default_selection(int(stored.get("darwin") or info["macos"]))
+    selection.update({key: stored[key] for key in SELECTION_KEYS if stored.get(key) is not None})
+    return selection
+
+
+def is_default_selection(selection: dict) -> bool:
+    return not (
+        selection.get("answers")
+        or selection.get("smbios_model")
+        or selection.get("acpi_overrides")
+        or selection.get("kext_overrides")
+    )
+
+
+def is_complete(info: dict) -> bool:
+    """A pasta da EFI ainda existe e tem o essencial (o usuário pode ter apagado ou mexido)."""
+    efi_dir = Path(info.get("efi_dir") or "")
+    return all((efi_dir / part).is_file() for part in ("OC/OpenCore.efi", "OC/config.plist", "BOOT/BOOTx64.efi"))
+
+
 def list_builds(scan_id: str | None = None) -> list[dict]:
     builds = []
-    for folder in sorted(paths.efi_output_dir().iterdir(), reverse=True):
+    root = paths.efi_output_dir()
+    for folder in sorted(root.iterdir(), reverse=True) if root.exists() else []:
         info_file = folder / INFO_FILE
         if not info_file.exists():
             continue

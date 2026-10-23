@@ -7,6 +7,7 @@ import {
   FileArchive,
   FolderOpen,
   Hammer,
+  History,
   KeyRound,
   MonitorOff,
   TriangleAlert,
@@ -28,7 +29,7 @@ import { api } from "@/lib/api"
 import { useBackgroundTask } from "@/lib/backgroundTasks"
 import { formatDate } from "@/lib/labels"
 import { useApp } from "@/lib/store"
-import type { EfiInfo } from "@/lib/types"
+import type { EfiBuildItem, EfiInfo } from "@/lib/types"
 
 const DEFAULT_KEYBOARDS = [
   { value: "abnt2", label: "Português (Brasil), teclado ABNT2" },
@@ -195,17 +196,74 @@ function Result({ efi, onRebuild }: { efi: EfiInfo; onRebuild: () => void }) {
   )
 }
 
+function PreviousBuilds({ builds, onUse }: { builds: EfiBuildItem[]; onUse: (build: EfiBuildItem) => void }) {
+  const { payload } = useApp()
+  const label = (darwin: number) => payload?.laudo.macos.versions.find((item) => item.darwin === darwin)?.label ?? `Darwin ${darwin}`
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <History className="size-4 text-primary" />
+          EFIs já montadas para este computador
+        </CardTitle>
+        <CardDescription>Dá para voltar a usar uma delas sem montar de novo.</CardDescription>
+      </CardHeader>
+      <CardContent className="divide-y">
+        {builds.map((build) => (
+          <div key={build.folder} className="flex flex-wrap items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-medium">
+                {formatDate(build.created_at)} · {label(build.selection.darwin ?? build.macos)}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                <Badge variant="secondary">OpenCore {build.opencore ?? "?"}</Badge>
+                <Badge variant={build.usb_map ? "secondary" : "outline"}>{build.usb_map ? "Com mapa USB" : "Sem mapa USB"}</Badge>
+                {build.validation && !build.validation.ok && <Badge variant="destructive">ocvalidate com avisos</Badge>}
+                {build.selection.smbios_model && <Badge variant="outline">{build.selection.smbios_model}</Badge>}
+                {!build.complete && <Badge variant="destructive">Pasta incompleta</Badge>}
+              </div>
+            </div>
+            {build.current ? (
+              <Badge>Em uso</Badge>
+            ) : (
+              <Button size="sm" variant="outline" disabled={!build.complete} onClick={() => onUse(build)}>
+                Usar esta
+              </Button>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
 export function EfiStep() {
-  const { payload, setEfi } = useApp()
+  const { payload, setEfi, setPayload } = useApp()
   const efiTask = useBackgroundTask("efi")
   const [keyboards, setKeyboards] = useState(DEFAULT_KEYBOARDS)
   const [keyboard, setKeyboard] = useState("abnt2")
   const [useUsbMap, setUseUsbMap] = useState(true)
   const [rebuilding, setRebuilding] = useState(false)
+  const [builds, setBuilds] = useState<EfiBuildItem[]>([])
+  const efiFolder = payload?.efi?.folder
 
   useEffect(() => {
     void api.efiKeyboards().then(setKeyboards).catch(() => undefined)
   }, [])
+
+  useEffect(() => {
+    // Recarrega a lista quando a EFI em uso muda (montagem nova ou troca)
+    let active = true
+    api.efiBuilds().then(
+      (list) => {
+        if (active) setBuilds(list)
+      },
+      () => undefined,
+    )
+    return () => {
+      active = false
+    }
+  }, [efiFolder])
 
   if (!payload) return null
   const { plan, laudo, selection } = payload
@@ -217,6 +275,16 @@ export function EfiStep() {
       setEfi(built)
       toast.success("EFI montada e validada.")
       return built
+    })
+    if (result) setRebuilding(false)
+  }
+
+  async function reuseBuild(build: EfiBuildItem) {
+    const result = await efiTask.run({ title: "Abrindo a EFI anterior", view: "efi" }, async (taskId) => {
+      const opened = await api.efiUse(taskId, build.folder)
+      setPayload(opened)
+      toast.success(`Usando a EFI montada em ${formatDate(build.created_at)}.`)
+      return opened
     })
     if (result) setRebuilding(false)
   }
@@ -304,6 +372,8 @@ export function EfiStep() {
           </div>
         </CardContent>
       </Card>
+
+      {builds.length > 0 && <PreviousBuilds builds={builds} onUse={(build) => void reuseBuild(build)} />}
 
       {!payload.acpi_tables.length && (
         <Alert variant="destructive">

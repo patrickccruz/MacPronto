@@ -315,6 +315,14 @@ export interface MediaResult {
   guide: GuideInfo
 }
 
+export interface EfiBuildItem extends EfiInfo {
+  /** A pasta ainda tem o OpenCore e o config.plist. */
+  complete: boolean
+  /** É a EFI em uso nesta sessão. */
+  current: boolean
+  selection: Selection
+}
+
 export interface UpdateInfo {
   version: string
   tag: string
