@@ -41,6 +41,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+[UninstallDelete]
+; Dados internos: cópia do motor, kexts e macOS Recovery em cache, registros e preferências.
+; Documentos\MacPronto (laudos, EFIs e guias) é do usuário e fica intacta.
+Type: filesandordirs; Name: "{localappdata}\MacPronto"
+
 [Icons]
 Name: "{autoprograms}\MacPronto"; Filename: "{app}\MacPronto.exe"
 Name: "{autoprograms}\Política de Uso do MacPronto"; Filename: "{app}\POLITICA-DE-USO.md"

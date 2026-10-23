@@ -11,6 +11,7 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 - Uma EFI completa foi montada pelo próprio executável, do zero (download do OpenCore 1.0.9 e de 16 kexts, 7 SSDTs compiladas), em 83 segundos, e o `ocvalidate` não encontrou problemas.
 - O Windows Defender (assinaturas de 23/10/2026) não encontrou ameaças no executável, no instalador nem no portátil.
 - Saídas da build: instalador de 15,2 MB e versão portátil de 19,9 MB.
+- O instalador foi testado: instalação silenciosa em `C:\Program Files\MacPronto` (54 MB), atalhos no menu Iniciar, registro em Programas e Recursos e desinstalação completa. O programa instalado pede administrador pelo UAC ao abrir e passou no autoteste completo já elevado.
 - 43 testes automáticos passando.
 
 No modo de desenvolvimento também foram validados com o hardware real: diagnóstico, laudo, mapeamento USB, download do macOS Recovery (884 MB do Sequoia, conferido com a assinatura da Apple) e guia em HTML e PDF.
@@ -18,7 +19,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 **Implementado, mas ainda sem validação real:**
 
 - Formatação e gravação do pendrive: a lógica e as regras de segurança têm testes automáticos, mas nenhum pendrive foi formatado ainda.
-- Instalação pelo instalador e elevação a administrador ao abrir o `.exe`: os testes do executável rodaram sem elevação (`__COMPAT_LAYER=RunAsInvoker`).
+- A desinstalação passou a apagar `%LOCALAPPDATA%\MacPronto` (motor, caches e registros), preservando `Documentos\MacPronto`; essa limpeza ainda não foi retestada.
 - Regras de notebooks, AMD e hardware antigo: vêm do OpCore Simplify e foram conferidas no laudo com relatórios sintéticos, mas nenhuma EFI foi testada nessas máquinas.
 
 **Corrigido nesta etapa:**
@@ -29,11 +30,10 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 ### Próximos passos
 
 1. Testar a criação do pendrive com um pendrive de verdade e dar boot nesta máquina.
-2. Testar o instalador (instalação, atalhos, desinstalação) e a elevação pelo UAC ao abrir.
-3. Ativar o GitHub Actions: rodar `gh auth refresh -h github.com -s workflow` (o token atual não tem o escopo `workflow`) e mover `docs/ci/build.yml` para `.github/workflows/build.yml`.
-4. Testar contra outros antivírus além do Windows Defender.
-5. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
-6. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
+2. Ativar o GitHub Actions: rodar `gh auth refresh -h github.com -s workflow` (o token atual não tem o escopo `workflow`) e mover `docs/ci/build.yml` para `.github/workflows/build.yml`.
+3. Testar contra outros antivírus além do Windows Defender.
+4. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
+5. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
 
 ## Premissas
 
@@ -75,7 +75,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 
 ### Validação
 - [ ] Rodar o OpCore Simplify e o macrecovery em 2 ou 3 PCs reais (feito em 1 desktop Intel; faltam notebook e AMD)
-- [x] Protótipo com pywebview + Nuitka (executável validado; falta testar a elevação pelo UAC)
+- [x] Protótipo com pywebview + Nuitka, executando como administrador
 - [x] Testar o .exe contra o Windows Defender
 - [ ] Testar o .exe contra outros antivírus
 - [x] Confirmar as licenças das ferramentas de terceiros (BSD-3-Clause e MIT)
@@ -137,7 +137,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 
 ### Beta e acabamento
 - [ ] Testes com amigos e correções
-- [ ] Instalador (Inno Setup) e versão portátil (gerados e sem ameaças no Defender; falta testar a instalação)
+- [x] Instalador (Inno Setup) e versão portátil
 - [x] Ícone, tela "Sobre" e créditos
 - [ ] Assinatura digital (opcional)
 
