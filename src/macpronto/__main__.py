@@ -3,6 +3,7 @@
 macpronto            abre a interface
 macpronto --engine   modo worker (uso interno, ver macpronto.engine)
 macpronto --debug    abre a interface com registros detalhados e DevTools
+macpronto --selftest [arquivo.json] [--full]   autoteste sem janela (ver macpronto.selftest)
 """
 
 from __future__ import annotations
@@ -21,6 +22,19 @@ def main() -> int:
         from macpronto.engine.worker import main as worker_main
 
         return worker_main()
+
+    if "--selftest" in sys.argv:
+        from pathlib import Path
+
+        from macpronto.selftest import run as selftest
+
+        position = sys.argv.index("--selftest")
+        target = (
+            sys.argv[position + 1]
+            if len(sys.argv) > position + 1 and not sys.argv[position + 1].startswith("--")
+            else None
+        )
+        return selftest(Path(target) if target else None)
 
     from macpronto.app import run
 
