@@ -118,11 +118,33 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
     policy_accepted: params.has("accepted"),
     advanced: false,
     last_scan_id: null,
+    auto_update: true,
   }
   let session: ScanPayload | null = params.has("loaded") ? structuredClone(sample) : null
   if (session && params.has("efi")) session.efi = sampleEfi(session, "abnt2")
   const cancelled = new Set<string>()
   let usb = sampleUsb()
+  const updateStatus = () => ({
+    current: "0.1.0-beta.1",
+    enabled: settings.auto_update,
+    installed: true,
+    checking: false,
+    last_check: new Date().toISOString(),
+    error: null,
+    available: params.has("update")
+      ? {
+          version: "0.1.0-beta.2",
+          tag: "v0.1.0-beta.2",
+          name: "MacPronto-0.1.0-beta.2-instalador.exe",
+          size: 38273024,
+          sha256: "0".repeat(64),
+          url: "https://github.com/patrickccruz/MacPronto/releases/download/v0.1.0-beta.2/MacPronto-0.1.0-beta.2-instalador.exe",
+          page: "https://github.com/patrickccruz/MacPronto/releases/tag/v0.1.0-beta.2",
+          notes: "# MacPronto 0.1.0-beta.2\n\n## Novidades\n\n- Pendrive formatado em etapas, sem a janela do Windows pedindo para formatar.\n- O macOS Recovery salvo no computador é reaproveitado.\n- Atualização automática pelo GitHub.\n",
+          published_at: "2026-10-24T12:00:00+00:00",
+        }
+      : null,
+  })
   let recoveryCache = [{ darwin: 24, product: "696-28424", size: 884321259, downloaded_at: "2026-10-23T15:11:20" }]
   let logId = 0
 
@@ -283,6 +305,12 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       return ok({ letter: "E", disk: null, product: "696-28424", darwin: 24, recovery_cached: true, recovery_replaced: null, verified: true, guide: session?.guide })
     },
     media_eject: async () => ok(true),
+    update_status: async () => ok(updateStatus()),
+    update_check: async () => ok({ ...updateStatus(), last_check: new Date().toISOString() }),
+    update_install: async (taskId: string) => {
+      await simulate(taskId, ["Baixando o MacPronto 0.1.0-beta.2", "Instalando: o MacPronto vai fechar e abrir de novo sozinho"])
+      return ok({ version: "0.1.0-beta.2", restarting: true })
+    },
     media_recovery_cache: async () => ok(recoveryCache),
     media_recovery_clear: async () => {
       const freed = recoveryCache.reduce((total, item) => total + item.size, 0)

@@ -2,12 +2,14 @@ import { useMemo } from "react"
 
 import { AppSidebar } from "@/components/AppSidebar"
 import { TaskDock } from "@/components/TaskDock"
+import { UpdateDialog } from "@/components/UpdateDialog"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { BackgroundTasksProvider } from "@/lib/backgroundTasks"
 import { isMockMode } from "@/lib/bridge"
 import type { ViewId } from "@/lib/steps"
 import { AppProvider, useApp } from "@/lib/store"
+import { UpdatesProvider } from "@/lib/updates"
 import { AboutPage } from "@/steps/AboutPage"
 import { DiagnosisStep } from "@/steps/DiagnosisStep"
 import { EfiStep } from "@/steps/EfiStep"
@@ -75,6 +77,7 @@ function Shell() {
         </div>
       </main>
       <TaskDock />
+      <UpdateDialog />
       <Toaster theme={resolvedTheme} position="bottom-right" richColors closeButton />
     </div>
   )
@@ -84,9 +87,11 @@ export default function App() {
   return (
     <AppProvider>
       <BackgroundTasksProvider>
-        <TooltipProvider delayDuration={250}>
-          <Shell />
-        </TooltipProvider>
+        <UpdatesProvider>
+          <TooltipProvider delayDuration={250}>
+            <Shell />
+          </TooltipProvider>
+        </UpdatesProvider>
       </BackgroundTasksProvider>
     </AppProvider>
   )

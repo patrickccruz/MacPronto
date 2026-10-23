@@ -53,11 +53,23 @@ Name: "{autodesktop}\MacPronto"; Filename: "{app}\MacPronto.exe"; Tasks: desktop
 
 [Run]
 Filename: "{app}\MacPronto.exe"; Description: "{cm:LaunchProgram,MacPronto}"; Flags: nowait postinstall skipifsilent shellexec
+; Atualização automática (o MacPronto roda este instalador com /SILENT /ATUALIZACAO): abre a versão nova no fim
+Filename: "{app}\MacPronto.exe"; WorkingDir: "{app}"; Flags: nowait runascurrentuser; Check: IsAutoUpdate
 
 [Code]
 const
   WebView2Key = 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}';
   WebView2UserKey = 'Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}';
+
+function IsAutoUpdate(): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 1 to ParamCount do
+    if CompareText(ParamStr(I), '/ATUALIZACAO') = 0 then
+      Result := True;
+end;
 
 function WebView2Installed(): Boolean;
 var

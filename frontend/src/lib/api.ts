@@ -15,6 +15,7 @@ import type {
   MediaResult,
   RecoveryCacheItem,
   ShareInfo,
+  UpdateStatus,
   UsbBuildResult,
   UsbState,
 } from "./types"
@@ -62,6 +63,10 @@ export const api = {
   mediaEject: (letter: string) => call<boolean>("media_eject", letter),
   mediaRecoveryCache: () => call<RecoveryCacheItem[]>("media_recovery_cache"),
   mediaRecoveryClear: () => call<number>("media_recovery_clear"),
+
+  updateStatus: () => call<UpdateStatus>("update_status"),
+  updateCheck: () => call<UpdateStatus>("update_check"),
+  updateInstall: (taskId: string) => call<{ version: string; restarting: boolean }>("update_install", taskId),
   relaunchAsAdmin: () => call<boolean>("relaunch_as_admin"),
 
   engineStatus: () => call<EngineComponent[]>("engine_status"),

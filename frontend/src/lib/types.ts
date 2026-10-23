@@ -208,6 +208,7 @@ export interface Settings {
   policy_accepted: boolean
   advanced: boolean
   last_scan_id: string | null
+  auto_update: boolean
 }
 
 export interface LogLine {
@@ -220,7 +221,7 @@ export interface LogLine {
 
 export interface TaskEvent {
   taskId: string
-  kind: "stage" | "progress" | "log"
+  kind: "stage" | "progress" | "log" | "update"
   data: { title?: string; current?: number; total?: number; label?: string; level?: string; message?: string }
 }
 
@@ -312,6 +313,29 @@ export interface MediaResult {
   recovery_replaced?: string | null
   verified: boolean
   guide: GuideInfo
+}
+
+export interface UpdateInfo {
+  version: string
+  tag: string
+  name: string
+  size: number
+  sha256: string
+  url: string
+  page: string
+  notes: string
+  published_at: string | null
+}
+
+export interface UpdateStatus {
+  current: string
+  enabled: boolean
+  /** Instalado pelo instalador (a cópia portátil é atualizada baixando de novo). */
+  installed: boolean
+  checking: boolean
+  last_check: string | null
+  error: string | null
+  available: UpdateInfo | null
 }
 
 export interface RecoveryCacheItem {

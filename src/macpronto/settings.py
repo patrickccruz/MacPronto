@@ -15,6 +15,7 @@ DEFAULTS = {
     "policy_accepted": False,
     "advanced": False,
     "last_scan_id": None,
+    "auto_update": True,  # procura versões novas do MacPronto a cada minuto
 }
 
 _lock = threading.Lock()

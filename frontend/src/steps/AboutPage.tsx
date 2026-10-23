@@ -1,12 +1,17 @@
-import { ExternalLink } from "lucide-react"
+import { Download, ExternalLink, RefreshCw } from "lucide-react"
+import { useState } from "react"
 
 import { Logo } from "@/components/Logo"
 import { PageHeader } from "@/components/PageHeader"
 import { RulesCard } from "@/components/RulesCard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/api"
+import { formatDate } from "@/lib/labels"
 import { useApp } from "@/lib/store"
+import { useUpdates } from "@/lib/updates"
 
 const CREDITS = [
   { name: "OpCore Simplify", author: "lzhoang2801", url: "https://github.com/lzhoang2801/OpCore-Simplify", role: "Regras de compatibilidade e geração da EFI" },
@@ -19,6 +24,65 @@ const CREDITS = [
   { name: "Guia de instalação do OpenCore", author: "Dortania", url: "https://dortania.github.io/OpenCore-Install-Guide/", role: "Base do guia passo a passo" },
   { name: "ACPICA", author: "Intel", url: "https://github.com/acpica/acpica", role: "acpidump e iasl" },
 ]
+
+function UpdatesCard() {
+  const { settings, updateSettings } = useApp()
+  const { status, checkNow, openDialog } = useUpdates()
+  const [checking, setChecking] = useState(false)
+
+  async function check() {
+    setChecking(true)
+    await checkNow()
+    setChecking(false)
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Atualizações</CardTitle>
+        <CardDescription>
+          O MacPronto procura versões novas no GitHub. Quando houver uma, ele avisa e só instala se você autorizar.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5 text-sm">
+            {status?.available ? (
+              <p className="font-medium text-primary">Versão {status.available.version} disponível</p>
+            ) : (
+              <p className="font-medium">{status?.error ? "Não foi possível verificar" : "Você está na versão mais nova"}</p>
+            )}
+            <p className="text-muted-foreground">
+              {status?.error ?? (status?.last_check ? `Última verificação: ${formatDate(status.last_check)}` : "Ainda não verificado.")}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {status?.available && (
+              <Button onClick={openDialog}>
+                <Download data-icon="inline-start" />
+                Ver e instalar
+              </Button>
+            )}
+            <Button variant="outline" disabled={checking} onClick={() => void check()}>
+              <RefreshCw data-icon="inline-start" className={checking ? "animate-spin" : undefined} />
+              Verificar agora
+            </Button>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <Label htmlFor="auto-update" className="font-normal">
+            Procurar versões novas a cada minuto enquanto o MacPronto estiver aberto
+          </Label>
+          <Switch
+            id="auto-update"
+            checked={settings.auto_update}
+            onCheckedChange={(value) => void updateSettings({ auto_update: value })}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function AboutPage() {
   const { info } = useApp()
@@ -42,6 +106,8 @@ export function AboutPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <UpdatesCard />
 
       <Card>
         <CardHeader>

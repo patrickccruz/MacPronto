@@ -4,7 +4,7 @@ import { api } from "./api"
 import type { StepId, ViewId } from "./steps"
 import type { AppInfo, EfiInfo, PlanPayload, ScanPayload, Selection, Settings } from "./types"
 
-const DEFAULT_SETTINGS: Settings = { theme: "system", policy_accepted: false, advanced: false, last_scan_id: null }
+const DEFAULT_SETTINGS: Settings = { theme: "system", policy_accepted: false, advanced: false, last_scan_id: null, auto_update: true }
 
 interface AppContextValue {
   info: AppInfo | null

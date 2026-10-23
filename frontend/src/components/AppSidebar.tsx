@@ -1,4 +1,4 @@
-import { Check, Info, Laptop, Lock, Moon, ScrollText, Sun } from "lucide-react"
+import { Check, Download, Info, Laptop, Lock, Moon, ScrollText, Sun } from "lucide-react"
 import { cn } from "cn"
 
 import { Logo } from "@/components/Logo"
@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { lockReason, STEPS, type ViewId } from "@/lib/steps"
 import { useApp } from "@/lib/store"
+import { useUpdates } from "@/lib/updates"
 
 const THEMES = [
   { value: "system", label: "Igual ao Windows", icon: Laptop },
@@ -16,6 +17,7 @@ const THEMES = [
 
 export function AppSidebar({ completed }: { completed: Set<ViewId> }) {
   const { view, go, payload, efiReady, settings, updateSettings, info, resolvedTheme } = useApp()
+  const { status: update, openDialog } = useUpdates()
   const currentIndex = STEPS.findIndex((step) => step.id === view)
 
   return (
@@ -76,6 +78,12 @@ export function AppSidebar({ completed }: { completed: Set<ViewId> }) {
       </nav>
 
       <div className="space-y-1 border-t border-sidebar-border p-3">
+        {update?.available && (
+          <Button variant="ghost" className="w-full justify-start text-primary hover:text-primary" onClick={openDialog}>
+            <Download data-icon="inline-start" />
+            <span className="truncate">Atualizar para {update.available.version}</span>
+          </Button>
+        )}
         <Button
           variant="ghost"
           className={cn("w-full justify-start", view === "logs" && "bg-sidebar-accent")}

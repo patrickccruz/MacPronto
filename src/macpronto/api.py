@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from macpronto import __version__, logs, paths, settings, winutil
+from macpronto import __version__, logs, paths, settings, updater, winutil
 from macpronto.compat import laudo as laudo_builder
 from macpronto.compat import service as compat
 from macpronto.efi import service as efi_service
@@ -44,17 +45,23 @@ class Api:
         self._tasks = TaskManager(self._emit)
         self._usb_session = None
         self._share = None
+        self._updater = updater.Updater(self._notify_update)
 
     # ------------------------------------------------------------------ infraestrutura
 
     def _attach(self, window: Any) -> None:
         self._window = window
+        self._updater.start()
 
     def _shutdown(self) -> None:
         """Chamado ao fechar a janela: cancela tarefas e desliga o compartilhamento do guia."""
+        self._updater.stop()
         self._tasks.cancel_all()
         if self._share is not None:
             self._share.stop()
+
+    def _notify_update(self, status: dict) -> None:
+        self._emit({"taskId": "atualizacao", "kind": "update", "data": status})
 
     def _emit(self, payload: dict) -> None:
         if self._window is None:
@@ -110,7 +117,10 @@ class Api:
 
     @guarded
     def settings_update(self, changes: dict) -> dict:
-        return settings.update(changes or {})
+        updated = settings.update(changes or {})
+        if (changes or {}).get("auto_update"):
+            self._updater.wake()
+        return updated
 
     @guarded
     def logs_recent(self, last_id: int = 0) -> list[dict]:
@@ -450,6 +460,54 @@ class Api:
         if self._window is not None:
             self._window.destroy()
         return True
+
+    # ------------------------------------------------------------------ atualizações
+
+    @guarded
+    def update_status(self) -> dict:
+        return self._updater.status()
+
+    @guarded
+    def update_check(self) -> dict:
+        return self._updater.check()
+
+    def update_install(self, task_id: str) -> dict:
+        def busy() -> bool:
+            return any(other != task_id for other in self._tasks.active())
+
+        def job(reporter: TaskReporter) -> dict:
+            info = self._updater.available
+            if info is None:
+                raise UserFacingError("no-update", "Não há atualização disponível.")
+            if not updater.is_installed():
+                raise UserFacingError(
+                    "portable",
+                    "Esta cópia do MacPronto não veio do instalador (é a portátil). Baixe a versão nova na página do GitHub.",
+                )
+            message = "Espere terminar o que está em andamento (pendrive, EFI ou diagnóstico) antes de atualizar."
+            if busy():
+                raise UserFacingError("busy", message)
+            reporter.stage(f"Baixando o MacPronto {info['version']}")
+            installer = self._updater.download(
+                info,
+                progress=lambda done, total: reporter.progress(done, total, "Baixando"),
+                cancel=reporter.cancel,
+            )
+            reporter.check_cancelled()
+            if busy():
+                raise UserFacingError("busy", message)
+            reporter.stage("Instalando: o MacPronto vai fechar e abrir de novo sozinho")
+            updater.launch_installer(installer, info["version"])
+            threading.Timer(1.5, self._close_for_update).start()
+            return {"version": info["version"], "restarting": True}
+
+        return self._tasks.run(task_id, job)
+
+    def _close_for_update(self) -> None:
+        log.info("Fechando o MacPronto para o instalador da atualização")
+        self._shutdown()
+        if self._window is not None:
+            self._window.destroy()
 
     # ------------------------------------------------------------------ laudo
 

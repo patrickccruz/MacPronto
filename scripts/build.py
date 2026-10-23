@@ -8,16 +8,20 @@ Saídas em dist/:
     MacPronto/                       pasta do programa (executável + recursos)
     MacPronto-<versão>-portatil.zip  versão portátil
     MacPronto-<versão>-instalador.exe (com o Inno Setup 6 instalado)
+    macpronto-update.json            manifesto lido pela atualização automática
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 import shutil
 import subprocess
 import sys
 import zipfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -145,6 +149,26 @@ def make_installer() -> Path | None:
     return DIST / f"MacPronto-{__version__}-instalador.exe"
 
 
+def make_update_manifest(installer: Path) -> Path:
+    """Manifesto que a atualização automática baixa de cada versão publicada (ver macpronto/updater.py)."""
+    from macpronto import updater
+
+    notes_file = ROOT / "docs" / "releases" / f"v{__version__}.md"
+    manifest = {
+        "version": __version__,
+        "published_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "installer": {
+            "name": installer.name,
+            "size": installer.stat().st_size,
+            "sha256": hashlib.sha256(installer.read_bytes()).hexdigest(),
+        },
+        "notes": notes_file.read_text(encoding="utf-8") if notes_file.exists() else "",
+    }
+    target = DIST / updater.MANIFEST
+    target.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    return target
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skip-frontend", action="store_true")
@@ -161,6 +185,7 @@ def main() -> int:
         installer = make_installer()
         if installer:
             print("Instalador:", installer)
+            print("Manifesto da atualização:", make_update_manifest(installer))
     return 0
 
 
