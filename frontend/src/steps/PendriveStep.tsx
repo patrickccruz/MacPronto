@@ -119,6 +119,11 @@ function Done({ result, onAgain }: { result: MediaResult; onAgain: () => void })
           </div>
         </CardContent>
       </Card>
+      {ejected && (
+        <p className="text-sm text-muted-foreground">
+          Pendrive ejetado. Para gravar nele de novo, desconecte e conecte antes de clicar em Criar outro pendrive.
+        </p>
+      )}
       <Alert>
         <ShieldAlert className="text-tweak" />
         <AlertTitle>Antes de desligar o computador</AlertTitle>

@@ -42,9 +42,25 @@ GPT_BASIC_DATA = "{ebd0a0a2-b9e5-4433-87c0-68b6b72699c7}"
 STYLES = ("mbr", "gpt")  # ordem das tentativas
 
 
+# Erros do próprio pendrive (HRESULT do diskpart): tentar outro esquema de partição não adianta
+DEVICE_ERRORS = {
+    0x80070015: "O pendrive não respondeu quando o Windows tentou apagá-lo (o dispositivo não está pronto). "
+    "Isso acontece quando ele foi ejetado e continuou conectado, ou quando travou.",
+    0x80070013: "O pendrive está protegido contra gravação. Alguns têm uma chave de trava na lateral; "
+    "se o seu não tiver, ele pode ter travado por defeito.",
+    0x8007001F: "O pendrive parou de responder durante a gravação (erro no dispositivo).",
+    0x80070079: "O pendrive demorou demais para responder.",
+}
+DEVICE_ADVICE = (
+    "Desconecte o pendrive, conecte de novo (de preferência numa porta USB traseira, direto no computador) "
+    "e tente outra vez. Se repetir, o pendrive pode estar com defeito: use outro."
+)
+
+
 class FormatError(UserFacingError):
-    def __init__(self, message: str, details: str | None = None) -> None:
+    def __init__(self, message: str, details: str | None = None, device: bool = False) -> None:
         super().__init__("format", message, details)
+        self.device = device  # o problema é o pendrive, não o esquema de partição
 
 
 def partition_size_mb(size_bytes: int) -> int:
@@ -232,6 +248,8 @@ def _attempt(number: int, size_bytes: int, style: str, letters: list[str]) -> st
     code, output = _run_diskpart(
         prepare_script(number, size_bytes, style, letters), f"apagar e criar a partição {style.upper()}"
     )
+    if code in DEVICE_ERRORS:
+        raise FormatError(DEVICE_ERRORS[code], f"diskpart (código {code}):\n{output[-2000:]}", device=True)
     if code != 0:
         raise FormatError(
             f"O diskpart não conseguiu apagar e particionar o pendrive (código {code}).",
@@ -293,6 +311,9 @@ def format_disk(number: int, unique_id: str, size_bytes: int) -> str:
             letter = _attempt(number, size_bytes, style, disk["letters"])
         except FormatError as exc:
             errors.append((style, exc))
+            if exc.device:
+                log.error("Problema no próprio pendrive; não adianta tentar outro esquema de partição: %s", exc.message)
+                raise FormatError(f"{exc.message} {DEVICE_ADVICE}", exc.details, device=True) from exc
             if style != STYLES[-1]:
                 following = STYLES[STYLES.index(style) + 1].upper()
                 log.warning("Não deu certo em %s (%s). Tentando de novo em %s.", style.upper(), exc.message, following)

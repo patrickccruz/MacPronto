@@ -9,6 +9,7 @@ Regras de segurança (todas obrigatórias):
 from __future__ import annotations
 
 import logging
+import sys
 from dataclasses import asdict, dataclass, field
 
 log = logging.getLogger(__name__)
@@ -17,6 +18,10 @@ BUS_USB = 7
 MIN_BYTES = 4 * 1000**3
 MAX_BYTES = 256 * 1000**3
 PARTITION_STYLES = {0: "vazio", 1: "MBR", 2: "GPT"}
+IOCTL_STORAGE_CHECK_VERIFY2 = 0x2D0800
+FILE_READ_ATTRIBUTES = 0x80
+ERROR_NOT_READY = 21
+ERROR_NO_MEDIA_IN_DRIVE = 1112
 BUS_NAMES = {7: "USB", 11: "SATA", 17: "NVMe", 8: "RAID", 12: "SD", 13: "MMC", 10: "SAS"}
 
 
@@ -44,12 +49,14 @@ class Disk:
         return {**asdict(self), "size_gb": self.size_gb}
 
 
-def evaluate(disk: Disk, bus_type: int) -> Disk:
+def evaluate(disk: Disk, bus_type: int, media_ready: bool | None = None) -> Disk:
     """Preenche eligible e reason. Separado da leitura para poder ser testado."""
     if disk.system or disk.boot:
         disk.reason = "É o disco do Windows."
     elif bus_type != BUS_USB:
         disk.reason = f"Não é um disco USB ({disk.bus})."
+    elif media_ready is False:
+        disk.reason = "Não está respondendo (foi ejetado?). Desconecte e conecte o pendrive de novo."
     elif disk.read_only:
         disk.reason = "Está protegido contra gravação."
     elif disk.size_bytes < MIN_BYTES:
@@ -59,6 +66,43 @@ def evaluate(disk: Disk, bus_type: int) -> Disk:
     else:
         disk.eligible = True
     return disk
+
+
+def media_ready(number: int) -> bool | None:
+    """Pergunta ao disco se a mídia está pronta (False depois de "Ejetar", com o pendrive ainda conectado).
+
+    Só leitura e sem administrador (IOCTL_STORAGE_CHECK_VERIFY2). None quando não dá para saber.
+    """
+    if sys.platform != "win32":
+        return None
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateFileW.restype = wintypes.HANDLE
+    kernel32.CreateFileW.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        wintypes.LPVOID,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        wintypes.HANDLE,
+    ]
+    handle = kernel32.CreateFileW(rf"\\.\PhysicalDrive{int(number)}", FILE_READ_ATTRIBUTES, 3, None, 3, 0, None)
+    if handle in (None, wintypes.HANDLE(-1).value):
+        return None
+    try:
+        returned = wintypes.DWORD()
+        if kernel32.DeviceIoControl(
+            handle, IOCTL_STORAGE_CHECK_VERIFY2, None, 0, None, 0, ctypes.byref(returned), None
+        ):
+            return True
+        error = ctypes.get_last_error()
+        log.warning("Disco %s não está pronto (erro %s)", number, error)
+        return False if error in (ERROR_NOT_READY, ERROR_NO_MEDIA_IN_DRIVE) else None
+    finally:
+        kernel32.CloseHandle(handle)
 
 
 def _letter(value) -> str | None:
@@ -104,7 +148,8 @@ def list_disks() -> list[dict]:
             letters=disk_letters,
             labels=[labels.get(letter, "") for letter in disk_letters],
         )
-        disks.append(evaluate(disk, bus_type).to_dict())
+        ready = media_ready(number) if bus_type == BUS_USB else None
+        disks.append(evaluate(disk, bus_type, ready).to_dict())
     return sorted(disks, key=lambda d: (not d["eligible"], d["number"]))
 
 

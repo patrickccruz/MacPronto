@@ -48,6 +48,28 @@ def test_regras_do_pendrive(changes, bus, eligible, reason):
     assert reason in disk.reason
 
 
+def test_pendrive_ejetado_fica_fora_da_lista():
+    assert "ejetado" in disks.evaluate(make_disk(), disks.BUS_USB, media_ready=False).reason
+    assert disks.evaluate(make_disk(), disks.BUS_USB, media_ready=None).eligible  # sem como saber: não bloqueia
+
+
+def test_pendrive_que_nao_responde_nao_tenta_outro_esquema(monkeypatch):
+    attempts = []
+    monkeypatch.setattr(formatter.winutil, "is_admin", lambda: True)
+    monkeypatch.setattr(formatter.disks, "find_disk", lambda *a: make_disk(letters=[]).to_dict())
+    monkeypatch.setattr(formatter, "describe_partitions", lambda number: "[]")
+
+    def diskpart(script, step):
+        attempts.append(step)
+        return 2147942421, "O DiskPart encontrou um erro: O dispositivo não está pronto."
+
+    monkeypatch.setattr(formatter, "_run_diskpart", diskpart)
+    with pytest.raises(formatter.FormatError, match="não respondeu") as caught:
+        formatter.format_disk(2, "USBSTOR\\DISK", 32 * GB)
+    assert len(attempts) == 1  # sem a segunda tentativa em GPT
+    assert caught.value.device and "Desconecte" in caught.value.message
+
+
 def test_disco_trocado_e_recusado(monkeypatch):
     listed = [make_disk().to_dict() | {"eligible": True}]
     monkeypatch.setattr(disks, "list_disks", lambda: listed)
