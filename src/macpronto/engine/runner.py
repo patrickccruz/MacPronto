@@ -58,14 +58,17 @@ def run_task(
     on_event: Callable[[EngineEvent], None] | None = None,
     cancel: threading.Event | None = None,
     timeout: float | None = None,
+    workspace_dir: Path | None = None,
 ) -> dict:
     """Executa uma tarefa no worker e devolve o resultado.
 
     Levanta EngineError se a tarefa falhar e TaskCancelled se ``cancel`` for acionado.
+    ``workspace_dir`` troca a área de trabalho padrão (usado no autoteste de atualizações).
     """
-    component = TASK_COMPONENTS.get(task)
-    workspace_dir = str(workspace.ensure(component)) if component else None
-    request = {"task": task, "params": params or {}, "workspace": workspace_dir}
+    if workspace_dir is None:
+        component = TASK_COMPONENTS.get(task)
+        workspace_dir = workspace.ensure(component) if component else None
+    request = {"task": task, "params": params or {}, "workspace": str(workspace_dir) if workspace_dir else None}
 
     log.debug("Iniciando worker para a tarefa %s", task)
     process = subprocess.Popen(

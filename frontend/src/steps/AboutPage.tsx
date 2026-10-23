@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react"
 
 import { Logo } from "@/components/Logo"
 import { PageHeader } from "@/components/PageHeader"
+import { RulesCard } from "@/components/RulesCard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { api } from "@/lib/api"
@@ -64,10 +65,12 @@ export function AboutPage() {
         </CardContent>
       </Card>
 
+      <RulesCard />
+
       {info && Object.keys(info.components).length > 0 && (
         <Card size="sm">
           <CardHeader>
-            <CardTitle>Versões travadas das ferramentas</CardTitle>
+            <CardTitle>Versões que vêm com o MacPronto</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2 sm:grid-cols-2">
             {Object.entries(info.components).map(([name, component]) => (

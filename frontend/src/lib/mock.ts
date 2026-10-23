@@ -272,6 +272,18 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
     },
     media_eject: async () => ok(true),
     relaunch_as_admin: async () => ok(false),
+    engine_status: async () =>
+      ok([
+        { name: "OpCore-Simplify", repository: "https://github.com/lzhoang2801/OpCore-Simplify", pinned: "f0e1e441bb455c33e9695a9c9c50e8ca931d4de8", active: "f0e1e441bb455c33e9695a9c9c50e8ca931d4de8", origin: "travada", installed_at: null, commit_date: null },
+        { name: "Hardware-Sniffer", repository: "https://github.com/lzhoang2801/Hardware-Sniffer", pinned: "2e0fa16020279a7a13575813ace94537362e262a", active: "2e0fa16020279a7a13575813ace94537362e262a", origin: "travada", installed_at: null, commit_date: null },
+      ]),
+    engine_check: async (name: string) =>
+      ok({ name, sha: "c0ffee0000000000000000000000000000000000", date: "2026-10-23T10:00:00Z", message: "Exemplo de commit novo", active: "f0e1e44", origin: "travada", newer: true }),
+    engine_update: async (taskId: string, name: string) => {
+      await simulate(taskId, ["Consultando o GitHub", "Baixando " + name, "Testando a versão nova"])
+      return ok({ name, commit: "c0ffee0000000000000000000000000000000000", date: "2026-10-23T10:00:00Z", selftest: "Análise e plano da máquina de exemplo: 11 kexts, SMBIOS iMac19,1." })
+    },
+    engine_revert: async () => ok([]),
     plan_update: async (taskId: string, selection: Partial<Selection>) => {
       await simulate(taskId, ["Recalculando o plano da EFI"])
       if (!session || !session.plan) return { ok: false as const, error: { code: "no-scan", message: "Sem diagnóstico." } }

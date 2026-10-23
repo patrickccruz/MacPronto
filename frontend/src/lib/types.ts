@@ -311,3 +311,23 @@ export interface MediaResult {
   verified: boolean
   guide: GuideInfo
 }
+
+export interface EngineComponent {
+  name: string
+  repository: string
+  pinned: string
+  active: string
+  origin: "travada" | "atualizada"
+  installed_at: string | null
+  commit_date: string | null
+}
+
+export interface EngineCheck {
+  name: string
+  sha: string
+  date: string | null
+  message: string
+  active: string
+  origin: string
+  newer: boolean
+}

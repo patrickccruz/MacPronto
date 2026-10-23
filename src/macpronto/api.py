@@ -446,3 +446,37 @@ class Api:
             return render.export_laudo(scan.to_dict(), self._session.laudo)
 
         return self._tasks.run(task_id, job)
+
+    # ------------------------------------------------------------------ base de regras
+
+    @guarded
+    def engine_status(self) -> list[dict]:
+        from macpronto.engine import updates
+
+        return updates.status()
+
+    @guarded
+    def engine_check(self, name: str) -> dict:
+        from macpronto.engine import updates
+
+        try:
+            return updates.check(name)
+        except OSError as exc:
+            raise UserFacingError("offline", f"Não foi possível consultar o GitHub: {exc}") from exc
+
+    def engine_update(self, task_id: str, name: str) -> dict:
+        from macpronto.engine import updates
+
+        def job(reporter: TaskReporter) -> dict:
+            with self._tasks.engine_lock:
+                return updates.install(name, on_event=reporter.engine_event, cancel=reporter.cancel)
+
+        return self._tasks.run(task_id, job)
+
+    @guarded
+    def engine_revert(self, name: str) -> list[dict]:
+        from macpronto.engine import updates
+
+        with self._tasks.engine_lock:
+            updates.revert(name)
+        return updates.status()

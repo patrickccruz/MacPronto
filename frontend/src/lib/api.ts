@@ -9,6 +9,8 @@ import type {
   Selection,
   Settings,
   DiskInfo,
+  EngineCheck,
+  EngineComponent,
   GuideInfo,
   MediaResult,
   ShareInfo,
@@ -58,4 +60,10 @@ export const api = {
     call<MediaResult>("media_create", taskId, options),
   mediaEject: (letter: string) => call<boolean>("media_eject", letter),
   relaunchAsAdmin: () => call<boolean>("relaunch_as_admin"),
+
+  engineStatus: () => call<EngineComponent[]>("engine_status"),
+  engineCheck: (name: string) => call<EngineCheck>("engine_check", name),
+  engineUpdate: (taskId: string, name: string) =>
+    call<{ name: string; commit: string; date: string | null; selftest: string }>("engine_update", taskId, name),
+  engineRevert: (name: string) => call<EngineComponent[]>("engine_revert", name),
 }
