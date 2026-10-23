@@ -117,3 +117,11 @@ def test_texto_de_faixa():
     assert laudo._range_text({"min": 17, "max": 25}) == "todas as versões, do High Sierra ao Tahoe"
     assert laudo._range_text({"min": 17, "max": 21}) == "até o macOS Monterey"
     assert laudo._range_text({"min": 20, "max": 25}) == "a partir do macOS Big Sur"
+
+
+def test_downloads_de_terceiros_verificam_tls():
+    from macpronto.engine import run_task
+
+    messages = []
+    run_task("selftest", {}, on_event=lambda event: messages.append(event.data.get("message", "")))
+    assert any("verificação TLS" in message for message in messages)

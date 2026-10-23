@@ -149,6 +149,25 @@ def _hide_child_consoles() -> None:
     os.system = patched_system
 
 
+def _secure_downloads(ctx: TaskContext) -> None:
+    """Força verificação TLS nos downloads das ferramentas de terceiros.
+
+    O ResourceFetcher do OpCore Simplify e do Hardware Sniffer procura o cert.pem
+    do OpenSSL e depois o certifi; sem os dois, ele desliga a verificação do
+    certificado. Aqui ele passa a usar o contexto padrão do Python, que no Windows
+    lê o repositório de certificados do sistema (inclusive raízes corporativas).
+    """
+    import ssl
+
+    try:
+        from Scripts import resource_fetcher  # type: ignore[import-not-found]
+    except ImportError:
+        return
+    if hasattr(resource_fetcher, "ResourceFetcher"):
+        resource_fetcher.ResourceFetcher.create_ssl_context = lambda self: ssl.create_default_context()
+        ctx.log("debug", "Downloads das ferramentas de terceiros com verificação TLS do sistema")
+
+
 def _load_tasks() -> dict[str, Callable[[TaskContext], dict]]:
     from macpronto.engine.tasks import ocs, sniff
 
@@ -188,6 +207,7 @@ def main() -> int:
     if workspace is not None:
         os.chdir(workspace)
         sys.path.insert(0, str(workspace))
+        _secure_downloads(ctx)
 
     try:
         tasks = _load_tasks()
