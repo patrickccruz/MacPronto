@@ -40,8 +40,6 @@ CHECK_INTERVAL = 60  # segundos
 MAX_INTERVAL = 15 * 60  # espera máxima depois de falhas seguidas
 MISSING_MANIFEST_RETRY = 5 * 60  # versão recém-criada pode ainda estar recebendo os arquivos
 MAX_FEED_BYTES = 2 * 1024 * 1024
-DETACHED_PROCESS = 0x00000008
-CREATE_NEW_PROCESS_GROUP = 0x00000200
 
 _VERSION = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$")
 _TAG_LINK = re.compile(r'href="[^"]*/releases/tag/([^"?#]+)"')
@@ -147,21 +145,25 @@ def launch_installer(installer: Path, version: str) -> None:
     """Roda o instalador em modo silencioso. Ele fecha o MacPronto, instala e abre a versão nova."""
     if sys.platform != "win32":
         raise RuntimeError("A atualização automática só funciona no Windows.")
+    import ctypes
+
     install_log = paths.logs_dir() / f"atualizacao-{version}.log"
-    args = [
-        str(installer),
-        "/SILENT",
-        "/SUPPRESSMSGBOXES",
-        "/NORESTART",
-        "/CLOSEAPPLICATIONS",
-        "/FORCECLOSEAPPLICATIONS",
-        "/ATUALIZACAO",  # o instalador abre o MacPronto de novo no fim
-        f"/LOG={install_log}",
-    ]
-    log.warning("Iniciando o instalador do MacPronto %s: %s", version, " ".join(args))
-    subprocess.Popen(  # noqa: S603 - instalador baixado e conferido pelo SHA-256 do manifesto
-        args, creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP, close_fds=True
+    parameters = subprocess.list2cmdline(
+        [
+            "/SILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART",
+            "/CLOSEAPPLICATIONS",
+            "/FORCECLOSEAPPLICATIONS",
+            "/ATUALIZACAO",  # o instalador abre o MacPronto de novo no fim
+            f"/LOG={install_log}",
+        ]
     )
+    log.warning("Iniciando o instalador do MacPronto %s: %s %s", version, installer, parameters)
+    # ShellExecute (e não CreateProcess): se o MacPronto estiver sem administrador, o Windows pede a elevação
+    result = ctypes.windll.shell32.ShellExecuteW(None, "open", str(installer), parameters, str(installer.parent), 1)
+    if int(result) <= 32:
+        raise RuntimeError(f"O Windows não abriu o instalador (código {int(result)}).")
 
 
 class Updater:

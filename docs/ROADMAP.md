@@ -12,13 +12,26 @@ O plano original previa sprints de 2 semanas. A partir de 22/10/2026 a implement
 - O Windows Defender (assinaturas de 23/10/2026) não encontrou ameaças no executável, no instalador nem no portátil.
 - Saídas da build: instalador de 15,2 MB e versão portátil de 19,9 MB.
 - O instalador foi testado: instalação silenciosa em `C:\Program Files\MacPronto` (54 MB), atalhos no menu Iniciar, registro em Programas e Recursos e desinstalação completa. O programa instalado pede administrador pelo UAC ao abrir e passou no autoteste completo já elevado.
-- 43 testes automáticos passando.
+- 61 testes automáticos passando.
 
 No modo de desenvolvimento também foram validados com o hardware real: diagnóstico, laudo, mapeamento USB, download do macOS Recovery (884 MB do Sequoia, conferido com a assinatura da Apple) e guia em HTML e PDF.
 
+**Pendrive (em teste com pendrive real):** os dois primeiros testes, num SanDisk Cruzer Blade de 64 GB, falharam no diskpart. O primeiro erro foi o `convert gpt` num pendrive que já era GPT; o segundo, o `format` rodando antes de o Windows montar o volume da partição nova ("Nenhum volume foi selecionado"). A formatação foi refeita em etapas:
+
+- apaga e particiona;
+- espera o volume (com `rescan`);
+- formata e, se precisar, tenta pelo PowerShell e depois em MBR.
+
+A partição GPT nasce sem letra de unidade, para o Explorer não abrir a pergunta "Você precisa formatar o disco". Essa rotina passou num disco virtual (VHD) em GPT e em MBR; falta repetir no pendrive.
+
+**Também nesta etapa:**
+
+- O macOS Recovery salvo no computador é reaproveitado: o MacPronto confere na Apple e só baixa de novo se houver uma imagem mais nova (sem internet, usa a salva).
+- Pendrive, EFI e diagnóstico continuam visíveis ao trocar de tela (cartão flutuante com a porcentagem).
+- Atualização automática: a cada minuto o programa lê o feed de versões do GitHub e, com autorização do usuário, baixa o instalador (conferido pelo SHA-256 do `macpronto-update.json`), instala em modo silencioso e reabre. **Só funciona para outras pessoas quando as versões estiverem num repositório público.**
+
 **Implementado, mas ainda sem validação real:**
 
-- Formatação e gravação do pendrive: a lógica e as regras de segurança têm testes automáticos, mas nenhum pendrive foi formatado ainda.
 - A desinstalação passou a apagar `%LOCALAPPDATA%\MacPronto` (motor, caches e registros), preservando `Documentos\MacPronto`; essa limpeza ainda não foi retestada.
 - Regras de notebooks, AMD e hardware antigo: vêm do OpCore Simplify e foram conferidas no laudo com relatórios sintéticos, mas nenhuma EFI foi testada nessas máquinas.
 
@@ -29,8 +42,8 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 
 ### Próximos passos
 
-1. Testar a criação do pendrive com um pendrive de verdade e dar boot nesta máquina.
-2. Conferir a primeira build no GitHub Actions (`.github/workflows/build.yml`): testes a cada push; executável, portátil e instalador manualmente ou em tags `v*`.
+1. Repetir a criação do pendrive com o pendrive de verdade e dar boot nesta máquina.
+2. Tornar as versões públicas (o repositório é privado) e publicar a `v0.1.0-beta.1` pela tag, para a atualização automática funcionar.
 3. Testar contra outros antivírus além do Windows Defender.
 4. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
 5. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
@@ -112,8 +125,8 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 ### Pendrive e mapeamento USB
 - [x] Mapeamento interativo das portas USB
 - [x] Listagem somente de discos removíveis, com confirmação dupla
-- [ ] Formatação do pendrive (GPT + FAT32) (implementada; falta teste com pendrive real)
-- [x] Download do macOS Recovery com barra de progresso
+- [ ] Formatação do pendrive (GPT + FAT32, com MBR de reserva) (validada em disco virtual; falta o pendrive real)
+- [x] Download do macOS Recovery com barra de progresso e reaproveitamento da imagem salva
 - [ ] Cópia da EFI e verificação final (implementada; falta teste com pendrive real)
 
 ### Guia passo a passo (desktop)
@@ -138,6 +151,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 ### Beta e acabamento
 - [ ] Testes com amigos e correções
 - [x] Instalador (Inno Setup) e versão portátil
+- [x] Atualização automática pelas versões do GitHub (falta tornar as versões públicas)
 - [x] Ícone, tela "Sobre" e créditos
 - [ ] Assinatura digital (opcional)
 
@@ -151,6 +165,7 @@ No modo de desenvolvimento também foram validados com o hardware real: diagnós
 | O Tahoe depende do fork do OCLP | Sequoia como versão padrão |
 | O macOS 27 não roda em Intel | Escopo assumido: o projeto vale para as versões atuais |
 | Falso positivo de antivírus | Sem binários de terceiros no pacote além do necessário; Nuitka; assinatura digital opcional |
+| Atualização com defeito deixa todos sem conserto | Instalador conferido por tamanho e SHA-256; nunca atualiza com tarefa em andamento; o instalador mantém a versão anterior se falhar; registro em `logs\atualizacao-<versão>.log` |
 | Formatar o disco errado | Só discos USB entre 4 e 256 GB que não sejam do Windows, confirmação dupla e nova conferência da identidade do disco logo antes do diskpart |
 | Variedade de hardware | Modo simulação com laudos de amigos e testes em máquinas reais |
 | Ferramentas que ignoram hardware real (ex.: usbdump com o Parsec) | Leitura própria das portas pelas APIs do Windows |
