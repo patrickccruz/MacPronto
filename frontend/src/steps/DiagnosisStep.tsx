@@ -29,7 +29,7 @@ import { api } from "@/lib/api"
 import { formatDate } from "@/lib/labels"
 import { useApp } from "@/lib/store"
 import type { ScanPayload, ScanSummary } from "@/lib/types"
-import { useTask } from "@/lib/useTask"
+import { useBackgroundTask, useMountedRef } from "@/lib/backgroundTasks"
 
 type Props = Record<string, unknown>
 
@@ -235,35 +235,37 @@ function SavedScans({ onOpen, disabled }: { onOpen: (scan: ScanSummary) => void;
 
 export function DiagnosisStep() {
   const { payload, setPayload, go } = useApp()
-  const task = useTask()
-  const [title, setTitle] = useState("Diagnosticando este computador")
+  const scanTask = useBackgroundTask("diagnostico")
+  const mounted = useMountedRef()
 
   async function scanThisPc() {
-    setTitle("Diagnosticando este computador")
-    const result = await task.run("diagnostico", api.scanRun)
-    if (result) {
+    await scanTask.run({ title: "Diagnosticando este computador", view: "diagnosis" }, async (taskId) => {
+      const result = await api.scanRun(taskId)
       setPayload(result)
       toast.success("Diagnóstico concluído.")
-    }
+      return result
+    })
   }
 
   async function openScan(scan: ScanSummary) {
-    setTitle(`Abrindo ${scan.label}`)
-    const result = await task.run("abrir", (taskId) => api.scanOpen(taskId, scan.id))
-    if (result) {
-      setPayload(result)
-      go("report")
-    }
+    const result = await scanTask.run({ title: `Abrindo ${scan.label}`, view: "diagnosis" }, async (taskId) => {
+      const opened = await api.scanOpen(taskId, scan.id)
+      setPayload(opened)
+      return opened
+    })
+    if (result && mounted.current) go("report")
   }
 
   async function importScan() {
-    setTitle("Importando diagnóstico")
-    const result = await task.run("importar", api.scanImport)
-    if (result) {
-      setPayload(result)
-      toast.success("Diagnóstico importado. Você está no modo simulação.")
-      go("report")
-    }
+    const result = await scanTask.run({ title: "Importando diagnóstico", view: "diagnosis" }, async (taskId) => {
+      const imported = await api.scanImport(taskId)
+      if (imported) {
+        setPayload(imported)
+        toast.success("Diagnóstico importado. Você está no modo simulação.")
+      }
+      return imported
+    })
+    if (result && mounted.current) go("report")
   }
 
   async function exportScan() {
@@ -275,11 +277,12 @@ export function DiagnosisStep() {
     }
   }
 
-  if (task.running) {
+  if (scanTask.task?.running) {
+    const { title } = scanTask.task
     return (
       <div className="space-y-6">
         <PageHeader eyebrow="Diagnóstico" title={title} description="Leva de 15 a 30 segundos. Nada é alterado no computador." />
-        <TaskPanel task={task} title={title} onCancel={task.cancel} />
+        <TaskPanel task={scanTask.task} title={title} onCancel={scanTask.cancel} />
       </div>
     )
   }
@@ -325,7 +328,7 @@ export function DiagnosisStep() {
             </CardContent>
           </Card>
         </div>
-        <SavedScans onOpen={(scan) => void openScan(scan)} disabled={task.running} />
+        <SavedScans onOpen={(scan) => void openScan(scan)} disabled={scanTask.running} />
       </div>
     )
   }

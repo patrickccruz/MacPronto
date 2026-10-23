@@ -25,10 +25,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/lib/api"
+import { useBackgroundTask } from "@/lib/backgroundTasks"
 import { formatDate } from "@/lib/labels"
 import { useApp } from "@/lib/store"
 import type { EfiInfo } from "@/lib/types"
-import { useTask } from "@/lib/useTask"
 
 const DEFAULT_KEYBOARDS = [
   { value: "abnt2", label: "Português (Brasil), teclado ABNT2" },
@@ -197,7 +197,7 @@ function Result({ efi, onRebuild }: { efi: EfiInfo; onRebuild: () => void }) {
 
 export function EfiStep() {
   const { payload, setEfi } = useApp()
-  const task = useTask()
+  const efiTask = useBackgroundTask("efi")
   const [keyboards, setKeyboards] = useState(DEFAULT_KEYBOARDS)
   const [keyboard, setKeyboard] = useState("abnt2")
   const [useUsbMap, setUseUsbMap] = useState(true)
@@ -212,19 +212,20 @@ export function EfiStep() {
   const version = laudo.macos.versions.find((item) => item.darwin === selection.darwin)
 
   async function build() {
-    const result = await task.run("efi", (taskId) => api.efiBuild(taskId, { keyboard, use_usb_map: useUsbMap }))
-    if (result) {
-      setEfi(result)
-      setRebuilding(false)
+    const result = await efiTask.run({ title: "Montando a EFI do OpenCore", view: "efi" }, async (taskId) => {
+      const built = await api.efiBuild(taskId, { keyboard, use_usb_map: useUsbMap })
+      setEfi(built)
       toast.success("EFI montada e validada.")
-    }
+      return built
+    })
+    if (result) setRebuilding(false)
   }
 
-  if (task.running) {
+  if (efiTask.task?.running) {
     return (
       <div className="space-y-6">
         <PageHeader eyebrow="EFI" title="Montando a EFI" description="Na primeira vez baixa o OpenCore e os kexts (cerca de 50 MB). Depois fica em cache." />
-        <TaskPanel task={task} title="Montando a EFI do OpenCore" onCancel={task.cancel} />
+        <TaskPanel task={efiTask.task} title={efiTask.task.title} onCancel={efiTask.cancel} />
       </div>
     )
   }

@@ -430,6 +430,20 @@ class Api:
         return winutil.eject(letter)
 
     @guarded
+    def media_recovery_cache(self) -> list[dict]:
+        from macpronto.media import recovery
+
+        return recovery.cached_images()
+
+    @guarded
+    def media_recovery_clear(self) -> int:
+        from macpronto.media import recovery
+
+        if self._tasks.active("pendrive"):
+            raise UserFacingError("busy", "Espere o pendrive terminar de ser gravado.")
+        return recovery.clear_cache()
+
+    @guarded
     def relaunch_as_admin(self) -> bool:
         if not winutil.relaunch_as_admin():
             return False

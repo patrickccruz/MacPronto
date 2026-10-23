@@ -123,6 +123,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
   if (session && params.has("efi")) session.efi = sampleEfi(session, "abnt2")
   const cancelled = new Set<string>()
   let usb = sampleUsb()
+  let recoveryCache = [{ darwin: 24, product: "696-28424", size: 884321259, downloaded_at: "2026-10-23T15:11:20" }]
   let logId = 0
 
   async function simulate(taskId: string, stages: string[]) {
@@ -140,7 +141,7 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
     app_info: async () =>
       ok({
         version: "0.1.0-beta.1",
-        is_admin: false,
+        is_admin: params.has("admin"),
         documents_dir: "C:\\Users\\voce\\Documents\\MacPronto",
         logs_dir: "C:\\Users\\voce\\AppData\\Local\\MacPronto\\logs",
         settings,
@@ -267,10 +268,27 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
         { number: 1, model: "Seagate Expansion", size_bytes: 2000398934016, size_gb: 2000.4, bus: "USB", unique_id: "USBSTOR\\SEAGATE", system: false, boot: false, read_only: false, letters: ["D"], labels: ["Backup"], eligible: false, reason: "Grande demais para ser um pendrive. Se for um HD externo, use outro dispositivo." },
       ]),
     media_create: async (taskId: string) => {
-      await simulate(taskId, ["Atualizando o guia", "Conferindo o pendrive", "Baixando o macOS Recovery da Apple", "Apagando e formatando o pendrive", "Copiando o macOS Recovery", "Copiando a EFI", "Conferindo o pendrive"])
-      return ok({ letter: "E", disk: null, product: "696-28424", darwin: 24, recovery_cached: false, verified: true, guide: session?.guide })
+      if (params.has("falha")) {
+        await simulate(taskId, ["Atualizando o guia", "Conferindo o pendrive", "Apagando e formatando o pendrive"])
+        return {
+          ok: false as const,
+          error: {
+            code: "format",
+            message: "O pendrive foi apagado, mas não foi possível formatá-lo em FAT32. Desconecte o pendrive, conecte em outra porta e tente de novo, ou use outro pendrive.",
+            details: "[GPT] diskpart:\nNenhum volume foi selecionado.\n\n[MBR] diskpart:\nNenhum volume foi selecionado.",
+          },
+        }
+      }
+      await simulate(taskId, ["Atualizando o guia", "Conferindo o pendrive", "Conferindo o macOS Recovery na Apple", "Conferindo o macOS Recovery salvo no computador", "Apagando e formatando o pendrive", "Copiando o macOS Recovery", "Copiando a EFI", "Conferindo o pendrive"])
+      return ok({ letter: "E", disk: null, product: "696-28424", darwin: 24, recovery_cached: true, recovery_replaced: null, verified: true, guide: session?.guide })
     },
     media_eject: async () => ok(true),
+    media_recovery_cache: async () => ok(recoveryCache),
+    media_recovery_clear: async () => {
+      const freed = recoveryCache.reduce((total, item) => total + item.size, 0)
+      recoveryCache = []
+      return ok(freed)
+    },
     relaunch_as_admin: async () => ok(false),
     engine_status: async () =>
       ok([

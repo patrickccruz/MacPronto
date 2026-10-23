@@ -308,8 +308,17 @@ export interface MediaResult {
   product: string
   darwin: number
   recovery_cached: boolean
+  /** Produto antigo substituído por um mais novo da Apple (null se não houve troca). */
+  recovery_replaced?: string | null
   verified: boolean
   guide: GuideInfo
+}
+
+export interface RecoveryCacheItem {
+  darwin: number
+  product: string
+  size: number
+  downloaded_at: string | null
 }
 
 export interface EngineComponent {

@@ -13,6 +13,7 @@ import type {
   EngineComponent,
   GuideInfo,
   MediaResult,
+  RecoveryCacheItem,
   ShareInfo,
   UsbBuildResult,
   UsbState,
@@ -59,6 +60,8 @@ export const api = {
   mediaCreate: (taskId: string, options: { number: number; unique_id: string; size_bytes: number; confirm: string }) =>
     call<MediaResult>("media_create", taskId, options),
   mediaEject: (letter: string) => call<boolean>("media_eject", letter),
+  mediaRecoveryCache: () => call<RecoveryCacheItem[]>("media_recovery_cache"),
+  mediaRecoveryClear: () => call<number>("media_recovery_clear"),
   relaunchAsAdmin: () => call<boolean>("relaunch_as_admin"),
 
   engineStatus: () => call<EngineComponent[]>("engine_status"),

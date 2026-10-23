@@ -3,12 +3,7 @@ import { CircleCheck, LoaderCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import type { TaskState } from "@/lib/useTask"
-
-function percent(progress: TaskState["progress"]) {
-  if (!progress || !progress.total) return null
-  return Math.max(0, Math.min(100, Math.round((progress.current / progress.total) * 100)))
-}
+import { type TaskState, taskPercent } from "@/lib/useTask"
 
 export function TaskPanel({
   task,
@@ -21,7 +16,7 @@ export function TaskPanel({
   onCancel?: () => void
   hint?: string
 }) {
-  const value = percent(task.progress)
+  const value = taskPercent(task.progress)
   const previous = task.stages.slice(0, -1).slice(-5)
 
   return (

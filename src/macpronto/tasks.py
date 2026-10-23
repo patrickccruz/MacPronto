@@ -112,6 +112,11 @@ class TaskManager:
         event.set()
         return True
 
+    def active(self, prefix: str = "") -> list[str]:
+        """Tarefas em andamento (opcionalmente só as que começam com ``prefix``)."""
+        with self._lock:
+            return [task_id for task_id in self._cancels if task_id.startswith(prefix)]
+
     def cancel_all(self) -> None:
         with self._lock:
             events = list(self._cancels.values())
