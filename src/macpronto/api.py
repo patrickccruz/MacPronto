@@ -557,7 +557,7 @@ class Api:
 
     @guarded
     def update_check(self) -> dict:
-        return self._updater.check()
+        return self._updater.check(force=True)
 
     def update_install(self, task_id: str) -> dict:
         def busy() -> bool:

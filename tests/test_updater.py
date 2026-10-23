@@ -163,6 +163,10 @@ def test_versao_sem_manifesto_e_pulada(github):
     checker = updater.Updater(lambda status: None, current="0.1.0-beta.1")
     assert checker.check()["available"]["version"] == "0.1.1"
 
+    github.publish("v0.2.0-beta.1")  # o GitHub Actions terminou de publicar
+    assert checker.check()["available"]["version"] == "0.1.1"  # a verificação automática espera um pouco
+    assert checker.check(force=True)["available"]["version"] == "0.2.0-beta.1"  # "Verificar agora" não espera
+
 
 def test_atualizado_e_repositorio_privado(github):
     github.publish("v0.2.0-beta.1")

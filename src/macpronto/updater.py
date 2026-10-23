@@ -38,7 +38,7 @@ REPOSITORY = "patrickccruz/MacPronto"
 MANIFEST = "macpronto-update.json"
 CHECK_INTERVAL = 60  # segundos
 MAX_INTERVAL = 15 * 60  # espera máxima depois de falhas seguidas
-MISSING_MANIFEST_RETRY = 5 * 60  # versão recém-criada pode ainda estar recebendo os arquivos
+MISSING_MANIFEST_RETRY = 2 * 60  # a tag aparece no feed antes de o GitHub Actions publicar os arquivos
 MAX_FEED_BYTES = 2 * 1024 * 1024
 
 _VERSION = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$")
@@ -226,7 +226,7 @@ class Updater:
             "available": self.available,
         }
 
-    def check(self) -> dict:
+    def check(self, force: bool = False) -> dict:
         """Consulta o GitHub agora. Nunca levanta exceção: o erro fica em ``error``."""
         if not self._lock.acquire(blocking=False):
             return self.status()  # já há uma consulta em andamento
@@ -237,7 +237,7 @@ class Updater:
             if status != 304:
                 self._tags = parse_feed(body.decode("utf-8", errors="replace"))
                 self._etag = etag
-            self.available = self._newest()
+            self.available = self._newest(force)
             self.error = None
             self._failures = 0
         except urllib.error.HTTPError as exc:
@@ -269,23 +269,24 @@ class Updater:
             self._notify(self.status())
         return self.status()
 
-    def _newest(self) -> dict | None:
+    def _newest(self, force: bool = False) -> dict | None:
         allow_pre = is_prerelease(self.current)
         candidates = [
             tag for tag in self._tags if is_newer(tag, self.current) and (allow_pre or not is_prerelease(tag))
         ]
         candidates.sort(key=version_key, reverse=True)
         for tag in candidates:
-            manifest = self._manifest(tag)
+            manifest = self._manifest(tag, force)
             if manifest is not None:
                 return manifest
         return None
 
-    def _manifest(self, tag: str) -> dict | None:
+    def _manifest(self, tag: str, force: bool = False) -> dict | None:
         if tag in self._manifests:
             return self._manifests[tag]
         missing_since = self._missing.get(tag)
-        if missing_since is not None and time.monotonic() - missing_since < MISSING_MANIFEST_RETRY:
+        # "Verificar agora" (force) não espera: o usuário pode ter acabado de ver a versão publicada
+        if not force and missing_since is not None and time.monotonic() - missing_since < MISSING_MANIFEST_RETRY:
             return None
         base = base_url()
         try:
