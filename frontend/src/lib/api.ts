@@ -52,7 +52,7 @@ export const api = {
   usbRefresh: () => call<UsbState>("usb_refresh"),
   usbUpdatePort: (controllerId: string, index: number, changes: { selected?: boolean; type?: number | null; comment?: string }) =>
     call<UsbState>("usb_update_port", controllerId, index, changes),
-  usbSelect: (mode: "used" | "all" | "none") => call<UsbState>("usb_select", mode),
+  usbSelect: (mode: "used" | "all" | "none" | "fill") => call<UsbState>("usb_select", mode),
   usbReset: () => call<UsbState>("usb_reset"),
   usbBuild: () => call<UsbBuildResult>("usb_build"),
 

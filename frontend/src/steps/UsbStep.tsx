@@ -20,9 +20,9 @@ import { useApp } from "@/lib/store"
 import type { UsbBuildResult, UsbController, UsbPort, UsbState } from "@/lib/types"
 
 const STEPS_TEXT = [
-  "Conecte um pendrive USB 3 em cada porta, uma de cada vez. Espere uns 3 segundos em cada uma.",
-  "Repita com um dispositivo USB 2 (mouse, teclado ou pendrive antigo), porque cada conector USB 3 tem uma porta USB 2 escondida.",
-  "Nas portas USB-C, conecte nos dois sentidos do cabo.",
+  "Conecte um pendrive USB 3 (conector azul por dentro) em cada porta do computador, uma de cada vez, inclusive nas que você não usa. Espere uns 3 segundos em cada uma.",
+  "Repita em todas as portas com um dispositivo USB 2 (mouse com fio, teclado ou pendrive antigo): cada conector USB 3 tem uma porta USB 2 escondida.",
+  "Nas portas USB-C, conecte nos dois sentidos do cabo. No fim, confira se todas as portas físicas aparecem marcadas.",
 ]
 
 function PortRow({
@@ -237,15 +237,22 @@ export function UsbStep() {
       />
 
       <Card>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          {STEPS_TEXT.map((text, index) => (
-            <div key={text} className="flex gap-3">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary tabular-nums">
-                {index + 1}
-              </span>
-              <p className="text-sm text-muted-foreground">{text}</p>
-            </div>
-          ))}
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            {STEPS_TEXT.map((text, index) => (
+              <div key={text} className="flex gap-3">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary tabular-nums">
+                  {index + 1}
+                </span>
+                <p className="text-sm text-muted-foreground">{text}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm">
+            <strong>Porta que não recebe nenhum dispositivo aqui fica desligada no macOS</strong>, e depois de formatar o
+            Windows não dá para refazer o mapa por este programa. Se não tiver como testar alguma porta, use “Completar até
+            15”: o MacPronto marca as portas que faltam até o limite do macOS.
+          </p>
         </CardContent>
       </Card>
 
@@ -287,10 +294,20 @@ export function UsbStep() {
         </Alert>
       ))}
 
+      {state?.warnings.map((message) => (
+        <Alert key={message} className="border-tweak/40">
+          <TriangleAlert className="text-tweak" />
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      ))}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => void apply(api.usbSelect("used"))}>
             Selecionar só as usadas
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => void apply(api.usbSelect("fill"))}>
+            Completar até 15
           </Button>
           <Button size="sm" variant="outline" onClick={() => void apply(api.usbSelect("none"))}>
             Desmarcar todas

@@ -263,6 +263,8 @@ export interface UsbController {
 export interface UsbState {
   controllers: UsbController[]
   errors: string[]
+  /** Avisos que não impedem o mapa (portas sem teste, nenhuma USB 3 marcada). */
+  warnings: string[]
   connector_types: { value: number; label: string }[]
   updated_at: string
 }

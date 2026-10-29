@@ -99,6 +99,7 @@ function sampleUsb(): UsbState {
       },
     ],
     errors: [],
+    warnings: [],
     connector_types: CONNECTORS,
     updated_at: new Date().toLocaleTimeString("pt-BR"),
   }
@@ -106,6 +107,10 @@ function sampleUsb(): UsbState {
 
 function recount(state: UsbState) {
   for (const controller of state.controllers) controller.selected = controller.ports.filter((port) => port.selected).length
+  const untested = state.controllers[0]?.ports.filter((port) => !port.selected && port.user_connectable).length ?? 0
+  state.warnings = untested
+    ? [`Controladora USB 3: ${untested} portas não receberam nenhum dispositivo. Porta sem teste fica desligada no macOS.`]
+    : []
   state.updated_at = new Date().toLocaleTimeString("pt-BR")
   return state
 }
@@ -267,6 +272,17 @@ export function createMockBackend(emit: (event: TaskEvent) => void): Backend {
       return ok(recount(usb))
     },
     usb_select: async (mode: string) => {
+      if (mode === "fill") {
+        let room = 15 - usb.controllers[0].ports.filter((port) => port.selected).length
+        for (const port of usb.controllers[0].ports) {
+          if (room <= 0) break
+          if (!port.selected) {
+            port.selected = true
+            room -= 1
+          }
+        }
+        return ok(recount(usb))
+      }
       for (const port of usb.controllers[0].ports) port.selected = mode === "all" ? true : mode === "none" ? false : port.seen.length > 0
       return ok(recount(usb))
     },

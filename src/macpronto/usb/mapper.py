@@ -196,9 +196,12 @@ class UsbMapSession:
             return self.state()
 
     def select(self, mode: str) -> dict:
-        """mode: 'used' (só as usadas), 'all' ou 'none'."""
+        """mode: 'used' (só as usadas), 'all', 'none' ou 'fill' (completa até o limite)."""
         with self._lock:
             for controller in self.controllers:
+                if mode == "fill":
+                    self._fill(controller)
+                    continue
                 for port in controller["ports"]:
                     if mode == "used":
                         port["selected"] = None
@@ -206,6 +209,25 @@ class UsbMapSession:
                         port["selected"] = mode == "all"
             self._save()
             return self.state()
+
+    def _fill(self, controller: dict) -> None:
+        """Marca portas sem teste até o limite de 15, intercalando USB 2 e USB 3 do menor índice ao maior.
+
+        As portas externas costumam ter os índices mais baixos, e as internas (câmera, Bluetooth)
+        já entram por terem sido vistas. Num VAIO VJFE com só 5 portas USB 2 testadas, isso
+        completou o mapa com HS01–HS10 e SS01–SS05, e todas as portas passaram a funcionar.
+        """
+        room = MAX_PORTS - sum(1 for p in controller["ports"] if self.is_selected(p))
+        if controller.get("class") != XHCI:
+            room = len(controller["ports"])
+        free = [p for p in controller["ports"] if not self.is_selected(p)]
+        rank: dict[int, int] = {}
+        for speed in {p["class"] for p in free}:
+            for position, port in enumerate(sorted((p for p in free if p["class"] == speed), key=lambda p: p["index"])):
+                rank[port["index"]] = position
+        free.sort(key=lambda p: (not p.get("user_connectable", True), rank[p["index"]], p["class"] == SUPER_SPEED))
+        for port in free[: max(room, 0)]:
+            port["selected"] = True
 
     # ------------------------------------------------------------------ estado e validação
 
@@ -235,6 +257,28 @@ class UsbMapSession:
                     f"O macOS aceita no máximo {MAX_PORTS} por controladora."
                 )
         return errors
+
+    def warnings(self) -> list[str]:
+        """Avisos que não impedem o mapa, mas deixam portas desligadas ou lentas no macOS."""
+        notes = []
+        for controller in self.controllers:
+            if controller.get("class") != XHCI:
+                continue
+            name = controller.get("display_name", controller["name"])
+            super_speed = [p for p in controller["ports"] if p["class"] == SUPER_SPEED]
+            if super_speed and not any(self.is_selected(p) for p in super_speed):
+                notes.append(
+                    f"{name}: nenhuma porta USB 3 marcada. Conecte um pendrive USB 3 em cada porta; sem isso, "
+                    "no macOS elas funcionam só como USB 2."
+                )
+            untested = [p for p in controller["ports"] if not self.is_selected(p) and p.get("user_connectable", True)]
+            if untested:
+                notes.append(
+                    f"{name}: {len(untested)} portas não receberam nenhum dispositivo. Porta sem teste fica desligada "
+                    "no macOS: conecte algo em todas as portas do computador, inclusive nas que você não usa, ou use "
+                    "“Completar até 15”."
+                )
+        return notes
 
     def state(self) -> dict:
         controllers = []
@@ -286,6 +330,7 @@ class UsbMapSession:
         return {
             "controllers": controllers,
             "errors": self.validate(),
+            "warnings": self.warnings(),
             "connector_types": [{"value": k, "label": v} for k, v in CONNECTOR_TYPES.items()],
             "updated_at": time.strftime("%H:%M:%S"),
         }
