@@ -162,6 +162,11 @@ Primeiro notebook real. O MacPronto 0.1.0-beta.3 rodou no próprio notebook, que
   - O `UTBMap.kext` tinha só HS02, HS04, HS05, HS07 (tipo 0) e HS10 (tipo 255). Nenhuma porta USB 3.
   - Em 29/10/2026 o mapa foi ampliado para o limite de 15 portas: HS01–HS10 e SS01–SS05 (tipo 3, índices 13–17). A numeração supõe o padrão do PCH Comet Lake-U, com USR1/USR2 em 11–12 e SS01–SS06 em 13–18; a SS06 ficou de fora. O original está em `MacPronto\backup\UTBMap-Info-original.plist` no pendrive.
   - Depois de reiniciar com o mapa amplo, o usuário confirmou que as portas USB funcionam. Opcional: enxugar o mapa com os IDs de localização das portas reais (Informações do Sistema > USB).
+- **Boot pelo disco interno (em andamento):**
+  - `diskutil list`: disk0 é o NVMe (GPT) com disk0s1 "NO NAME" (EFI de 105 MB, criada pelo Windows, com `EFI/Boot/bootx64.efi` e `EFI/Microsoft`, 63,6 MB livres), Microsoft Reserved e o contêiner APFS. disk1 é um segundo disco interno de 480 GB (MBR, NTFS "Novo volume", com arquivos do usuário): não mexer. disk3 é o pendrive.
+  - A EFI tem 40 MB. Foi criada a cópia `MacPronto\EFI-definitiva\EFI` no pendrive, igual à EFI de boot, mas sem `-v` e com `ShowPicker = false`; o `ocvalidate` passou. A EFI da raiz do pendrive fica de emergência, com `-v` e o menu visível.
+  - Plano: guardar a `EFI` do Windows em `MacPronto\backup`, substituir a pasta `EFI` da NO NAME pela definitiva, escolher o disco do macOS em Ajustes > Geral > Disco de Inicialização (`RequestBootVarRouting` está ativo) e pôr o NVMe em primeiro na BIOS.
+  - Plano B, se a BIOS não der boot pelo caminho padrão `EFI/BOOT/BOOTx64.efi`: copiar o `BOOTx64.efi` do OpenCore para `EFI/Microsoft/Boot/bootmgfw.efi`, para a entrada "Windows Boot Manager" abrir o OpenCore, ou usar `LauncherOption`.
 - **Redes do Windows no itlwm (pendente no código):** o OpCore Simplify pergunta "Would you like to scan for WiFi profiles? (Yes/no)", e o adaptador não tem regra para essa pergunta. Ele responde com Enter, que é inválido; na 4ª repetição sai o `prompt-unknown`, que o `except` sem tipo de `modify_kexts` engole. O itlwm fica com as redes de exemplo. Falta decidir se o MacPronto oferece a importação (ela grava senhas de Wi-Fi em texto puro na EFI e no `ioreg`) ou responde "no" e limpa as redes de exemplo.
 
 ## Histórico de erros já resolvidos
