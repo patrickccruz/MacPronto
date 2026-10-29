@@ -2,7 +2,7 @@
 
 Este documento dá a um assistente de IA o contexto do projeto MacPronto, da máquina em que ele está sendo testado e dos erros já encontrados, para ajudar a diagnosticar problemas na instalação do macOS ou no próprio programa.
 
-Atualizado em 23/10/2026, versão 0.1.0-beta.3. Repositório: https://github.com/patrickccruz/MacPronto (público, licença MIT).
+Atualizado em 29/10/2026, versão 0.1.0-beta.3. Repositório: https://github.com/patrickccruz/MacPronto (público, licença MIT).
 
 ## Como o assistente deve ajudar
 
@@ -124,6 +124,32 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
 
 **Ainda não testado:** escolher o instalador, a instalação do macOS e a pós-instalação.
 
+## Teste em notebook: Positivo VAIO VJFE (28 e 29/10/2026)
+
+Primeiro notebook real. O MacPronto 0.1.0-beta.3 rodou no próprio notebook, que depois foi formatado com o pendrive.
+
+| Item | Valor |
+|---|---|
+| Computador | Positivo VAIO VJFE (o diagnóstico mostra "Positivo Bahia - VAIO VJFE") |
+| Processador | Intel Core i5-10210U (Comet Lake-U, 10ª geração) |
+| Vídeo | Intel UHD Graphics (integrado) |
+| Rede | Ethernet Realtek (RealtekRTL8111); Wi-Fi Intel Wireless-AC 9462 (CNVi) com Bluetooth Intel |
+| Entrada | Touchpad Synaptics I2C (ID `SYNA…`, da lista `InputIDs` do OpCore Simplify) e teclado PS/2 |
+| Armazenamento | NVMe CA5-8D256 |
+| macOS | Sonoma 14 (Recovery 696-08090, Darwin 23); SMBIOS `MacBookPro16,3`; OpenCore 1.0.9 |
+
+**EFI gerada:**
+- boot-args: `-v debug=0x100 keepsyms=1 -igfxblt -vi2c-force-polling`;
+- SSDTs: ALSD, SBUS, EC, GPI0, MCHC, PLUG, PNLF, RTCAWAC, USB-Reset, USBX e XOSI;
+- Wi-Fi: `itlwm` 2.3.0, com 4 redes salvas do Windows gravadas no `Info.plist` (`WiFiConfig`);
+- touchpad: VoodooI2C 2.9.1 com VoodooRMI 1.4.3 (RMII2C); o VoodooI2CHID ia na pasta `Kexts`, mas fora do `config.plist`.
+
+**Resultados:**
+- A instalação terminou. O macOS ainda inicia pelo pendrive: a EFI não foi copiada para o disco interno.
+- **Touchpad:** não funcionou com VoodooRMI + RMII2C. Funcionou depois de desativar os dois e ativar o VoodooI2CHID (erro 12).
+- **Wi-Fi (em investigação):** o HeliPort 1.5.0 mostra "Wi-Fi: Desativado", com o botão de ligar travado. No código do HeliPort, isso acontece quando `get_power_state` falha, ou seja, quando o aplicativo não consegue falar com o `itlwm` (kext não carregado ou sem se ligar à placa). Falta o resultado de `kextstat -b com.zxystd.itlwm` e do `dmesg`.
+- **Teclado ABNT2 (em investigação):** o usuário não conseguiu digitar a barra vertical (`|`) no Terminal. Falta confirmar se é o mapeamento da tecla no VoodooPS2. Enquanto isso, os comandos passados ao usuário evitam o `|`.
+
 ## Histórico de erros já resolvidos
 
 | # | Sintoma | Causa | Solução |
@@ -139,6 +165,7 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
 | 9 | O executável não achava o código de terceiros | Colisão entre a pasta `scripts/` e o pacote `Scripts`; `sys.executable` errado no Nuitka | Exclusões no Nuitka; o caminho do executável vem de `sys.argv[0]` |
 | 10 | O mapa USB não enxergava a controladora real | O `usbdump.exe` se confunde com o adaptador virtual do Parsec | Leitura própria das portas por IOCTL |
 | 11 | Arquivos do OpenCore com caminho acima de 260 caracteres | Pasta de usuário muito longa | Dados em `%LOCALAPPDATA%\MacPronto`, com caminhos curtos. Ainda é um risco |
+| 12 | Touchpad Synaptics I2C parado depois de instalar (VAIO VJFE) | Para touchpads `SYNA…` em I2C, o OpCore Simplify usa VoodooRMI + RMII2C e tira o VoodooI2CHID do `config.plist` (o arquivo continua na pasta `Kexts`) | Em `Kernel > Add`: desativar VoodooRMI e RMII2C e adicionar o VoodooI2CHID logo depois do VoodooInput do VoodooI2C. Confirmado em 29/10/2026 |
 
 ## Próximos erros prováveis nessa máquina, etapa por etapa
 
