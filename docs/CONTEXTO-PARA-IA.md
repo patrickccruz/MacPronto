@@ -147,11 +147,13 @@ Primeiro notebook real. O MacPronto 0.1.0-beta.3 rodou no próprio notebook, que
 **Resultados:**
 - A instalação terminou. O macOS ainda inicia pelo pendrive: a EFI não foi copiada para o disco interno.
 - **Touchpad:** não funcionou com VoodooRMI + RMII2C. Funcionou depois de desativar os dois e ativar o VoodooI2CHID (erro 12).
-- **Wi-Fi (em investigação):**
+- **Wi-Fi (resolvido em 29/10/2026, erro 13):** conectou depois que o HeliPort foi copiado para Aplicativos e usado pelo ícone dele. Como se chegou lá:
   - o driver funciona: `kextstat -b com.zxystd.itlwm` mostra o itlwm 2.3.0 carregado, e `ioreg -r -c itlwm -d 1` mostra o serviço `itlwm` ativo ("registered, matched, active"), com endereço MAC e `IOLinkStatus = 1` (sem conexão);
   - o usuário relatou "Wi-Fi desativado". O menu fotografado termina em "Ajustes de Wi-Fi…", que é o menu de Wi-Fi do próprio macOS (o HeliPort 1.5.0 mostra "Wi-Fi Settings..." sem tradução). Com o itlwm, o Wi-Fi do macOS fica sempre desligado, e a conexão é feita pelo HeliPort;
-  - no HeliPort, o botão de Wi-Fi travado indica que `get_power_state` falhou, ou seja, que o aplicativo não consegue falar com o itlwm. Falta conferir o menu do próprio HeliPort e, se preciso, o `dmesg`.
+  - aberto direto do `.dmg`, o HeliPort avisa "HeliPort rodando em um caminho inesperado" e só oferece sair; ele precisa estar em Aplicativos;
+  - arrastar o ícone com o botão físico do touchpad abria a Visualização Rápida (provável leitura como clique firme). Contornos: copiar e colar (Command + C / Command + V), o mouse USB ou "Arrastar com três dedos" em Acessibilidade.
 - **Teclado ABNT2 (em investigação):** a tecla à esquerda do Z e a tecla abaixo do Esc digitam `§`/`±` e `` ` ``/`¨`, como num teclado Apple ISO. No layout Brasileiro do macOS, a barra vertical (`|`) não fica em nenhuma das duas. Enquanto isso, os comandos passados ao usuário evitam o `|`; o Visualizador de Teclado é o contorno.
+- **USB (em investigação):** uma porta não funciona no macOS, nem com mouse com fio nem com o pendrive; a outra funciona. A BIOS dá boot por ela, mas o macOS só ativa as portas do `UTBMap.kext`, e o mapeamento no Windows só marca as portas que receberam algum dispositivo (ou cuja companheira USB 2/USB 3 recebeu). Provavelmente essa porta, ou o lado USB 2 dela, não foi testada no mapeamento. Falta ler o `UTBMap.kext` do pendrive e saber qual porta física é.
 - **Redes do Windows no itlwm (pendente no código):** o OpCore Simplify pergunta "Would you like to scan for WiFi profiles? (Yes/no)", e o adaptador não tem regra para essa pergunta. Ele responde com Enter, que é inválido; na 4ª repetição sai o `prompt-unknown`, que o `except` sem tipo de `modify_kexts` engole. O itlwm fica com as redes de exemplo. Falta decidir se o MacPronto oferece a importação (ela grava senhas de Wi-Fi em texto puro na EFI e no `ioreg`) ou responde "no" e limpa as redes de exemplo.
 
 ## Histórico de erros já resolvidos
@@ -170,6 +172,7 @@ Primeiro notebook real. O MacPronto 0.1.0-beta.3 rodou no próprio notebook, que
 | 10 | O mapa USB não enxergava a controladora real | O `usbdump.exe` se confunde com o adaptador virtual do Parsec | Leitura própria das portas por IOCTL |
 | 11 | Arquivos do OpenCore com caminho acima de 260 caracteres | Pasta de usuário muito longa | Dados em `%LOCALAPPDATA%\MacPronto`, com caminhos curtos. Ainda é um risco |
 | 12 | Touchpad Synaptics I2C parado depois de instalar (VAIO VJFE) | Para touchpads `SYNA…` em I2C, o OpCore Simplify usa VoodooRMI + RMII2C e tira o VoodooI2CHID do `config.plist` (o arquivo continua na pasta `Kexts`) | Em `Kernel > Add`: desativar VoodooRMI e RMII2C e adicionar o VoodooI2CHID logo depois do VoodooInput do VoodooI2C. Confirmado em 29/10/2026 |
+| 13 | Wi-Fi Intel aparece desligado depois de instalar (VAIO VJFE, itlwm) | Com o itlwm, o Wi-Fi do próprio macOS (ícone e Ajustes > Wi-Fi) fica sempre desligado; a placa aparece como rede cabeada e a conexão é feita pelo HeliPort | Copiar o HeliPort para Aplicativos e usar o ícone dele na barra de menus. Sem internet no macOS, levar o `HeliPort.dmg` no pendrive. Confirmado em 29/10/2026 |
 
 ## Próximos erros prováveis nessa máquina, etapa por etapa
 
