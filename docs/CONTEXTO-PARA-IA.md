@@ -141,14 +141,18 @@ Primeiro notebook real. O MacPronto 0.1.0-beta.3 rodou no próprio notebook, que
 **EFI gerada:**
 - boot-args: `-v debug=0x100 keepsyms=1 -igfxblt -vi2c-force-polling`;
 - SSDTs: ALSD, SBUS, EC, GPI0, MCHC, PLUG, PNLF, RTCAWAC, USB-Reset, USBX e XOSI;
-- Wi-Fi: `itlwm` 2.3.0, com 4 redes salvas do Windows gravadas no `Info.plist` (`WiFiConfig`);
+- Wi-Fi: `itlwm` 2.3.0. O `WiFiConfig` do `Info.plist` ficou com as 4 redes de exemplo do próprio itlwm, e não com as redes do Windows (veja "Redes do Windows no itlwm" abaixo);
 - touchpad: VoodooI2C 2.9.1 com VoodooRMI 1.4.3 (RMII2C); o VoodooI2CHID ia na pasta `Kexts`, mas fora do `config.plist`.
 
 **Resultados:**
 - A instalação terminou. O macOS ainda inicia pelo pendrive: a EFI não foi copiada para o disco interno.
 - **Touchpad:** não funcionou com VoodooRMI + RMII2C. Funcionou depois de desativar os dois e ativar o VoodooI2CHID (erro 12).
-- **Wi-Fi (em investigação):** o HeliPort 1.5.0 mostra "Wi-Fi: Desativado", com o botão de ligar travado. No código do HeliPort, isso acontece quando `get_power_state` falha, ou seja, quando o aplicativo não consegue falar com o `itlwm` (kext não carregado ou sem se ligar à placa). Falta o resultado de `kextstat -b com.zxystd.itlwm` e do `dmesg`.
-- **Teclado ABNT2 (em investigação):** o usuário não conseguiu digitar a barra vertical (`|`) no Terminal. Falta confirmar se é o mapeamento da tecla no VoodooPS2. Enquanto isso, os comandos passados ao usuário evitam o `|`.
+- **Wi-Fi (em investigação):**
+  - o driver funciona: `kextstat -b com.zxystd.itlwm` mostra o itlwm 2.3.0 carregado, e `ioreg -r -c itlwm -d 1` mostra o serviço `itlwm` ativo ("registered, matched, active"), com endereço MAC e `IOLinkStatus = 1` (sem conexão);
+  - o usuário relatou "Wi-Fi desativado". O menu fotografado termina em "Ajustes de Wi-Fi…", que é o menu de Wi-Fi do próprio macOS (o HeliPort 1.5.0 mostra "Wi-Fi Settings..." sem tradução). Com o itlwm, o Wi-Fi do macOS fica sempre desligado, e a conexão é feita pelo HeliPort;
+  - no HeliPort, o botão de Wi-Fi travado indica que `get_power_state` falhou, ou seja, que o aplicativo não consegue falar com o itlwm. Falta conferir o menu do próprio HeliPort e, se preciso, o `dmesg`.
+- **Teclado ABNT2 (em investigação):** a tecla à esquerda do Z e a tecla abaixo do Esc digitam `§`/`±` e `` ` ``/`¨`, como num teclado Apple ISO. No layout Brasileiro do macOS, a barra vertical (`|`) não fica em nenhuma das duas. Enquanto isso, os comandos passados ao usuário evitam o `|`; o Visualizador de Teclado é o contorno.
+- **Redes do Windows no itlwm (pendente no código):** o OpCore Simplify pergunta "Would you like to scan for WiFi profiles? (Yes/no)", e o adaptador não tem regra para essa pergunta. Ele responde com Enter, que é inválido; na 4ª repetição sai o `prompt-unknown`, que o `except` sem tipo de `modify_kexts` engole. O itlwm fica com as redes de exemplo. Falta decidir se o MacPronto oferece a importação (ela grava senhas de Wi-Fi em texto puro na EFI e no `ioreg`) ou responde "no" e limpa as redes de exemplo.
 
 ## Histórico de erros já resolvidos
 
