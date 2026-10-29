@@ -126,6 +126,15 @@ PROMPT_RULES = (
     PromptRule(
         re.compile(r"Select Intel Wi-Fi kext"), lambda m: "intel-wifi-kext", "Kext do Wi-Fi Intel", True, _keep_default
     ),
+    # Importar as senhas de Wi-Fi do Windows para o itlwm: o MacPronto não importa (ficariam em
+    # texto puro na EFI). Sem esta regra, o Enter era inválido e a pergunta se repetia.
+    PromptRule(
+        re.compile(r"scan for WiFi profiles"),
+        lambda m: "wifi-profiles",
+        "Importar as redes Wi-Fi do Windows",
+        False,
+        lambda *_: "no",
+    ),
     PromptRule(
         re.compile(r"force load"),
         lambda m: "force-load-kexts",

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import plistlib
 import shutil
 import subprocess
 from datetime import datetime
@@ -18,6 +19,8 @@ from macpronto.guide import content
 log = logging.getLogger(__name__)
 
 TEMPLATES = Path(__file__).resolve().parent / "templates"
+AI_HELP_FILE = "AJUDA-IA.md"
+WELCOME_FILE = "Bem-vindo-ao-Mac.html"
 CREATE_NO_WINDOW = 0x08000000
 
 EDGE_PATHS = (
@@ -90,10 +93,26 @@ def build_context(
         for title, text in content.INSTALL_STEPS
     ]
 
-    post_install = [{"title": title, "text": text} for title, text in content.POST_INSTALL]
+    config = (efi or {}).get("config") or {}
+    keys = {"bios_key": vendor.bios_key, "boot_key": vendor.boot_key}
+
+    def step(key: str) -> dict:
+        item = content.POST_STEPS[key]
+        return {
+            "title": item.title,
+            "text": item.text.format(**keys),
+            "items": [text.format(**keys) for text in item.items],
+        }
+
+    decisions = {d["key"]: d for d in plan.get("decisions", [])}
+    wifi = decisions.get("intel-wifi-kext")
+    itlwm = "itlwm.kext" in config.get("kexts", []) or bool(
+        wifi
+        and any(o["value"] == wifi.get("chosen") and o["label"].startswith("itlwm") for o in wifi.get("options", []))
+    )
+    post_install = [step("pendrive")]
     if plan.get("needs_oclp"):
-        post_install.insert(
-            1,
+        post_install.append(
             {
                 "title": "Rode o OpenCore Legacy Patcher",
                 "text": (
@@ -102,9 +121,25 @@ def build_context(
                     "abra-o, escolha Post-Install Root Patch > Start Root Patching e reinicie. Repita depois de cada atualização "
                     "do macOS. Não use a opção Build and Install OpenCore: a EFI do MacPronto já é a certa."
                 ),
-            },
+                "items": [],
+            }
         )
-    config = (efi or {}).get("config") or {}
+    if itlwm:
+        post_install.append(step("heliport"))
+    if (efi or {}).get("keyboard", "abnt2") == "abnt2":
+        post_install.append(step("keyboard"))
+    if machine.get("form_factor") == "laptop":
+        post_install.append(step("trackpad"))
+    post_install.append(step("usb"))
+    if not usb_mapped:
+        post_install.append(
+            {
+                "title": "Mapeie as portas USB",
+                "text": "A EFI está com todas as portas ativas (UTBDefault). Se alguma porta não funcionar ou o USB 3 ficar lento, "
+                "volte ao MacPronto no Windows antes de formatar, ou faça o mapa no macOS com o USBToolBox.",
+                "items": [],
+            }
+        )
     if config.get("vesa"):
         post_install.append(
             {
@@ -113,28 +148,10 @@ def build_context(
                     "A EFI usa o modo VESA porque há monitor no HDMI/DVI do vídeo integrado. Ligue o monitor na DisplayPort e "
                     "remova -igfxvesa dos boot-args, ou peça ajuda nos fóruns para mapear as portas do vídeo (framebuffer patching)."
                 ),
+                "items": [],
             }
         )
-    decisions = {d["key"]: d for d in plan.get("decisions", [])}
-    wifi = decisions.get("intel-wifi-kext")
-    if wifi and any(
-        o["value"] == wifi.get("chosen") and o["label"].startswith("itlwm") for o in wifi.get("options", [])
-    ):
-        post_install.append(
-            {
-                "title": "Instale o HeliPort",
-                "text": "Você escolheu o itlwm para o Wi-Fi Intel. Baixe o aplicativo HeliPort (github.com/OpenIntelWireless/HeliPort) "
-                "para conectar às redes Wi-Fi.",
-            }
-        )
-    if not usb_mapped:
-        post_install.append(
-            {
-                "title": "Mapeie as portas USB",
-                "text": "A EFI está com todas as portas ativas (UTBDefault). Se alguma porta não funcionar ou o USB 3 ficar lento, "
-                "volte ao MacPronto no Windows antes de formatar, ou faça o mapa no macOS com o USBToolBox.",
-            }
-        )
+    post_install += [step("final_efi"), step("apple_id"), step("updates")]
 
     components = [c for c in laudo.get("components", []) if c["status"] != "info"]
     return {
@@ -164,11 +181,38 @@ def build_context(
         "config": config,
         "plan": plan,
         "usb_mapped": usb_mapped,
+        "usb_ports": usb_map_ports(efi),
+        "itlwm": itlwm,
+        "is_laptop": machine.get("form_factor") == "laptop",
     }
+
+
+def usb_map_ports(efi: dict | None) -> list[str]:
+    """Portas do UTBMap.kext da EFI, para o AJUDA-IA.md (vazio sem mapa)."""
+    plist = Path((efi or {}).get("efi_dir") or "") / "OC" / "Kexts" / "UTBMap.kext" / "Contents" / "Info.plist"
+    if not (efi and plist.is_file()):
+        return []
+    try:
+        with plist.open("rb") as handle:
+            info = plistlib.load(handle)
+    except (OSError, plistlib.InvalidFileException):
+        return []
+    names = []
+    for personality in (info.get("IOKitPersonalities") or {}).values():
+        names += list((personality.get("IOProviderMergeProperties") or {}).get("ports") or {})
+    return sorted(names)
 
 
 def render_html(context: dict) -> str:
     return _environment().get_template("guia.html.j2").render(**context)
+
+
+def render_markdown(context: dict) -> str:
+    """AJUDA-IA.md: o contexto da máquina e da instalação para colar numa IA (sem números de série)."""
+    environment = Environment(
+        loader=FileSystemLoader(str(TEMPLATES)), autoescape=False, trim_blocks=True, lstrip_blocks=True
+    )
+    return environment.get_template("ajuda-ia.md.j2").render(**context)
 
 
 def find_edge() -> str | None:
@@ -215,12 +259,18 @@ def build(
     context = build_context(scan, laudo, selection, efi, usb_mapped, profile_id)
     html_file = folder / "Guia.html"
     html_file.write_text(render_html(context), encoding="utf-8")
+    ai_file = folder / AI_HELP_FILE
+    ai_file.write_text(render_markdown(context), encoding="utf-8")
+    welcome_file = folder / WELCOME_FILE
+    welcome_file.write_text(_environment().get_template("boas-vindas.html.j2").render(**context), encoding="utf-8")
     pdf_file = folder / "Guia.pdf"
     pdf_ok = html_to_pdf(html_file, pdf_file) if with_pdf else False
     log.info("Guia gerado em %s", folder)
     return {
         "folder": str(folder),
         "html": str(html_file),
+        "ai_help": str(ai_file),
+        "welcome": str(welcome_file),
         "pdf": str(pdf_file) if pdf_ok else None,
         "vendor": context["vendor"].name,
         "profile": {

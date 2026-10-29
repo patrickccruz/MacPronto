@@ -1,0 +1,132 @@
+{% set status_labels = {"native": "Funciona", "tweak": "Com ajuste", "replace": "Trocar a peça", "incompatible": "Não funciona"} %}
+# Ajuda com o macOS neste computador: {{ target }}
+
+> **Para você:** abra uma IA (Claude, ChatGPT, Gemini ou outra), envie este arquivo e conte o que está acontecendo,
+> de preferência com uma foto da tela. Não mande fotos de "Sobre Este Mac" nem do `config.plist` com os números de série.
+
+Gerado pelo MacPronto {{ app_version }} em {{ generated }}.
+
+---
+
+## Instruções para a IA
+
+Você vai ajudar uma pessoa leiga a instalar e usar o macOS num PC (Hackintosh) preparado pelo MacPronto, um programa
+para Windows que diagnostica o hardware, monta a EFI do OpenCore com o OpCore Simplify e grava o pendrive de instalação.
+
+- Responda em português do Brasil, com linguagem simples. Dê um passo de cada vez e espere a pessoa confirmar antes do próximo.
+- Antes de propor solução para um travamento no boot, peça uma foto com as últimas linhas da tela. A EFI do pendrive
+  dá boot no modo detalhado (`-v`), e a última linha antes de travar costuma indicar a causa.
+- Prefira o Finder e os Ajustes do Sistema ao Terminal. Quando precisar do Terminal, passe um comando curto por vez e
+  diga o que ele faz. Num teclado de PC, a tecla Windows é a Command (⌘) e a Alt é a Option (⌥).
+- **Nunca peça nem repita números de série.** No `config.plist`, `PlatformInfo > Generic` (`SystemSerialNumber`, `MLB`,
+  `SystemUUID`, `ROM`) é a identidade de Mac gerada para este computador. Se a pessoa colar o `config.plist`, peça para
+  apagar esses campos antes.
+- Não invente opções de BIOS nem valores do `config.plist`, e diga quando for um palpite. Referência principal: o guia
+  de instalação do OpenCore da Dortania (https://dortania.github.io/OpenCore-Install-Guide/).
+- Antes de mudar a EFI, peça uma cópia de segurança da pasta. Uma mudança feita na EFI do pendrive também precisa ir para
+  `MacPronto/EFI-definitiva` e, se ela já foi copiada, para a EFI do disco interno.
+- Para editar o `config.plist`, use o ProperTree (https://github.com/corpnewt/ProperTree), no Windows ou no macOS. No
+  macOS, a partição EFI do disco interno é montada com `sudo diskutil mount diskXsY` (veja o identificador com `diskutil list`).
+- Depois que o Windows é apagado, o MacPronto não roda mais neste computador. As correções são feitas à mão na EFI.
+
+## O computador
+
+- **Máquina:** {{ target }} ({{ machine.form_label }})
+- **Resultado do laudo:** {{ verdict.headline }}{% if difficulty %} Dificuldade: {{ difficulty.label }}.{% endif %}
+
+- **macOS escolhido:** {{ macos_label }}
+- **BIOS:** perfil {{ vendor.name }}. Entrar na BIOS: {{ vendor.bios_key }}. Menu de boot: {{ vendor.boot_key }}.
+{% if warnings %}
+- **Avisos do laudo:**
+{% for warning in warnings %}
+  - {{ warning }}
+{% endfor %}
+{% endif %}
+
+| Componente | Situação | Observação |
+|---|---|---|
+{% for item in components %}
+| {{ item.name | replace("|", "/") }} | {{ status_labels.get(item.status, item.status) }} | {{ item.summary | replace("|", "/") }} |
+{% endfor %}
+
+## A EFI (sem números de série)
+
+{% if efi %}
+- **OpenCore:** {{ efi.opencore or "?" }}. **Mac simulado (SMBIOS):** {{ config.smbios.model if config.smbios else plan.smbios_model }}.
+- **Teclado do instalador:** {{ efi.keyboard_label }}.
+- **boot-args do pendrive:** `{{ config.boot_args or "(vazio)" }}`. Na EFI definitiva, o `-v` sai e o menu do OpenCore fica escondido (`ShowPicker = false`).
+- **Kexts ativos:** {{ config.kexts | map("replace", ".kext", "") | join(", ") }}
+- **SSDTs:** {{ config.ssdts | join(", ") }}
+- **Precisa do OpenCore Legacy Patcher:** {{ "sim" if plan.needs_oclp else "não" }}.
+{% if usb_ports %}
+- **Mapa USB (`UTBMap.kext`, {{ usb_ports | length }} portas):** {{ usb_ports | join(", ") }}. O macOS aceita no máximo 15 portas por controladora; porta fora do mapa não funciona no macOS, mesmo que a BIOS dê boot por ela.
+{% elif usb_mapped %}
+- **Mapa USB:** feito no Windows (`UTBMap.kext`). O macOS aceita no máximo 15 portas por controladora; porta fora do mapa não funciona no macOS, mesmo que a BIOS dê boot por ela.
+{% else %}
+- **Mapa USB:** não foi feito; a EFI usa o `UTBDefault.kext` (todas as portas, sem mapa).
+{% endif %}
+{% for decision in plan.decisions or [] %}
+{% set chosen = (decision.options | selectattr("value", "equalto", decision.chosen) | map(attribute="label") | first) or decision.chosen %}
+- **{{ decision.label }}:** {{ chosen }}
+{% endfor %}
+{% else %}
+A EFI ainda não tinha sido montada quando este arquivo foi gerado.
+{% endif %}
+
+## O que tem no pendrive
+
+- `EFI/`: a EFI que dá boot pelo pendrive, com o modo detalhado e o menu do OpenCore visível. Serve de emergência.
+- `com.apple.recovery.boot/`: o macOS Recovery, baixado da Apple, que instala o sistema pela internet.
+- `MacPronto/Guia.html` e `Guia.pdf`: o guia completo. `MacPronto/Bem-vindo-ao-Mac.html`: atalhos e diferenças para quem vem do Windows.
+- `MacPronto/EFI-definitiva/EFI`: a EFI para copiar no disco interno depois de instalar.
+{% if itlwm %}
+- `MacPronto/HeliPort.dmg`: o aplicativo que conecta o Wi-Fi Intel (driver itlwm).
+{% endif %}
+- `MacPronto/backup/`: lugar para guardar cópias antes de mudar arquivos.
+
+## Passo a passo
+
+### 1. BIOS ({{ vendor.name }})
+
+{% for item in bios_settings %}
+- **{{ item.setting.title }}**{% if item.setting.optional %} (se existir){% endif %}: {{ item.setting.action }}.{% if item.path %} Caminho: {{ item.path }}.{% endif %}{% if item.keywords %} Procure por: {{ item.keywords | join(", ") }}.{% endif %}
+
+{% endfor %}
+{% if bios_requirements %}
+Obrigatório para esta máquina: {{ bios_requirements | join(" ") }}
+{% endif %}
+
+### 2. Instalação
+
+{% for step in install_steps %}
+{{ loop.index }}. **{{ step.title }}.** {{ step.text }}
+{% endfor %}
+
+### 3. Pós-instalação
+
+{% for step in post_install %}
+{{ loop.index }}. **{{ step.title }}.** {{ step.text }}
+{% for item in step["items"] %}
+   - {{ item }}
+{% endfor %}
+{% endfor %}
+
+## Problemas e soluções
+
+{% for symptom, fixes in troubleshooting %}
+### {{ symptom }}
+
+{% for fix in fixes %}
+- {{ fix }}
+{% endfor %}
+
+{% endfor %}
+## Soluções já testadas em máquinas reais (detalhes técnicos para a IA)
+
+- **Menu do OpenCore só mostra o Windows:** `Misc > Boot > HideAuxiliary = true` esconde o Recovery. A barra de espaço mostra as entradas escondidas; o MacPronto já grava `false`.
+- **Touchpad Synaptics I2C parado (VAIO VJFE):** o OpCore Simplify usa VoodooRMI + RMII2C. O que funcionou foi desativar os dois em `Kernel > Add` e ativar o `VoodooI2CHID.kext`, logo depois do `VoodooInput` do VoodooI2C. O MacPronto já faz essa troca; o caminho inverso é a alternativa.
+- **Wi-Fi Intel com itlwm "desligado":** o Wi-Fi do macOS nunca liga com o itlwm, e a conexão é pelo HeliPort, que precisa estar em Aplicativos. Para conferir o driver: `kextstat -b com.zxystd.itlwm` (carregado) e `ioreg -r -c itlwm -d 1` (ligado à placa, com `IOMACAddress`).
+- **Porta USB que não funciona no macOS:** o mapa só tinha as portas que receberam dispositivo no Windows. A solução foi completar o `UTBMap.kext` até 15 portas: todas as HS e as primeiras SS. Num Comet Lake-U, HS01–HS10 ficam nos índices 1–10, USR1/USR2 em 11–12 e SS01–SS06 em 13–18. O campo `port` é o índice em little-endian (4 bytes) e o `port-count` é o maior índice.
+- **Teclado ABNT2 PS/2 com a tecla abaixo do Esc trocada com a do lado do Z:** `Use ISO layout keyboard = true` no `Info.plist` do VoodooPS2Keyboard (`Platform Profile > Default`, o MacPronto já liga), mais o layout "Brasileiro – ABNT2" e o tipo de teclado ISO no macOS, **reiniciando**. Sem reiniciar, a troca de tipo não vale, e os testes se confundem.
+- **Copiar a EFI para o disco interno:** monte a partição EFI do disco interno, guarde a pasta EFI antiga (do Windows) no pendrive e substitua pela `EFI-definitiva`. Escolha o disco em Disco de Inicialização (`RequestBootVarRouting` ativo) e ponha o disco em primeiro na BIOS. Se a BIOS só aceitar a entrada "Windows Boot Manager", uma saída é copiar o `BOOTx64.efi` do OpenCore para `EFI/Microsoft/Boot/bootmgfw.efi`.
+- **iCloud e App Store:** o número de série deve dar "inválido" em checkcoverage.apple.com; o `en0` precisa de `IOBuiltin = Yes`; com erro de "código de cliente", pare e não insista.

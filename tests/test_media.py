@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import threading
+import time
 import urllib.request
 from pathlib import Path
 
@@ -205,6 +208,7 @@ def test_guia_e_compartilhamento(tmp_path):
     assert "macOS Sequoia 15" in html
 
     (tmp_path / "Guia.html").write_text(html, encoding="utf-8")
+    (tmp_path / "AJUDA-IA.md").write_text("# Ajuda com o macOS", encoding="utf-8")
     (tmp_path / "segredo.txt").write_text("não pode sair", encoding="utf-8")
     share = GuideShare()
     info = share.start(tmp_path)
@@ -213,8 +217,44 @@ def test_guia_e_compartilhamento(tmp_path):
         local = f"http://127.0.0.1:{port}"
         with urllib.request.urlopen(f"{local}/Guia.html", timeout=5) as response:
             assert "Gigabyte" in response.read().decode("utf-8")
+        with urllib.request.urlopen(f"{local}/AJUDA-IA.md", timeout=5) as response:
+            assert response.headers["Content-Type"] == "text/plain; charset=utf-8"  # o celular mostra e copia
+            assert "Ajuda com o macOS" in response.read().decode("utf-8")
         with pytest.raises(urllib.error.HTTPError):
             urllib.request.urlopen(f"{local}/segredo.txt", timeout=5)
         assert info["qr_svg"].startswith("<svg")
     finally:
         share.stop()
+
+
+def test_heliport_salvo_baixado_ou_ausente(monkeypatch, tmp_path):
+    from macpronto.media import writer
+
+    class Reporter:
+        cancel = threading.Event()
+
+        def stage(self, title):
+            pass
+
+        def progress(self, current, total, label="", force=False):
+            pass
+
+    calls = []
+
+    def offline(url, target, **kwargs):
+        calls.append(url)
+        raise writer.net.DownloadError("sem internet")
+
+    monkeypatch.setattr(writer.paths, "cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(writer.net, "download", offline)
+    assert writer.heliport(Reporter()) is None and calls == [writer.HELIPORT_URL]  # sem internet e sem cópia
+
+    cached = tmp_path / "heliport" / "HeliPort.dmg"
+    cached.parent.mkdir(parents=True)
+    cached.write_bytes(b"dmg")
+    calls.clear()
+    assert writer.heliport(Reporter()) == cached and not calls  # cópia recente: não baixa de novo
+
+    old = time.time() - writer.HELIPORT_MAX_AGE - 60
+    os.utime(cached, (old, old))
+    assert writer.heliport(Reporter()) == cached and calls  # cópia velha: tenta atualizar e, sem internet, usa a salva

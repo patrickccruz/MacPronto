@@ -284,30 +284,105 @@ INSTALL_STEPS = (
     ),
 )
 
-POST_INSTALL = (
-    (
-        "Copie a EFI para o disco interno",
-        "Hoje o macOS só inicia com o pendrive conectado. Para iniciar sem ele, copie a pasta EFI do pendrive para a partição EFI do "
-        'disco interno. No Terminal: "sudo diskutil list" para achar a partição EFI do disco interno (por exemplo disk0s1), '
-        '"sudo diskutil mount disk0s1" para montá-la, e copie a pasta EFI do pendrive para ela. Depois, escolha esse disco como '
-        "primeiro na ordem de boot da BIOS.",
+@dataclass(frozen=True)
+class Step:
+    title: str
+    text: str
+    items: tuple[str, ...] = ()
+
+
+# Pós-instalação, na ordem em que aparece no guia. render.py escolhe os passos que valem para a
+# máquina. Os textos vêm da primeira instalação completa num notebook (VAIO VJFE, outubro de 2026).
+POST_STEPS = {
+    "pendrive": Step(
+        "Por enquanto, ligue sempre com o pendrive",
+        "O pendrive dá a partida (o OpenCore) e o macOS roda do disco interno. Deixe-o conectado ao ligar até o passo "
+        "\"Ligue sem o pendrive\". Antes de tirá-lo com o macOS ligado, ejete o MACPRONTO no Finder (⏏). Num teclado de PC, "
+        "a tecla Windows faz o papel da Command (⌘) e a Alt, o da Option.",
     ),
-    (
-        "Tire o modo detalhado (opcional)",
-        'Para trocar as linhas de texto pela maçã no boot, remova "-v" dos boot-args no config.plist (com o ProperTree, em '
-        "NVRAM > Add > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > boot-args).",
+    "heliport": Step(
+        "Conecte o Wi-Fi pelo HeliPort",
+        "O Wi-Fi Intel usa o driver itlwm. Com ele, o Wi-Fi do próprio macOS (o ícone e Ajustes > Wi-Fi) fica sempre "
+        "desligado, e é normal: a conexão é feita pelo aplicativo HeliPort. AirDrop não funciona com Wi-Fi Intel.",
+        (
+            "No Finder, abra o pendrive MACPRONTO > MacPronto > HeliPort.dmg. Se não estiver lá, baixe em "
+            "github.com/OpenIntelWireless/HeliPort por outro aparelho ou com cabo de rede.",
+            "Copie o HeliPort para Aplicativos: selecione, Command + C; em Aplicativos, Command + V. Não abra direto do "
+            ".dmg: ele avisa \"caminho inesperado\".",
+            "Abra o HeliPort em Aplicativos. Se o macOS bloquear, vá em Ajustes do Sistema > Privacidade e Segurança > Abrir "
+            "Mesmo Assim. Na pergunta sobre atualizações automáticas, escolha Não Buscar.",
+            "Clique no ícone de Wi-Fi do HeliPort, perto do relógio, escolha a rede e digite a senha.",
+            "Para ele abrir sozinho: Ajustes do Sistema > Geral > Itens de Início > + > HeliPort.",
+        ),
     ),
-    (
-        "Confira os números de série",
-        "O número de série gerado deve ser inválido para a Apple, para não colidir com um Mac real. Consulte-o em "
-        "checkcoverage.apple.com: o esperado é a mensagem de número inválido. Se ele pertencer a um Mac, gere outro montando a EFI de novo.",
+    "keyboard": Step(
+        "Ajuste o teclado ABNT2",
+        "Sem este ajuste, a tecla abaixo do Esc e a tecla ao lado do Z podem sair trocadas.",
+        (
+            "Ajustes do Sistema > Teclado > Fontes de Entrada > Editar… > + > Português (Brasil) > Brasileiro – ABNT2. "
+            "Apague as outras fontes com o botão –.",
+            "Ajustes do Sistema > Teclado > Alterar Tipo de Teclado…: aperte as teclas pedidas e escolha ISO (Europeu e outros).",
+            "Reinicie: a troca de tipo de teclado só vale depois de reiniciar.",
+            "Teste: a tecla abaixo do Esc deve dar ' e \" e a tecla ao lado do Z, \\ e |. Se continuarem trocadas, escolha "
+            "ANSI e reinicie de novo.",
+        ),
     ),
-    (
+    "trackpad": Step(
+        "Ajuste o trackpad",
+        "Em Ajustes do Sistema > Trackpad, na aba Apontar e Clicar:",
+        (
+            "Pesquisar e detectores de dados: Desativado (senão, arrastar com o botão abre uma prévia do arquivo).",
+            "Clique firme e retorno tátil: desligado. Tocar para clicar: ligado, se preferir.",
+            "Para arrastar sem apertar nada: Ajustes do Sistema > Acessibilidade > Controle do Ponteiro > Opções do "
+            "Trackpad… > Usar o trackpad para arrastar > Arrastar com três dedos.",
+        ),
+    ),
+    "usb": Step(
+        "Teste todas as portas USB",
+        "Conecte um mouse ou pendrive em cada porta. Porta que não funciona no macOS, mas dá boot pela BIOS, ficou fora do "
+        "mapa USB: veja Problemas e soluções.",
+    ),
+    "final_efi": Step(
+        "Ligue sem o pendrive (EFI definitiva)",
+        "A pasta MacPronto > EFI-definitiva do pendrive tem a mesma EFI, sem as linhas de texto no boot e com o menu do "
+        "OpenCore escondido. Copie-a para a partição EFI do disco interno:",
+        (
+            "No Terminal, rode diskutil list e ache o disco interno (internal) onde está o macOS. A partição EFI dele "
+            "costuma ser a disk0s1 (tipo EFI, de 100 a 300 MB). Não mexa em outros discos internos.",
+            "Rode sudo diskutil mount disk0s1 (troque pelo identificador certo) e digite a senha do Mac. Aparece \"EFI\" ou "
+            "\"NO NAME\" no Finder.",
+            "Se já existir uma pasta EFI lá (do Windows antigo), copie-a para MACPRONTO > MacPronto > backup, por segurança.",
+            "Copie a pasta EFI de MacPronto > EFI-definitiva e cole na partição. Quando o Mac perguntar, escolha "
+            "Substituir. Confira que ficaram as pastas BOOT e OC.",
+            "Ejete a partição. Em Ajustes do Sistema > Geral > Disco de Inicialização, escolha o disco do macOS.",
+            "Desligue, tire o pendrive e, na BIOS ({bios_key}), coloque o disco interno em primeiro na ordem de boot.",
+            "Para ver o menu do OpenCore depois, aperte Esc logo depois de ligar. Guarde o pendrive: ele continua dando "
+            "boot e serve de emergência.",
+        ),
+    ),
+    "apple_id": Step(
+        "Antes de entrar com o seu Apple ID (iCloud e App Store)",
+        "iCloud e App Store costumam funcionar. O risco não é perder dados: no pior caso, a Apple bloqueia iMessage e "
+        "FaceTime neste computador e pede contato com o suporte. Antes de entrar:",
+        (
+            "Veja o número de série em menu Apple > Sobre Este Mac e consulte em checkcoverage.apple.com: o certo é a "
+            "mensagem de número inválido. Se ele pertencer a um Mac de verdade, não entre: monte a EFI de novo, que gera "
+            "outro. Nunca publique esse número.",
+            "No Terminal, rode ioreg -r -c IOEthernetInterface -d 1 e confira que o bloco com \"BSD Name\" = \"en0\" tem "
+            "\"IOBuiltin\" = Yes. Sem isso, a App Store pode recusar o login.",
+            "Entre em Ajustes do Sistema > Iniciar sessão. Se aparecer um erro com \"código de cliente\", pare e não "
+            "insista: tentativas repetidas pioram o bloqueio.",
+            "AirDrop, Sidecar, Apple Pay e Touch ID dependem de peças dos Macs e não funcionam (o AirDrop só funciona com "
+            "placa Wi-Fi Broadcom).",
+            "Se o computador for da empresa ou tiver dados de trabalho, fale com a TI antes de usar uma conta pessoal.",
+        ),
+    ),
+    "updates": Step(
         "Atualizações do macOS",
-        "Antes de uma atualização grande, atualize o OpenCore e os kexts (monte a EFI de novo no MacPronto). Atualizações pequenas "
-        "costumam funcionar direto.",
+        "Antes de uma atualização grande, atualize o OpenCore e os kexts (monte a EFI de novo no MacPronto). Atualizações "
+        "pequenas costumam funcionar direto. Se o macOS não ligar depois de uma atualização, dê boot pelo pendrive.",
     ),
-)
+}
 
 TROUBLESHOOTING = (
     (
@@ -381,17 +456,78 @@ TROUBLESHOOTING = (
         ],
     ),
     (
-        "Wi-Fi ou Bluetooth não funcionam",
+        "O Wi-Fi aparece desligado e não liga",
         [
-            "Wi-Fi Intel com itlwm: instale o aplicativo HeliPort para conectar às redes.",
+            "Com Wi-Fi Intel e o driver itlwm, o Wi-Fi do próprio macOS fica sempre desligado: use o HeliPort (veja a "
+            "pós-instalação).",
+            "Se o próprio HeliPort mostrar o Wi-Fi desligado e travado, rode no Terminal ioreg -r -c itlwm -d 1. Se não "
+            "aparecer nada, o driver não se ligou à placa: peça ajuda com o AJUDA-IA.md.",
             "Placas sem suporte não funcionam: troque por uma placa Broadcom compatível.",
         ],
     ),
     (
-        "Teclado ou touchpad do notebook não respondem",
+        "O HeliPort diz que está \"rodando em um caminho inesperado\"",
+        ["Ele foi aberto direto do .dmg. Copie o HeliPort para Aplicativos e abra de lá."],
+    ),
+    (
+        "AirDrop não funciona",
         [
-            "Use um teclado e um mouse USB durante a instalação.",
-            "Touchpads I2C às vezes precisam de ajuste fino depois; procure o modelo do notebook nos fóruns da comunidade.",
+            "O AirDrop só funciona com placa Wi-Fi Broadcom, como as dos Macs. Com Intel, Realtek ou outras, não há como.",
+            "Antes de comprar uma placa Broadcom, confira se o encaixe aceita: placas Intel do tipo CNVi (como a 9462, a 9560 "
+            "e a AX201) costumam ficar num encaixe que só aceita placas CNVi.",
+        ],
+    ),
+    (
+        "O touchpad do notebook não responde",
+        [
+            "Use um mouse USB enquanto isso.",
+            "Touchpad I2C: a EFI usa o VoodooI2CHID. Em touchpads Synaptics, a outra opção é o VoodooRMI: no config.plist, em "
+            "Kernel > Add, desative VoodooI2CHID.kext e ative VoodooRMI.kext e VoodooRMI.kext/Contents/PlugIns/RMII2C.kext. "
+            "Faça a mesma mudança na EFI definitiva.",
+            "Para editar o config.plist, use o ProperTree (no Windows de outro computador ou no próprio Mac). Peça o passo a "
+            "passo a uma IA com o AJUDA-IA.md.",
+        ],
+    ),
+    (
+        "Arrastar com o botão do touchpad abre uma prévia do arquivo",
+        [
+            "É a Visualização Rápida. Em Ajustes do Sistema > Trackpad, deixe \"Pesquisar e detectores de dados\" como "
+            "Desativado e desligue o \"Clique firme\".",
+            "Para arrastar sem botão: Acessibilidade > Controle do Ponteiro > Opções do Trackpad > Arrastar com três dedos. "
+            "Para copiar arquivos, Command + C e Command + V também resolvem.",
+        ],
+    ),
+    (
+        "A tecla abaixo do Esc e a tecla ao lado do Z estão trocadas",
+        [
+            "Use o layout Brasileiro – ABNT2 e o tipo de teclado ISO (Ajustes do Sistema > Teclado > Alterar Tipo de "
+            "Teclado…) e reinicie: a troca de tipo só vale depois de reiniciar.",
+            "Se continuarem trocadas depois de reiniciar, escolha ANSI e reinicie de novo.",
+        ],
+    ),
+    (
+        "Uma porta USB não funciona no macOS, mas a BIOS dá boot por ela",
+        [
+            "A BIOS enxerga todas as portas; o macOS, só as do mapa USB. Essa porta não recebeu nenhum dispositivo no "
+            "mapeamento.",
+            "Use outra porta. Para corrigir, o mapa (EFI/OC/Kexts/UTBMap.kext) precisa ganhar a porta que falta, até o "
+            "limite de 15. O AJUDA-IA.md tem a lista das portas do mapa: peça ajuda a uma IA com ele.",
+        ],
+    ),
+    (
+        "O pendrive não aparece no Finder",
+        [
+            "Ele pode estar numa porta fora do mapa USB: troque de porta.",
+            "Se ele foi ejetado, tire e conecte de novo, ou monte pelo Utilitário de Disco (selecione e clique em Montar).",
+        ],
+    ),
+    (
+        "Depois de copiar a EFI para o disco interno, não liga sem o pendrive",
+        [
+            "Ligue pelo pendrive, que continua funcionando, e confira na BIOS se o disco interno está em primeiro na ordem "
+            "de boot.",
+            "Algumas BIOS só aceitam a entrada antiga \"Windows Boot Manager\". Nesse caso, peça ajuda com o AJUDA-IA.md: "
+            "dá para fazer essa entrada abrir o OpenCore.",
         ],
     ),
 )

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bem-vindo ao Mac</title>
+{% include "_estilo.html.j2" %}
+</head>
+<body>
+<main>
+  <header>
+    <p>Gerado pelo MacPronto para {{ target }}</p>
+    <h1>Bem-vindo ao Mac</h1>
+    <div class="meta">
+      <span class="chip">{{ macos_label }}</span>
+      <span class="chip">Para quem vem do Windows</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="card">
+      <strong>A regra de ouro: o Ctrl do Windows vira a tecla Windows.</strong>
+      <p class="muted" style="margin:4px 0 0">No Mac, os atalhos usam a tecla Command (⌘), que no seu teclado de PC é a tecla Windows. Copiar é Windows + C, colar é Windows + V, e assim por diante. A tecla Alt faz o papel da Option (⌥).</p>
+    </div>
+  </section>
+
+  <nav class="card" style="margin-top:20px">
+    <strong>Neste guia</strong>
+    <ol>
+      <li><a href="#equivalentes">O que é o quê</a></li>
+      <li><a href="#teclado">O teclado do PC no Mac</a></li>
+      <li><a href="#atalhos">Atalhos essenciais</a></li>
+      <li><a href="#diferencas">Diferenças que confundem no começo</a></li>
+      {% if is_laptop %}<li><a href="#trackpad">Gestos do trackpad</a></li>{% endif %}
+      <li><a href="#hackintosh">Cuidados com este computador</a></li>
+    </ol>
+  </nav>
+
+  <section id="equivalentes">
+    <h2>1. O que é o quê</h2>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>No Windows</th><th>No Mac</th><th>Onde fica</th></tr></thead>
+        <tbody>
+          <tr><td>Área de Trabalho</td><td><strong>Mesa</strong></td><td class="muted">O fundo da tela</td></tr>
+          <tr><td>Barra de tarefas</td><td><strong>Dock</strong></td><td class="muted">A barra de ícones embaixo</td></tr>
+          <tr><td>Menu Iniciar</td><td><strong>Launchpad</strong> ou <strong>Spotlight</strong></td><td class="muted">Launchpad no Dock; Spotlight com Command + Espaço (procura apps, arquivos e faz contas)</td></tr>
+          <tr><td>Explorador de Arquivos</td><td><strong>Finder</strong></td><td class="muted">O rostinho azul, primeiro ícone do Dock</td></tr>
+          <tr><td>Arquivos de Programas</td><td><strong>Aplicativos</strong></td><td class="muted">Na coluna da esquerda do Finder</td></tr>
+          <tr><td>Lixeira</td><td><strong>Lixo</strong></td><td class="muted">No fim do Dock</td></tr>
+          <tr><td>Configurações / Painel de Controle</td><td><strong>Ajustes do Sistema</strong></td><td class="muted">Menu Apple (no canto de cima, à esquerda)</td></tr>
+          <tr><td>Wi-Fi, som e brilho na barra</td><td><strong>Central de Controle</strong></td><td class="muted">Ícone no canto de cima, à direita</td></tr>
+          <tr><td>Gerenciador de Tarefas</td><td><strong>Monitor de Atividade</strong></td><td class="muted">Aplicativos &gt; Utilitários. Para fechar um app travado: Command + Option + Esc</td></tr>
+          <tr><td>Ferramenta de Captura</td><td><strong>Captura de Tela</strong></td><td class="muted">Command + Shift + 5</td></tr>
+          <tr><td>Bloco de Notas / WordPad</td><td><strong>TextEdit</strong> e <strong>Notas</strong></td><td class="muted">Aplicativos</td></tr>
+          <tr><td>Fotos e leitor de PDF</td><td><strong>Pré-Visualização</strong></td><td class="muted">Abre imagens e PDFs; também assina e junta PDFs</td></tr>
+          <tr><td>Prompt de Comando / PowerShell</td><td><strong>Terminal</strong></td><td class="muted">Aplicativos &gt; Utilitários</td></tr>
+          <tr><td>Gerenciamento de Disco</td><td><strong>Utilitário de Disco</strong></td><td class="muted">Aplicativos &gt; Utilitários</td></tr>
+          <tr><td>Microsoft Store</td><td><strong>App Store</strong></td><td class="muted">Dock ou Launchpad</td></tr>
+          <tr><td>Windows Update</td><td><strong>Atualização de Software</strong></td><td class="muted">Ajustes do Sistema &gt; Geral (leia os cuidados no fim)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="teclado">
+    <h2>2. O teclado do PC no Mac</h2>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Tecla do PC</th><th>No Mac</th><th>Para que serve</th></tr></thead>
+        <tbody>
+          <tr><td>Windows</td><td><strong>Command ⌘</strong></td><td class="muted">A tecla dos atalhos (o Ctrl do Windows)</td></tr>
+          <tr><td>Alt</td><td><strong>Option ⌥</strong></td><td class="muted">Atalhos extras e símbolos especiais</td></tr>
+          <tr><td>Ctrl</td><td><strong>Control ⌃</strong></td><td class="muted">Pouco usado; Control + clique abre o menu do botão direito</td></tr>
+          <tr><td>Backspace</td><td><strong>Delete</strong></td><td class="muted">Apaga para trás, como no Windows</td></tr>
+          <tr><td>Home / End</td><td><strong>Command + ← / →</strong></td><td class="muted">Início e fim da linha (Home e End rolam a página)</td></tr>
+          <tr><td>Print Screen</td><td><strong>Command + Shift + 3</strong></td><td class="muted">Foto da tela inteira, salva na Mesa</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Com o layout Brasileiro – ABNT2, os acentos e o Ç funcionam como no Windows.</p>
+  </section>
+
+  <section id="atalhos">
+    <h2>3. Atalhos essenciais</h2>
+    <p class="muted">Lembre: "Command" é a tecla Windows do seu teclado.</p>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Atalho</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Command + C / V / X</strong></td><td>Copiar, colar e recortar texto</td></tr>
+          <tr><td><strong>Command + Z</strong> e <strong>Command + Shift + Z</strong></td><td>Desfazer e refazer</td></tr>
+          <tr><td><strong>Command + A / S / F / P</strong></td><td>Selecionar tudo, salvar, procurar e imprimir</td></tr>
+          <tr><td><strong>Command + N / T</strong></td><td>Nova janela ou documento / nova aba</td></tr>
+          <tr><td><strong>Command + W</strong></td><td>Fecha a janela ou a aba (o app continua aberto)</td></tr>
+          <tr><td><strong>Command + Q</strong></td><td>Encerra o aplicativo de verdade</td></tr>
+          <tr><td><strong>Command + Tab</strong></td><td>Troca de aplicativo (como o Alt + Tab)</td></tr>
+          <tr><td><strong>Command + Espaço</strong></td><td>Spotlight: procura apps e arquivos</td></tr>
+          <tr><td><strong>Command + M</strong> e <strong>Command + H</strong></td><td>Minimiza a janela e esconde o aplicativo</td></tr>
+          <tr><td><strong>Command + ,</strong> (vírgula)</td><td>Ajustes do aplicativo aberto</td></tr>
+          <tr><td><strong>Command + Option + Esc</strong></td><td>Forçar o encerramento de um app travado (o "Ctrl + Alt + Del")</td></tr>
+          <tr><td><strong>Command + Shift + 4</strong></td><td>Foto de uma parte da tela (arraste para escolher)</td></tr>
+          <tr><td><strong>Command + Shift + 5</strong></td><td>Painel de captura, inclusive gravação da tela</td></tr>
+          <tr><td><strong>Control + Command + Q</strong></td><td>Bloqueia a tela (como o Windows + L)</td></tr>
+          <tr><td><strong>Control + Command + Espaço</strong></td><td>Emojis e símbolos</td></tr>
+          <tr><td><strong>Option + ← / →</strong></td><td>Anda de palavra em palavra no texto</td></tr>
+          <tr><td><strong>Option + Delete</strong></td><td>Apaga a palavra inteira</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>No Finder</h3>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Atalho</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Enter</strong></td><td>Renomeia o arquivo selecionado (não abre)</td></tr>
+          <tr><td><strong>Command + ↓</strong> ou dois cliques</td><td>Abre o arquivo ou a pasta</td></tr>
+          <tr><td><strong>Command + ↑</strong></td><td>Volta para a pasta de cima</td></tr>
+          <tr><td><strong>Barra de espaço</strong></td><td>Visualização rápida do arquivo, sem abrir</td></tr>
+          <tr><td><strong>Command + C</strong> e depois <strong>Command + Option + V</strong></td><td>Move o arquivo (o Finder não tem "Recortar")</td></tr>
+          <tr><td><strong>Command + Delete</strong></td><td>Manda para o Lixo</td></tr>
+          <tr><td><strong>Command + Shift + N</strong></td><td>Nova pasta</td></tr>
+          <tr><td><strong>Command + Shift + .</strong> (ponto)</td><td>Mostra ou esconde os arquivos ocultos</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="diferencas">
+    <h2>4. Diferenças que confundem no começo</h2>
+    <ol class="steps">
+      <li><strong>O X vermelho não encerra o programa</strong>Ele só fecha a janela. Um pontinho embaixo do ícone no Dock mostra que o app continua aberto. Para encerrar: Command + Q, ou clique com o botão direito no ícone do Dock &gt; Encerrar.</li>
+      <li><strong>O menu fica no alto da tela</strong>A barra de cima mostra os menus do aplicativo que está em uso (Arquivo, Editar…), e não dentro de cada janela.</li>
+      <li><strong>O botão verde coloca em tela cheia</strong>Para só aumentar a janela, dê dois cliques na barra de título dela.</li>
+      <li><strong>Como instalar programas</strong>Pela App Store ou pelo site do programa. Arquivo .dmg: abra e arraste (ou copie) o app para Aplicativos; depois ejete o .dmg. Arquivo .pkg: é um instalador, siga as telas. Para desinstalar, arraste o app de Aplicativos para o Lixo.</li>
+      <li><strong>O Mac bloqueia programas de fora da App Store na primeira vez</strong>Se o programa for de fonte confiável, vá em Ajustes do Sistema &gt; Privacidade e Segurança e clique em Abrir Mesmo Assim.</li>
+      <li><strong>Clique com o botão direito</strong>Use o botão direito do mouse, toque no trackpad com dois dedos ou faça Control + clique.</li>
+      <li><strong>A rolagem parece invertida</strong>É a "rolagem natural". Para deixar como no Windows: Ajustes do Sistema &gt; Trackpad (ou Mouse) &gt; desligue Rolagem natural.</li>
+      <li><strong>Ejete pendrives e discos antes de tirar</strong>Clique na ⏏ ao lado do nome no Finder. Tirar sem ejetar pode corromper os arquivos.</li>
+      <li><strong>Disco do Windows (NTFS): o Mac lê, mas não grava</strong>Para trocar arquivos entre Mac e Windows, use um pendrive em exFAT (Utilitário de Disco &gt; Apagar &gt; ExFAT; isso apaga o pendrive).</li>
+      <li><strong>Extensões e caminho dos arquivos</strong>Para ver ".pdf", ".docx" etc.: Finder &gt; Ajustes &gt; Avançado &gt; Mostrar todas as extensões. Para ver onde o arquivo está: Finder &gt; Visualizar &gt; Mostrar Barra de Caminho.</li>
+      <li><strong>Capturas de tela vão para a Mesa</strong>Para mudar o destino: Command + Shift + 5 &gt; Opções.</li>
+      <li><strong>Cópia de segurança</strong>O Time Machine faz backup automático num disco externo: Ajustes do Sistema &gt; Geral &gt; Time Machine.</li>
+    </ol>
+  </section>
+
+  {% if is_laptop %}
+  <section id="trackpad">
+    <h2>5. Gestos do trackpad</h2>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Gesto</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Dois dedos para cima e para baixo</td><td>Rola a página</td></tr>
+          <tr><td>Toque com dois dedos</td><td>Clique com o botão direito</td></tr>
+          <tr><td>Pinçar com dois dedos</td><td>Zoom</td></tr>
+          <tr><td>Três dedos para cima</td><td>Mostra todas as janelas (Mission Control)</td></tr>
+          <tr><td>Três dedos para os lados</td><td>Troca de mesa ou de app em tela cheia</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Com "Arrastar com três dedos" ligado (Acessibilidade), os gestos de três dedos passam a ser com quatro. Ajustes do Sistema &gt; Trackpad mostra um vídeo de cada gesto. Se arrastar com o botão abrir uma prévia do arquivo, desligue "Pesquisar e detectores de dados" ali mesmo.</p>
+  </section>
+  {% endif %}
+
+  <section id="hackintosh">
+    <h2>{{ 6 if is_laptop else 5 }}. Cuidados com este computador</h2>
+    <div class="card warn">
+      <strong>Este computador é um PC com macOS (Hackintosh).</strong>
+      <p class="muted" style="margin:4px 0 0">Quase tudo funciona como num Mac. Estes cuidados evitam surpresas.</p>
+    </div>
+    <ol class="steps">
+      <li><strong>Atualizações grandes do macOS: espere</strong>Atualizações pequenas costumam funcionar direto. Antes de uma grande (troca de nome, como Sonoma para Sequoia), a EFI precisa ser atualizada. Para escolher quando atualizar: Ajustes do Sistema &gt; Geral &gt; Atualização de Software &gt; Atualizações Automáticas &gt; desligue "Instalar atualizações do macOS".</li>
+      <li><strong>Guarde o pendrive do MacPronto</strong>Se um dia o macOS não ligar, dê boot por ele: as linhas de texto mostram onde travou.</li>
+      {% if itlwm %}
+      <li><strong>O Wi-Fi é pelo HeliPort</strong>O ícone de Wi-Fi do macOS fica desligado, e é normal. Conecte pelo ícone do HeliPort, perto do relógio.</li>
+      {% endif %}
+      <li><strong>O que não funciona em PC</strong>AirDrop (só com placa Wi-Fi Broadcom), Sidecar, Apple Pay e Touch ID dependem de peças dos Macs.</li>
+      <li><strong>Com problema, peça ajuda a uma IA</strong>Envie o arquivo AJUDA-IA.md (pasta MacPronto do pendrive) para uma IA como Claude, ChatGPT ou Gemini e conte o que aconteceu.</li>
+    </ol>
+  </section>
+
+  <footer class="muted">
+    <p>Bem-vindo ao Mac · MacPronto {{ app_version }} · {{ generated }}</p>
+  </footer>
+</main>
+</body>
+</html>

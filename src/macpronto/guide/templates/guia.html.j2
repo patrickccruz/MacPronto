@@ -29,6 +29,10 @@
     {% for warning in warnings %}
     <div class="card warn"><span>{{ warning }}</span></div>
     {% endfor %}
+    <div class="card">
+      <strong>Com dúvida ou problema? Peça ajuda a uma IA.</strong>
+      <p class="muted" style="margin:4px 0 0">Abra uma IA (Claude, ChatGPT, Gemini), envie o arquivo <a href="AJUDA-IA.md">AJUDA-IA.md</a> (fica na pasta MacPronto do pendrive) e conte o que aconteceu, de preferência com uma foto da tela. O arquivo explica o seu computador e a instalação, sem números de série.</p>
+    </div>
   </section>
 
   <nav class="card" style="margin-top:20px">
@@ -109,9 +113,11 @@
 
   <section id="pos">
     <h2>4. Pós-instalação</h2>
+    <p class="muted">Primeira vez no Mac? Abra o <a href="Bem-vindo-ao-Mac.html">Bem-vindo ao Mac</a> (pasta MacPronto do pendrive): atalhos, o que é o quê e as diferenças para o Windows.</p>
     <ol class="steps">
       {% for step in post_install %}
-      <li><strong>{{ step.title }}</strong>{{ step.text }}</li>
+      <li><strong>{{ step.title }}</strong>{{ step.text }}
+        {% if step["items"] %}<ol>{% for item in step["items"] %}<li>{{ item }}</li>{% endfor %}</ol>{% endif %}</li>
       {% endfor %}
     </ol>
   </section>

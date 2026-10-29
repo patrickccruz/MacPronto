@@ -517,6 +517,7 @@ class Api:
                 darwin=int(self._session.efi.get("macos") or self._session.selection["darwin"]),
                 efi_dir=Path(self._session.efi["efi_dir"]),
                 extra_folder=Path(guide["folder"]),
+                keyboard=self._session.efi.get("keyboard") or "abnt2",
             )
             self._session.media = result
             return {**result, "guide": guide}

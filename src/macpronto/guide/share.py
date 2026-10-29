@@ -1,7 +1,7 @@
 """Compartilha o guia com o celular pela rede local, com um QR code.
 
-O servidor só entrega os arquivos do guia (Guia.html e Guia.pdf), só para
-leitura, e desliga sozinho depois de 30 minutos.
+O servidor só entrega os arquivos do guia (Guia.html, Guia.pdf, AJUDA-IA.md e
+Bem-vindo-ao-Mac.html), só para leitura, e desliga sozinho depois de 30 minutos.
 """
 
 from __future__ import annotations
@@ -17,11 +17,20 @@ import segno
 
 log = logging.getLogger(__name__)
 
-ALLOWED = {"/": "Guia.html", "/Guia.html": "Guia.html", "/Guia.pdf": "Guia.pdf"}
+ALLOWED = {
+    "/": "Guia.html",
+    "/Guia.html": "Guia.html",
+    "/Guia.pdf": "Guia.pdf",
+    # Texto puro no celular: dá para copiar tudo e colar no aplicativo da IA
+    "/AJUDA-IA.md": "AJUDA-IA.md",
+    "/Bem-vindo-ao-Mac.html": "Bem-vindo-ao-Mac.html",
+}
 TIMEOUT_SECONDS = 30 * 60
 
 
 class _GuideHandler(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".md": "text/plain; charset=utf-8"}
+
     def do_GET(self) -> None:  # noqa: N802 - nome da API do http.server
         path = self.path.split("?", 1)[0]
         if path not in ALLOWED or not (Path(self.directory) / ALLOWED[path]).exists():

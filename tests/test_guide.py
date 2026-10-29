@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import plistlib
+from pathlib import Path
+
 import pytest
 
 from macpronto.guide import content, render
@@ -201,3 +204,84 @@ def test_guia_detectado_mostra_a_maquina_e_o_perfil():
     assert "feitos para: LENOVO ThinkCentre M80q" in html
     assert "Devices &gt; ATA Drive Setup" in html  # caminho do perfil ThinkCentre
     assert "(escolhido à mão)" not in html
+
+
+def test_notebook_com_wifi_intel_ajuda_para_ia_e_boas_vindas(tmp_path):
+    scan, laudo = make_inputs(system="Positivo Bahia - VAIO", family="VJFE", bios="Insyde")
+    laudo["machine"].update(form_factor="laptop", form_label="Notebook")
+    laudo["components"] = [
+        {"name": "Intel(R) Wireless-AC 9462", "status": "tweak", "summary": "Wi-Fi Intel: funciona com driver da comunidade, sem AirDrop."}
+    ]
+    efi_dir = tmp_path / "EFI"
+    utbmap = efi_dir / "OC" / "Kexts" / "UTBMap.kext" / "Contents" / "Info.plist"
+    utbmap.parent.mkdir(parents=True)
+    ports = {name: {"port": b"\x01\x00\x00\x00", "UsbConnector": 0} for name in ("HS01", "HS02", "SS01")}
+    utbmap.write_bytes(
+        plistlib.dumps({"IOKitPersonalities": {"XHC": {"IOProviderMergeProperties": {"ports": ports}}}})
+    )
+    secrets = ("SEGREDO123", "MLBSEGREDO", "AABBCCDDEEFF", "0000-UUID-SEGREDO")
+    efi = {
+        "opencore": "1.0.9",
+        "efi_dir": str(efi_dir),
+        "keyboard": "abnt2",
+        "keyboard_label": "Português (Brasil), teclado ABNT2",
+        "config": {
+            "smbios": {"model": "MacBookPro16,3", "serial": secrets[0], "mlb": secrets[1], "rom": secrets[2], "uuid": secrets[3]},
+            "boot_args": "-v debug=0x100 keepsyms=1 -vi2c-force-polling",
+            "ssdts": ["SSDT-GPI0.aml"],
+            "kexts": ["itlwm.kext", "VoodooI2C.kext", "VoodooI2CHID.kext"],
+            "vesa": False,
+        },
+        "plan": {
+            "needs_oclp": False,
+            "bios_requirements": [],
+            "decisions": [
+                {
+                    "key": "intel-wifi-kext",
+                    "label": "Kext do Wi-Fi Intel",
+                    "options": [{"value": "1", "label": "AirportItlwm: menu nativo"}, {"value": "2", "label": "itlwm: o mais estável"}],
+                    "chosen": "2",
+                }
+            ],
+        },
+    }
+    context = render.build_context(scan, laudo, {"darwin": 23}, efi, usb_mapped=True)
+    titles = [step["title"] for step in context["post_install"]]
+    for expected in (
+        "Conecte o Wi-Fi pelo HeliPort",
+        "Ajuste o teclado ABNT2",
+        "Ajuste o trackpad",
+        "Ligue sem o pendrive (EFI definitiva)",
+        "Antes de entrar com o seu Apple ID (iCloud e App Store)",
+    ):
+        assert expected in titles
+    final = next(step for step in context["post_install"] if step["title"].startswith("Ligue sem"))
+    assert any(context["vendor"].bios_key in item for item in final["items"])  # a tecla da BIOS entra no texto
+
+    html = render.render_html(context)
+    assert "AJUDA-IA.md" in html and "Bem-vindo-ao-Mac.html" in html and "Arrastar com três dedos" in html
+
+    markdown = render.render_markdown(context)
+    assert "## Instruções para a IA" in markdown and "Nunca peça nem repita números de série" in markdown
+    assert "HS01, HS02, SS01" in markdown
+    assert "itlwm: o mais estável" in markdown and "HeliPort.dmg" in markdown
+    assert "| Intel(R) Wireless-AC 9462 | Com ajuste |" in markdown
+    for secret in secrets:
+        assert secret not in markdown and secret not in html
+
+    welcome = render._environment().get_template("boas-vindas.html.j2").render(**context)
+    assert "Command + Q" in welcome and "Gestos do trackpad" in welcome and "HeliPort" in welcome
+
+    info = render.build(scan, laudo, {"darwin": 23}, efi, usb_mapped=True, with_pdf=False)
+    for key in ("html", "ai_help", "welcome"):
+        assert Path(info[key]).is_file()
+
+
+def test_desktop_sem_wifi_intel_nao_mostra_heliport_nem_trackpad():
+    scan, laudo = make_inputs()
+    context = render.build_context(scan, laudo, {"darwin": 24}, None, usb_mapped=False)
+    titles = [step["title"] for step in context["post_install"]]
+    assert "Conecte o Wi-Fi pelo HeliPort" not in titles and "Ajuste o trackpad" not in titles
+    assert "Mapeie as portas USB" in titles
+    welcome = render._environment().get_template("boas-vindas.html.j2").render(**context)
+    assert "Gestos do trackpad" not in welcome and "5. Cuidados com este computador" in welcome

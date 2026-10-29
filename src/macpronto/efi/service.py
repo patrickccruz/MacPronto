@@ -2,8 +2,13 @@
 
 Ajustes feitos depois da montagem:
 - idioma e teclado do instalador (prev-lang:kbd), em português com ABNT2 por padrão;
+- teclado ABNT2 PS/2 com a opção ISO do VoodooPS2, touchpad Synaptics I2C pelo VoodooI2CHID e
+  itlwm sem as redes de exemplo (vistos num VAIO VJFE, veja docs/CONTEXTO-PARA-IA.md);
 - mapa USB gerado no Windows (UTBMap.kext no lugar do UTBDefault.kext);
 - nova validação com o ocvalidate e um .zip da pasta EFI.
+
+A "EFI definitiva" (para o disco interno) é a mesma EFI sem o modo detalhado e com o menu
+do OpenCore escondido; o writer grava as duas no pendrive.
 """
 
 from __future__ import annotations
@@ -71,6 +76,7 @@ def build(
         on_event(EngineEvent("stage", {"title": "Aplicando os ajustes do MacPronto"}))
     apply_keyboard(config_path, keyboard)
     apply_installer_options(config_path)
+    apply_hardware_fixes(efi_dir, keyboard)
     usb_applied = False
     if usb_map is not None and usb_map.is_dir():
         apply_usb_map(efi_dir, usb_map)
@@ -130,6 +136,113 @@ def apply_installer_options(config_path: Path) -> None:
     config.setdefault("Misc", {}).setdefault("Boot", {})["HideAuxiliary"] = False
     with config_path.open("wb") as handle:
         plistlib.dump(config, handle)
+
+
+def apply_final_options(config_path: Path) -> None:
+    """EFI definitiva: sem o modo detalhado (-v) e com o menu do OpenCore escondido (Esc mostra)."""
+    with config_path.open("rb") as handle:
+        config = plistlib.load(handle)
+    nvram = config.setdefault("NVRAM", {}).setdefault("Add", {}).setdefault(NVRAM_GUID, {})
+    nvram["boot-args"] = " ".join(arg for arg in str(nvram.get("boot-args", "")).split() if arg != "-v")
+    config.setdefault("Misc", {}).setdefault("Boot", {})["ShowPicker"] = False
+    with config_path.open("wb") as handle:
+        plistlib.dump(config, handle)
+
+
+def apply_hardware_fixes(efi_dir: Path, keyboard: str) -> list[str]:
+    """Correções vindas do teste num notebook real (VAIO VJFE). Podem rodar mais de uma vez.
+
+    Devolve o que foi aplicado, para o registro.
+    """
+    applied = []
+    if keyboard == "abnt2" and apply_ps2_iso_layout(efi_dir):
+        applied.append("teclado ABNT2 PS/2 com a opção ISO do VoodooPS2")
+    if apply_touchpad_hid(efi_dir):
+        applied.append("touchpad I2C pelo VoodooI2CHID no lugar do VoodooRMI")
+    if clear_itlwm_samples(efi_dir):
+        applied.append("itlwm sem as redes Wi-Fi de exemplo")
+    if applied:
+        log.info("Correções de hardware na EFI: %s", "; ".join(applied))
+    return applied
+
+
+def apply_ps2_iso_layout(efi_dir: Path) -> bool:
+    """Liga 'Use ISO layout keyboard' no VoodooPS2Keyboard.
+
+    No teclado ABNT2 PS/2, a tecla abaixo do Esc e a tecla ao lado do Z saem trocadas. Com
+    essa opção e o tipo de teclado ISO no macOS (que é o que o macOS escolhe para o ABNT2),
+    as duas ficam certas depois de reiniciar.
+    """
+    plist = efi_dir / "OC" / "Kexts" / "VoodooPS2Controller.kext" / "Contents" / "PlugIns" / "VoodooPS2Keyboard.kext"
+    plist = plist / "Contents" / "Info.plist"
+    if not plist.is_file():
+        return False
+    with plist.open("rb") as handle:
+        info = plistlib.load(handle)
+    changed = False
+    for personality in (info.get("IOKitPersonalities") or {}).values():
+        default = (personality.get("Platform Profile") or {}).get("Default")
+        if isinstance(default, dict) and default.get("Use ISO layout keyboard") is not True:
+            default["Use ISO layout keyboard"] = True
+            changed = True
+    if changed:
+        with plist.open("wb") as handle:
+            plistlib.dump(info, handle)
+    return changed
+
+
+def apply_touchpad_hid(efi_dir: Path) -> bool:
+    """Troca o VoodooRMI (RMII2C) pelo VoodooI2CHID nos touchpads Synaptics I2C.
+
+    O OpCore Simplify escolhe o RMII2C para touchpads SYNA em I2C e tira o VoodooI2CHID do
+    config.plist. No VAIO VJFE o RMII2C não funcionou e o VoodooI2CHID, genérico para
+    touchpads I2C HID, funcionou. O VoodooRMI fica na pasta, desativado, para quem quiser voltar.
+    """
+    kexts_dir = efi_dir / "OC" / "Kexts"
+    if not (kexts_dir / "VoodooI2CHID.kext" / "Contents" / "Info.plist").is_file():
+        return False
+    config_path = efi_dir / "OC" / "config.plist"
+    with config_path.open("rb") as handle:
+        config = plistlib.load(handle)
+    entries = config.get("Kernel", {}).get("Add", [])
+    by_path = {e.get("BundlePath"): e for e in entries}
+    rmi_i2c = by_path.get("VoodooRMI.kext/Contents/PlugIns/RMII2C.kext")
+    if not (rmi_i2c and rmi_i2c.get("Enabled") and (by_path.get("VoodooI2C.kext") or {}).get("Enabled")):
+        return False
+    if (by_path.get("VoodooI2CHID.kext") or {}).get("Enabled"):
+        return False
+    for path, entry in by_path.items():
+        if path and path.startswith("VoodooRMI.kext"):
+            entry["Enabled"] = False
+    hid = by_path.get("VoodooI2CHID.kext")
+    if hid is None:
+        position = max(i for i, e in enumerate(entries) if str(e.get("BundlePath", "")).startswith("VoodooI2C.kext")) + 1
+        hid = {**by_path["VoodooI2C.kext"], "BundlePath": "VoodooI2CHID.kext", "ExecutablePath": "Contents/MacOS/VoodooI2CHID"}
+        entries.insert(position, hid)
+    hid.update(Enabled=True, Comment="MacPronto: touchpad I2C pelo HID (VoodooRMI desativado)")
+    with config_path.open("wb") as handle:
+        plistlib.dump(config, handle)
+    return True
+
+
+def clear_itlwm_samples(efi_dir: Path) -> bool:
+    """Tira do itlwm as redes de exemplo que vêm no Info.plist dele (nomes e senhas de teste).
+
+    O OpCore Simplify só troca essas redes pelas do Windows quando o usuário aceita importar
+    as senhas; o MacPronto não importa (elas ficariam em texto puro na EFI e no ioreg).
+    """
+    plist = efi_dir / "OC" / "Kexts" / "itlwm.kext" / "Contents" / "Info.plist"
+    if not plist.is_file():
+        return False
+    with plist.open("rb") as handle:
+        info = plistlib.load(handle)
+    personality = (info.get("IOKitPersonalities") or {}).get("itlwm") or {}
+    if not personality.get("WiFiConfig"):
+        return False
+    personality["WiFiConfig"] = {}
+    with plist.open("wb") as handle:
+        plistlib.dump(info, handle)
+    return True
 
 
 def apply_usb_map(efi_dir: Path, usb_map: Path) -> None:

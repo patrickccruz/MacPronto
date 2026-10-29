@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import plistlib
+from pathlib import Path
 
 from macpronto.efi import service as efi
 
@@ -78,6 +79,87 @@ def test_resumo_detecta_vesa(tmp_path):
     assert summary["vesa"] is True
     assert summary["smbios"]["model"] == "iMac19,1"
 
+
+
+def write_plist(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(plistlib.dumps(data))
+
+
+def make_laptop_efi(tmp_path):
+    """EFI como a do VAIO VJFE: VoodooI2C + VoodooRMI (RMII2C), VoodooPS2 e itlwm com as redes de exemplo."""
+    efi_dir = tmp_path / "EFI"
+    kexts = efi_dir / "OC" / "Kexts"
+    paths = [
+        "VoodooI2C.kext",
+        "VoodooI2C.kext/Contents/PlugIns/VoodooInput.kext",
+        "VoodooPS2Controller.kext",
+        "VoodooRMI.kext",
+        "VoodooRMI.kext/Contents/PlugIns/RMII2C.kext",
+        "VoodooRMI.kext/Contents/PlugIns/VoodooInput.kext",
+        "itlwm.kext",
+    ]
+    entry = {"Arch": "Any", "Comment": "", "MaxKernel": "", "MinKernel": "", "PlistPath": "Contents/Info.plist"}
+    add = [
+        {**entry, "BundlePath": path, "Enabled": not path.endswith("RMI.kext/Contents/PlugIns/VoodooInput.kext"),
+         "ExecutablePath": f"Contents/MacOS/{Path(path).stem}"}
+        for path in paths
+    ]
+    config = {
+        "Kernel": {"Add": add},
+        "Misc": {"Boot": {"ShowPicker": True}},
+        "NVRAM": {"Add": {efi.NVRAM_GUID: {"boot-args": "-v debug=0x100 keepsyms=1 -vi2c-force-polling"}}},
+        "PlatformInfo": {"Generic": {"SystemProductName": "MacBookPro16,3", "SystemSerialNumber": "SEGREDO123"}},
+    }
+    write_plist(efi_dir / "OC" / "config.plist", config)
+    write_plist(kexts / "VoodooI2CHID.kext" / "Contents" / "Info.plist", {"CFBundleIdentifier": "com.alexandred.VoodooI2CHID"})
+    keyboard = kexts / "VoodooPS2Controller.kext/Contents/PlugIns/VoodooPS2Keyboard.kext/Contents/Info.plist"
+    profile = {"Default": {"Use ISO layout keyboard": False, "Swap command and option": False}, "HPQOEM": {}}
+    write_plist(keyboard, {"IOKitPersonalities": {"ApplePS2Keyboard": {"Platform Profile": profile}}})
+    wifi = {"ssdt": {"ssid": "ssdt", "password": "zxyssdt112233"}, "Redmi": {"ssid": "Redmi", "password": "1234"}}
+    write_plist(kexts / "itlwm.kext" / "Contents" / "Info.plist", {"IOKitPersonalities": {"itlwm": {"WiFiConfig": wifi}}})
+    return efi_dir
+
+
+def test_correcoes_do_notebook(tmp_path):
+    efi_dir = make_laptop_efi(tmp_path)
+    kexts = efi_dir / "OC" / "Kexts"
+    applied = efi.apply_hardware_fixes(efi_dir, "abnt2")
+    assert len(applied) == 3
+
+    keyboard = kexts / "VoodooPS2Controller.kext/Contents/PlugIns/VoodooPS2Keyboard.kext/Contents/Info.plist"
+    profile = plistlib.loads(keyboard.read_bytes())["IOKitPersonalities"]["ApplePS2Keyboard"]["Platform Profile"]
+    assert profile["Default"]["Use ISO layout keyboard"] is True
+
+    itlwm = plistlib.loads((kexts / "itlwm.kext" / "Contents" / "Info.plist").read_bytes())
+    assert itlwm["IOKitPersonalities"]["itlwm"]["WiFiConfig"] == {}
+
+    add = read_config(efi_dir)["Kernel"]["Add"]
+    state = {e["BundlePath"]: e["Enabled"] for e in add}
+    assert state["VoodooI2CHID.kext"] is True
+    assert not any(enabled for path, enabled in state.items() if path.startswith("VoodooRMI.kext"))
+    order = [e["BundlePath"] for e in add]
+    assert order.index("VoodooI2CHID.kext") == order.index("VoodooI2C.kext/Contents/PlugIns/VoodooInput.kext") + 1
+    assert next(e for e in add if e["BundlePath"] == "VoodooI2CHID.kext")["ExecutablePath"] == "Contents/MacOS/VoodooI2CHID"
+
+    # Rodar de novo não muda nada nem duplica a entrada
+    assert efi.apply_hardware_fixes(efi_dir, "abnt2") == []
+    assert [e["BundlePath"] for e in read_config(efi_dir)["Kernel"]["Add"]].count("VoodooI2CHID.kext") == 1
+
+
+def test_teclado_americano_nao_liga_a_opcao_iso(tmp_path):
+    efi_dir = make_laptop_efi(tmp_path)
+    applied = efi.apply_hardware_fixes(efi_dir, "us")
+    assert not any("ISO" in item for item in applied)
+
+
+def test_efi_definitiva_sem_modo_detalhado(tmp_path):
+    efi_dir = make_laptop_efi(tmp_path)
+    efi.apply_final_options(efi_dir / "OC" / "config.plist")
+    config = read_config(efi_dir)
+    assert config["NVRAM"]["Add"][efi.NVRAM_GUID]["boot-args"] == "debug=0x100 keepsyms=1 -vi2c-force-polling"
+    assert config["Misc"]["Boot"]["ShowPicker"] is False
+    assert config["PlatformInfo"]["Generic"]["SystemSerialNumber"] == "SEGREDO123"  # o resto fica igual
 
 def make_build(root, name, scan_id, darwin, complete=True, selection=None):
     folder = root / "EFI" / name
