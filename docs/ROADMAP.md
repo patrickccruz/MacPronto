@@ -46,13 +46,23 @@ Primeiro boot pelo pendrive: o OpenCore abriu, mas só mostrava o Windows (o `Hi
 - Os downloads do OpCore Simplify e do Hardware Sniffer desligavam a verificação TLS quando não achavam o `cert.pem` nem o `certifi`. Agora usam o repositório de certificados do Windows.
 - No executável, o código de terceiros não carregava (colisão da pasta `scripts/` com o pacote `Scripts` e caminho errado do worker).
 
+### Primeira instalação completa: notebook VAIO VJFE (28 e 29/10/2026)
+
+Um Positivo VAIO VJFE (i5-10210U, Wi-Fi Intel AC 9462, touchpad Synaptics I2C) foi do diagnóstico ao macOS Sonoma ligando pelo disco interno, sem o pendrive. Os detalhes estão em `docs/CONTEXTO-PARA-IA.md`, erros 12 a 15. O que precisou de ajuste à mão virou melhoria no programa, na `main`:
+
+- mapa USB com avisos de portas sem teste e o botão "Completar até 15";
+- EFI com o teclado ABNT2 PS/2 (opção ISO do VoodooPS2), o touchpad I2C pelo VoodooI2CHID e o itlwm sem as redes de exemplo;
+- pendrive com a EFI definitiva (sem `-v`, menu escondido), o HeliPort, o `AJUDA-IA.md` (para colar numa IA) e o `Bem-vindo-ao-Mac.html`;
+- guia com a pós-instalação completa: Wi-Fi, teclado, trackpad, USB, cópia da EFI para o disco interno e Apple ID.
+
 ### Próximos passos
 
-1. Dar boot pelo pendrive nesta máquina e instalar o macOS.
-2. Conferir os caminhos da BIOS do ThinkCentre M80q durante o boot e marcar o perfil como conferido; repetir com as máquinas dos amigos.
-3. Testar contra outros antivírus além do Windows Defender.
-4. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
-5. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
+1. Publicar uma versão com as melhorias do teste no VAIO e gerar um pendrive novo para conferir os arquivos novos.
+2. Dar boot pelo pendrive no ThinkCentre M80q e instalar o macOS.
+3. Conferir os caminhos da BIOS do ThinkCentre M80q durante o boot e marcar o perfil como conferido; repetir com as máquinas dos amigos.
+4. Testar contra outros antivírus além do Windows Defender.
+5. Testes com amigos (desktops AMD, notebooks e máquinas antigas), usando o modo simulação e máquinas reais.
+6. Avaliar o suporte a caminhos longos: com uma pasta de usuário muito longa, alguns arquivos do OpenCore passam de 260 caracteres (ver Riscos).
 
 ## Premissas
 
@@ -141,10 +151,10 @@ Primeiro boot pelo pendrive: o OpenCore abriu, mas só mostrava o Windows (o `Hi
 - [x] Solução de problemas por sintoma
 - [x] Exportação em HTML/PDF, cópia no pendrive e QR code
 
-**🏁 Marco 2: MVP desktop** (falta dar boot pelo pendrive e instalar numa máquina real)
+**🏁 Marco 2: MVP desktop** (instalação completa feita num notebook em 29/10/2026; falta repetir num desktop)
 
 ### Notebooks
-- [ ] Trackpad, bateria, brilho e desligamento da GPU dedicada (regras do OpCore Simplify no laudo e na EFI; falta testar em notebook real)
+- [ ] Trackpad, bateria, brilho e desligamento da GPU dedicada (trackpad I2C, Wi-Fi Intel, teclado ABNT2 e USB validados no VAIO VJFE em 29/10/2026; faltam bateria, brilho e GPU dedicada)
 - [x] Regras específicas no laudo (ex.: vídeo Iris Xe é incompatível)
 - [x] BIOS de notebooks Dell, Lenovo, HP, Acer, ASUS, MSI, Samsung, Positivo, Multilaser e Avell no guia
 

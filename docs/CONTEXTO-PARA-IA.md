@@ -31,6 +31,11 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
 - `NVRAM > Add > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > prev-lang:kbd` = `pt-BR:128`, para o teclado ABNT2 no instalador.
 - `Misc > Boot > HideAuxiliary` = `false` (desde a 0.1.0-beta.3), para o instalador aparecer no menu do OpenCore. Veja o erro 6 do histórico.
 - Com o mapa USB feito, o `UTBMap.kext` substitui o `UTBDefault.kext` (que ativa todas as portas).
+- Correções vindas do teste no VAIO VJFE (na `main` desde 29/10/2026, ainda sem versão publicada), em `efi/service.py`, `apply_hardware_fixes`:
+  - teclado ABNT2 com VoodooPS2: `Use ISO layout keyboard = true` (erro 15);
+  - touchpad I2C com VoodooRMI + RMII2C: troca pelo `VoodooI2CHID` e deixa o VoodooRMI desativado na pasta (erro 12);
+  - itlwm: apaga as redes de exemplo do `WiFiConfig`. A pergunta do OpCore Simplify sobre importar as redes do Windows passou a ser respondida com "no".
+- **EFI definitiva:** o pendrive leva uma cópia em `MacPronto/EFI-definitiva`, sem `-v` e com `ShowPicker = false`, para o disco interno.
 
 ### Como o pendrive fica
 
@@ -38,7 +43,8 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
 - **Conteúdo:**
   - `EFI\BOOT\BOOTx64.efi` e `EFI\OC\` (OpenCore, `config.plist`, drivers, kexts, ACPI);
   - `com.apple.recovery.boot\BaseSystem.dmg` e `BaseSystem.chunklist` (macOS Recovery, cerca de 880 MB);
-  - `MacPronto\Guia.html`, `Guia.pdf` e `LEIA-ME.txt`.
+  - `MacPronto\Guia.html`, `Guia.pdf` e `LEIA-ME.txt`;
+  - desde 29/10/2026 (na `main`): `MacPronto\AJUDA-IA.md` (contexto da máquina e da instalação para colar numa IA, sem números de série), `MacPronto\Bem-vindo-ao-Mac.html` (atalhos e diferenças para quem vem do Windows), `MacPronto\EFI-definitiva\EFI` e, com o itlwm, `MacPronto\HeliPort.dmg`.
 
 ### Onde ficam os arquivos no Windows
 
@@ -73,7 +79,7 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
   - o programa lê `github.com/patrickccruz/MacPronto/releases.atom` a cada minuto e o `macpronto-update.json` de cada versão, que traz o tamanho e o SHA-256 do instalador;
   - com a autorização do usuário, roda o instalador com `/SILENT /ATUALIZACAO`.
 - **Testes e checagens:**
-  - `python -m pytest` (122 testes);
+  - `python -m pytest` (130 testes);
   - `python -m ruff check src tests`;
   - na pasta `frontend`: `npx tsc -b` e `npx oxlint src`;
   - build com `python scripts/build.py`.
@@ -162,12 +168,18 @@ Primeiro notebook real. O MacPronto 0.1.0-beta.3 rodou no próprio notebook, que
   - O `UTBMap.kext` tinha só HS02, HS04, HS05, HS07 (tipo 0) e HS10 (tipo 255). Nenhuma porta USB 3.
   - Em 29/10/2026 o mapa foi ampliado para o limite de 15 portas: HS01–HS10 e SS01–SS05 (tipo 3, índices 13–17). A numeração supõe o padrão do PCH Comet Lake-U, com USR1/USR2 em 11–12 e SS01–SS06 em 13–18; a SS06 ficou de fora. O original está em `MacPronto\backup\UTBMap-Info-original.plist` no pendrive.
   - Depois de reiniciar com o mapa amplo, o usuário confirmou que as portas USB funcionam. Opcional: enxugar o mapa com os IDs de localização das portas reais (Informações do Sistema > USB).
-- **Boot pelo disco interno (em andamento):**
+- **Boot pelo disco interno (resolvido em 29/10/2026):** com a `EFI-definitiva` na partição EFI do NVMe, o notebook liga sem o pendrive, direto no logo da Apple, sem as linhas de texto. Como foi feito:
   - `diskutil list`: disk0 é o NVMe (GPT) com disk0s1 "NO NAME" (EFI de 105 MB, criada pelo Windows, com `EFI/Boot/bootx64.efi` e `EFI/Microsoft`, 63,6 MB livres), Microsoft Reserved e o contêiner APFS. disk1 é um segundo disco interno de 480 GB (MBR, NTFS "Novo volume", com arquivos do usuário): não mexer. disk3 é o pendrive.
   - A EFI tem 40 MB. Foi criada a cópia `MacPronto\EFI-definitiva\EFI` no pendrive, igual à EFI de boot, mas sem `-v` e com `ShowPicker = false`; o `ocvalidate` passou. A EFI da raiz do pendrive fica de emergência, com `-v` e o menu visível.
   - Plano: guardar a `EFI` do Windows em `MacPronto\backup`, substituir a pasta `EFI` da NO NAME pela definitiva, escolher o disco do macOS em Ajustes > Geral > Disco de Inicialização (`RequestBootVarRouting` está ativo) e pôr o NVMe em primeiro na BIOS.
   - Plano B, se a BIOS não der boot pelo caminho padrão `EFI/BOOT/BOOTx64.efi`: copiar o `BOOTx64.efi` do OpenCore para `EFI/Microsoft/Boot/bootmgfw.efi`, para a entrada "Windows Boot Manager" abrir o OpenCore, ou usar `LauncherOption`.
-- **Redes do Windows no itlwm (pendente no código):** o OpCore Simplify pergunta "Would you like to scan for WiFi profiles? (Yes/no)", e o adaptador não tem regra para essa pergunta. Ele responde com Enter, que é inválido; na 4ª repetição sai o `prompt-unknown`, que o `except` sem tipo de `modify_kexts` engole. O itlwm fica com as redes de exemplo. Falta decidir se o MacPronto oferece a importação (ela grava senhas de Wi-Fi em texto puro na EFI e no `ioreg`) ou responde "no" e limpa as redes de exemplo.
+- **AirDrop:** não funciona, como o laudo avisava ("sem AirDrop"). Só funciona com placa Broadcom, e a AC 9462 é CNVi: o encaixe pode não aceitar outra placa.
+- **Melhorias no MacPronto a partir deste teste (29/10/2026, na `main`):**
+  - mapa USB: avisos (nenhuma porta USB 3 marcada, portas sem teste), instruções mais claras e o botão "Completar até 15", que intercala HS e SS do menor índice ao maior. No caso do VAIO, ele chega exatamente ao mapa que funcionou;
+  - EFI e pendrive: as correções acima, a `EFI-definitiva` e o HeliPort no pendrive;
+  - guia: pós-instalação reescrita (Wi-Fi pelo HeliPort, teclado ABNT2, trackpad, portas USB, cópia da EFI definitiva, Apple ID) e novos itens em Problemas e soluções;
+  - `AJUDA-IA.md` e `Bem-vindo-ao-Mac.html`, gerados com o guia e liberados no QR code.
+- **Redes do Windows no itlwm (resolvido no código; o MacPronto não importa senhas):** o OpCore Simplify pergunta "Would you like to scan for WiFi profiles? (Yes/no)", e o adaptador não tem regra para essa pergunta. Ele responde com Enter, que é inválido; na 4ª repetição sai o `prompt-unknown`, que o `except` sem tipo de `modify_kexts` engole. O itlwm fica com as redes de exemplo. Decisão: o MacPronto responde "no" (importar gravaria as senhas de Wi-Fi em texto puro na EFI e no `ioreg`) e limpa as redes de exemplo; a conexão fica com o HeliPort.
 
 ## Histórico de erros já resolvidos
 

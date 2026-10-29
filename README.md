@@ -19,7 +19,10 @@ O MacPronto roda **no próprio computador que vai virar Hackintosh**, enquanto e
 4. **EFI**: gera a pasta EFI do OpenCore, com kexts, patches ACPI, `config.plist` e SMBIOS.
 5. **Mapeamento USB**: mapeia as portas USB ainda no Windows, onde isso é mais fácil.
 6. **Pendrive**: formata o pendrive escolhido e baixa o macOS Recovery direto dos servidores da Apple.
-7. **Guia personalizado**: passo a passo de BIOS, instalação e pós-instalação. Fica salvo no próprio pendrive e abre no celular por QR code, porque depois da formatação o Windows deixa de existir.
+7. **Guia personalizado**: passo a passo de BIOS, instalação e pós-instalação. Fica salvo no próprio pendrive e abre no celular por QR code, porque depois da formatação o Windows deixa de existir. Junto vão:
+   - o `AJUDA-IA.md`, para enviar a uma IA (Claude, ChatGPT, Gemini) e pedir ajuda com a sua máquina, sem números de série;
+   - o `Bem-vindo-ao-Mac.html`, com atalhos e diferenças para quem vem do Windows;
+   - a EFI definitiva, para o macOS ligar sem o pendrive.
 
 Com o pendrive pronto, você desliga o PC, ajusta a BIOS, dá boot pelo pendrive e instala o macOS seguindo o guia.
 
