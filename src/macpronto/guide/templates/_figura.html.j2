@@ -1,0 +1,18 @@
+{# Peças do guia: figura com notas numeradas e o corpo de um passo. #}
+{% macro figure(fig) %}
+<figure class="shot">
+  {{ fig.svg }}
+  <figcaption>{{ fig.caption }}
+    {% if fig.notes %}<ol class="callouts">{% for note in fig.notes %}<li>{{ note }}</li>{% endfor %}</ol>{% endif %}
+  </figcaption>
+</figure>
+{% endmacro %}
+
+{% macro step_body(step) %}
+<strong class="step-title">{{ step.title }}</strong>
+<p class="step-text">{{ step.text }}</p>
+{% if step["items"] %}<ol class="sub">{% for item in step["items"] %}<li>{{ item }}</li>{% endfor %}</ol>{% endif %}
+{% if step.warning %}<p class="note warn-note"><strong>Atenção:</strong> {{ step.warning }}</p>{% endif %}
+{% if step.tip %}<p class="note"><strong>Dica:</strong> {{ step.tip }}</p>{% endif %}
+{% for fig in step.figures %}{{ figure(fig) }}{% endfor %}
+{% endmacro %}

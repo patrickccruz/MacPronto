@@ -1,3 +1,4 @@
+{% from "_figura.html.j2" import figure, step_body %}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -31,8 +32,19 @@
     {% endfor %}
     <div class="card">
       <strong>Com dúvida ou problema? Peça ajuda a uma IA.</strong>
-      <p class="muted" style="margin:4px 0 0">Abra uma IA (Claude, ChatGPT, Gemini), envie o arquivo <a href="AJUDA-IA.md">AJUDA-IA.md</a> (fica na pasta MacPronto do pendrive) e conte o que aconteceu, de preferência com uma foto da tela. O arquivo explica o seu computador e a instalação, sem números de série.</p>
+      <p class="muted" style="margin:4px 0 0">Abra uma IA (Claude, ChatGPT, Gemini), envie o arquivo <a href="AJUDA-IA.md">AJUDA-IA.md</a> ou o AJUDA-IA.pdf (ficam na pasta MacPronto do pendrive) e conte o que aconteceu, de preferência com uma foto da tela. O arquivo explica o seu computador e a instalação, sem números de série.</p>
     </div>
+  </section>
+
+  <section>
+    <h2>O caminho até o macOS</h2>
+    <ol class="stages">
+      <li><a href="#bios"><span class="n">1</span><strong>Ajustar a BIOS</strong><span class="muted">uns 10 minutos</span></a></li>
+      <li><a href="#instalacao"><span class="n">2</span><strong>Dar boot pelo pendrive</strong><span class="muted">uns 5 minutos</span></a></li>
+      <li><a href="#apagar"><span class="n">3</span><strong>Apagar o disco e instalar</strong><span class="muted">de 40 a 90 minutos</span></a></li>
+      <li><a href="#pos"><span class="n">4</span><strong>Ajustes no macOS</strong><span class="muted">uns 30 minutos</span></a></li>
+      <li><a href="#pos-final_efi"><span class="n">5</span><strong>Ligar sem o pendrive</strong><span class="muted">uns 10 minutos</span></a></li>
+    </ol>
   </section>
 
   <nav class="card" style="margin-top:20px">
@@ -57,7 +69,7 @@
     </div>
     <div class="card">
       <label class="check"><input type="checkbox"> <span><strong>Faça backup completo.</strong> A instalação apaga o disco de destino, inclusive o Windows.</span></label>
-      <label class="check"><input type="checkbox"> <span>Deixe este guia aberto em outro aparelho (celular ou outro computador). Depois de formatar, o Windows deixa de existir.</span></label>
+      <label class="check"><input type="checkbox"> <span>Baixe este guia em PDF no celular (pelo QR code do MacPronto) ou imprima. Depois de formatar, o Windows deixa de existir.</span></label>
       <label class="check"><input type="checkbox"> <span>Conecte o cabo de rede, se tiver. O instalador baixa o macOS da Apple (cerca de 13 GB).</span></label>
       <label class="check"><input type="checkbox"> <span>Reserve de uma a duas horas. Em notebooks, deixe o carregador ligado.</span></label>
       <label class="check"><input type="checkbox"> <span>Tenha um teclado e um mouse USB por perto, para o caso de os do notebook não funcionarem no instalador.</span></label>
@@ -70,19 +82,17 @@
       <strong>Perfil de BIOS: {{ vendor.name }}</strong>{% if not profile_detected %} <span class="muted">(escolhido à mão)</span>{% endif %}
       <p class="muted" style="margin:4px 0 0">{{ vendor.confidence_text }}</p>
     </div>
-    <div class="grid">
-      <div class="card stat"><div class="label">Entrar na BIOS</div><div class="value">{{ vendor.bios_key }}</div></div>
-      <div class="card stat"><div class="label">Menu de boot</div><div class="value">{{ vendor.boot_key }}</div></div>
-    </div>
-    <p class="muted">Aperte a tecla repetidamente logo depois de ligar o computador.
-      {% for note in vendor.notes %} {{ note }}{% endfor %}</p>
+    {{ figure(bios_figures[0]) }}
+    {% if vendor.notes %}<p class="muted">{% for note in vendor.notes %}{{ note }} {% endfor %}</p>{% endif %}
     {% if bios_requirements %}
     <div class="card warn">
       <strong>Obrigatório para esta máquina:</strong>
       <ul style="margin:6px 0 0;padding-left:20px">{% for item in bios_requirements %}<li>{{ item }}</li>{% endfor %}</ul>
     </div>
     {% endif %}
-    <div class="card" style="margin-top:12px;overflow-x:auto">
+    {{ figure(bios_figures[1]) }}
+    <h3>O que mudar nesta BIOS</h3>
+    <div class="card table-card" style="overflow-x:auto">
       <table>
         <thead><tr><th>Ajuste</th><th>O que fazer</th><th>Por quê</th></tr></thead>
         <tbody>
@@ -102,22 +112,21 @@
     <p class="muted">Salve e saia (F10 na maioria das BIOS). Se a tecla de entrada não funcionar, veja a <a href="#teclas">tabela de teclas por marca</a>.</p>
   </section>
 
-  <section id="instalacao">
+  <section id="instalacao" class="chapter">
     <h2>3. Instalação</h2>
     <ol class="steps">
       {% for step in install_steps %}
-      <li><strong>{{ step.title }}</strong>{{ step.text }}</li>
+      <li{% if loop.index == 3 %} id="apagar"{% endif %}{% if step.figures %} class="has-fig"{% endif %}>{{ step_body(step) }}</li>
       {% endfor %}
     </ol>
   </section>
 
   <section id="pos">
     <h2>4. Pós-instalação</h2>
-    <p class="muted">Primeira vez no Mac? Abra o <a href="Bem-vindo-ao-Mac.html">Bem-vindo ao Mac</a> (pasta MacPronto do pendrive): atalhos, o que é o quê e as diferenças para o Windows.</p>
+    <p class="muted">Primeira vez no Mac? Abra o <a href="Bem-vindo-ao-Mac.html">Bem-vindo ao Mac</a> (pasta MacPronto do pendrive, também em PDF): atalhos, o que é o quê e as diferenças para o Windows.</p>
     <ol class="steps">
       {% for step in post_install %}
-      <li><strong>{{ step.title }}</strong>{{ step.text }}
-        {% if step["items"] %}<ol>{% for item in step["items"] %}<li>{{ item }}</li>{% endfor %}</ol>{% endif %}</li>
+      <li id="pos-{{ step.id }}"{% if step.figures %} class="has-fig"{% endif %}>{{ step_body(step) }}</li>
       {% endfor %}
     </ol>
   </section>
@@ -125,12 +134,12 @@
   <section id="problemas">
     <h2>5. Problemas e soluções</h2>
     {% for symptom, fixes in troubleshooting %}
-    <details>
+    <details{% if printing %} open{% endif %}>
       <summary>{{ symptom }}</summary>
       <ul>{% for fix in fixes %}<li>{{ fix }}</li>{% endfor %}</ul>
     </details>
     {% endfor %}
-    <p class="muted">Ainda com problema? Anote a última linha que aparece na tela e procure na comunidade Hackintosh (r/hackintosh, InsanelyMac, Dortania).</p>
+    <p class="muted">Ainda com problema? Peça ajuda a uma IA com o AJUDA-IA.md e uma foto da tela, ou procure na comunidade Hackintosh (r/hackintosh, InsanelyMac, Dortania).</p>
   </section>
 
   <section id="hardware">
@@ -168,7 +177,7 @@
   <section id="teclas">
     <h2>8. Teclas da BIOS por marca</h2>
     <p class="muted">Aperte a tecla repetidamente logo depois de ligar o computador. Em notebooks, às vezes é preciso segurar Fn junto.</p>
-    <div class="card" style="overflow-x:auto">
+    <div class="card table-card" style="overflow-x:auto">
       <table>
         <thead><tr><th>Marca ou linha</th><th>Entrar na BIOS</th><th>Menu de boot</th></tr></thead>
         <tbody>
@@ -183,6 +192,7 @@
   <footer>
     <p>Gerado pelo MacPronto {{ app_version }}. O laudo é uma estimativa feita com as regras da comunidade Hackintosh e não garante que tudo vá funcionar.
        A licença do macOS só permite instalá-lo em computadores da Apple; a decisão de instalar é sua.</p>
+    <p>As telas deste guia são ilustrações montadas pelo MacPronto: o visual real muda um pouco de computador para computador.</p>
     <p>Créditos: OpCore Simplify e Hardware Sniffer (lzhoang2801), OpenCore e kexts (Acidanthera), USBToolBox (Dhinak G), guia de instalação da Dortania.
        Apple, Mac e macOS são marcas registradas da Apple Inc.</p>
   </footer>

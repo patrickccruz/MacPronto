@@ -56,6 +56,8 @@ def run(output: Path | None = None) -> int:
             Path(__file__).resolve().parent / "guide" / "templates" / "guia.html.j2",
             Path(__file__).resolve().parent / "guide" / "templates" / "ajuda-ia.md.j2",
             Path(__file__).resolve().parent / "guide" / "templates" / "boas-vindas.html.j2",
+            Path(__file__).resolve().parent / "guide" / "templates" / "baixar.html.j2",
+            Path(__file__).resolve().parent / "guide" / "templates" / "documento.html.j2",
             Path(__file__).resolve().parent / "guide" / "bios_profiles.json",
             SAMPLE,
         ]
@@ -80,8 +82,10 @@ def run(output: Path | None = None) -> int:
 
         scan = {"id": "selftest", "report": state["report"], "extras": {}, "acpi_tables": []}
         built = laudo.build(scan, state["analysis"], state["plan"])
-        html = render.render_html(render.build_context(scan, built, {"darwin": 24}, None, usb_mapped=False))
-        return f"veredito {built['verdict']['status']}; guia com {len(html)} caracteres"
+        context = render.build_context(scan, built, {"darwin": 24}, None, usb_mapped=False)
+        html = render.render_html(context)
+        ai_help = render.markdown_html(render.render_markdown(context))  # o markdown-it entrou no executável
+        return f"veredito {built['verdict']['status']}; guia com {len(html)} caracteres; ajuda para IA com {len(ai_help)}"
 
     def qr() -> str:
         from macpronto.guide.share import qr_svg

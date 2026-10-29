@@ -208,20 +208,29 @@ def test_guia_e_compartilhamento(tmp_path):
     assert "macOS Sequoia 15" in html
 
     (tmp_path / "Guia.html").write_text(html, encoding="utf-8")
+    (tmp_path / "Guia.pdf").write_bytes(b"%PDF-1.7 guia")
     (tmp_path / "AJUDA-IA.md").write_text("# Ajuda com o macOS", encoding="utf-8")
     (tmp_path / "segredo.txt").write_text("não pode sair", encoding="utf-8")
     share = GuideShare()
     info = share.start(tmp_path)
     try:
+        assert info["url"].endswith("/")
         port = info["url"].rsplit(":", 1)[1].split("/")[0]
         local = f"http://127.0.0.1:{port}"
-        with urllib.request.urlopen(f"{local}/Guia.html", timeout=5) as response:
-            assert "Gigabyte" in response.read().decode("utf-8")
+        # O QR code abre só os botões de download: PDF quando existe, a versão em HTML ou texto quando não
+        with urllib.request.urlopen(f"{local}/", timeout=5) as response:
+            page = response.read().decode("utf-8")
+        assert "Leve o guia no celular" in page and 'href="Guia.pdf"' in page and "Guia.html" not in page
+        assert 'href="AJUDA-IA.md"' in page and "Bem-vindo-ao-Mac" not in page
+        with urllib.request.urlopen(f"{local}/Guia.pdf", timeout=5) as response:
+            assert response.headers["Content-Disposition"] == 'attachment; filename="MacPronto-Guia.pdf"'
+            assert response.read().startswith(b"%PDF")
         with urllib.request.urlopen(f"{local}/AJUDA-IA.md", timeout=5) as response:
             assert response.headers["Content-Type"] == "text/plain; charset=utf-8"  # o celular mostra e copia
             assert "Ajuda com o macOS" in response.read().decode("utf-8")
-        with pytest.raises(urllib.error.HTTPError):
-            urllib.request.urlopen(f"{local}/segredo.txt", timeout=5)
+        for blocked in ("segredo.txt", "Bem-vindo-ao-Mac.pdf"):
+            with pytest.raises(urllib.error.HTTPError):
+                urllib.request.urlopen(f"{local}/{blocked}", timeout=5)
         assert info["qr_svg"].startswith("<svg")
     finally:
         share.stop()

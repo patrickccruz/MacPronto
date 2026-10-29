@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "macpronto"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 description = "Analisa o PC no Windows, diz se ele pode virar Hackintosh e prepara o pendrive de instalação."
 readme = "README.md"
 license = "MIT"
@@ -16,6 +16,7 @@ dependencies = [
     "pywin32>=306; sys_platform == 'win32'",
     "jinja2>=3.1",
     "segno>=1.6",
+    "markdown-it-py>=3.0",
 ]
 
 [project.optional-dependencies]

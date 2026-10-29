@@ -18,8 +18,8 @@ import { useTask } from "@/lib/useTask"
 const SECTIONS = [
   "Antes de começar: backup e o que ter em mãos",
   "Ajustes da BIOS do fabricante desta máquina, com as teclas e os caminhos dos menus",
-  "Instalação passo a passo, do boot pelo pendrive à configuração inicial",
-  "Pós-instalação: iniciar sem o pendrive, OCLP e ajustes finos",
+  "Instalação passo a passo, com as telas ilustradas: menu de boot, OpenCore, Utilitário de Disco e instalador",
+  "Pós-instalação: Wi-Fi, teclado, trackpad, iniciar sem o pendrive e iCloud",
   "Problemas e soluções por sintoma",
   "O que funciona e os detalhes técnicos da EFI",
   "Teclas da BIOS e do menu de boot de todas as marcas",
@@ -170,7 +170,7 @@ export function GuideStep() {
                 <Smartphone className="size-4 text-primary" />
                 Abrir no celular
               </CardTitle>
-              <CardDescription>Depois de formatar, o Windows deixa de existir. Leve o guia no celular.</CardDescription>
+              <CardDescription>Depois de formatar, o Windows deixa de existir. Baixe o guia em PDF no celular.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {share ? (
@@ -181,8 +181,9 @@ export function GuideStep() {
                   />
                   <p className="text-center font-mono text-xs break-all text-muted-foreground">{share.url}</p>
                   <p className="text-xs text-muted-foreground">
-                    Aponte a câmera do celular para o código. O celular precisa estar na mesma rede Wi-Fi. Se o Windows perguntar,
-                    permita o acesso em redes privadas. O compartilhamento desliga sozinho em {share.minutes} minutos.
+                    Aponte a câmera do celular para o código e toque em cada botão para baixar os PDFs: o guia, o Bem-vindo ao Mac e
+                    a Ajuda para IA. O celular precisa estar na mesma rede Wi-Fi. Se o Windows perguntar, permita o acesso em redes
+                    privadas. O compartilhamento desliga sozinho em {share.minutes} minutos.
                   </p>
                   <Button variant="outline" className="w-full" onClick={() => void stopShare()}>
                     <WifiOff data-icon="inline-start" />
@@ -192,7 +193,7 @@ export function GuideStep() {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground">
-                    O MacPronto mostra um QR code e entrega só o guia, pela rede local. Nada passa pela internet.
+                    O QR code abre uma página com os PDFs para baixar no celular, pela rede local. Nada passa pela internet.
                   </p>
                   <Button className="w-full" onClick={() => void startShare()}>
                     <Wifi data-icon="inline-start" />

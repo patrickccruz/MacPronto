@@ -1,4 +1,4 @@
 """MacPronto: diagnóstico Hackintosh, EFI, pendrive e guia, tudo a partir do Windows."""
 
-__version__ = "0.1.0-beta.3"
+__version__ = "0.1.0-beta.4"
 APP_NAME = "MacPronto"

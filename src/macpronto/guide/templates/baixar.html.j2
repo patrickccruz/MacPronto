@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MacPronto · Baixar o guia</title>
+{% include "_estilo.html.j2" %}
+<style>
+  main { max-width: 520px; }
+  .download { display: flex; align-items: center; gap: 14px; padding: 16px; margin-top: 12px; border-radius: 16px; text-decoration: none;
+              color: var(--text); background: var(--card); border: 1px solid var(--border); }
+  .download.main { background: #2f6fe4; border-color: #2f6fe4; color: #fff; }
+  .download.main .muted { color: rgba(255,255,255,.88); }
+  .download .icon { flex: none; width: 46px; height: 54px; border-radius: 8px; display: grid; place-items: center; font-size: .75rem;
+                    font-weight: 800; letter-spacing: .03em; background: #e5484d; color: #fff; }
+  .download.main .icon { background: #fff; color: #2f6fe4; }
+  .download strong { display: block; font-size: 1.05rem; }
+  .download span.muted { display: block; font-size: .88rem; line-height: 1.35; margin-top: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p>MacPronto {{ app_version }}</p>
+    <h1>Leve o guia no celular</h1>
+  </header>
+
+  <div class="note warn-note" style="margin-top:16px">
+    <strong>Baixe agora.</strong> Este endereço só funciona enquanto o MacPronto estiver aberto no computador. Depois de desligar
+    ou formatar, ele deixa de existir, mas os arquivos baixados continuam no celular.
+  </div>
+
+  {% for item in items %}
+  <a class="download{% if loop.first %} main{% endif %}" href="{{ item.href }}"{% if item.kind == "PDF" %} download{% endif %}>
+    <span class="icon">{{ "PDF" if item.kind == "PDF" else "HTML" }}</span>
+    <span><strong>{% if loop.first %}Baixar o {{ item.title | lower }}{% else %}{{ item.title }}{% endif %}</strong>
+      <span class="muted">{{ item.text }} {{ item.kind }}, {{ item.size }}.</span></span>
+  </a>
+  {% else %}
+  <p class="card">O guia ainda não foi gerado. Gere o guia no MacPronto e leia o QR code de novo.</p>
+  {% endfor %}
+
+  <p class="muted" style="margin-top:20px;font-size:.9rem">Onde fica depois de baixar: no iPhone, no app Arquivos, pasta Downloads; no Android, no app Arquivos ou Downloads.</p>
+</main>
+</body>
+</html>

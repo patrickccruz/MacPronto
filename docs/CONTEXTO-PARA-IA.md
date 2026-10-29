@@ -22,7 +22,7 @@ O MacPronto é um programa para Windows, em português, que prepara a instalaç�
 3. **EFI:** monta a pasta do OpenCore com o [OpCore Simplify](https://github.com/lzhoang2801/OpCore-Simplify), usado como biblioteca, e valida com o `ocvalidate`.
 4. **Mapa USB:** mapeia as portas USB ainda no Windows (por IOCTL, com a lógica do USBToolBox) e gera o `UTBMap.kext`.
 5. **Pendrive:** baixa o macOS Recovery direto da Apple (`macrecovery.py` do OpenCorePkg), confere com o chunklist assinado pela Apple, formata o pendrive e copia o Recovery, a EFI e o guia.
-6. **Guia:** gera um passo a passo em HTML e PDF, com a BIOS por marca e linha de produto, a instalação, a pós-instalação e os problemas comuns. Ele abre no celular por QR code.
+6. **Guia:** gera um passo a passo em HTML e PDF, com a BIOS por marca e linha de produto, a instalação, a pós-instalação e os problemas comuns. As telas são ilustradas (`guide/figures.py`). O QR code abre no celular uma página para baixar os PDFs.
 
 O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica os patches do OpenCore Legacy Patcher.
 
@@ -44,7 +44,14 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
   - `EFI\BOOT\BOOTx64.efi` e `EFI\OC\` (OpenCore, `config.plist`, drivers, kexts, ACPI);
   - `com.apple.recovery.boot\BaseSystem.dmg` e `BaseSystem.chunklist` (macOS Recovery, cerca de 880 MB);
   - `MacPronto\Guia.html`, `Guia.pdf` e `LEIA-ME.txt`;
-  - desde 29/10/2026 (na `main`): `MacPronto\AJUDA-IA.md` (contexto da máquina e da instalação para colar numa IA, sem números de série), `MacPronto\Bem-vindo-ao-Mac.html` (atalhos e diferenças para quem vem do Windows), `MacPronto\EFI-definitiva\EFI` e, com o itlwm, `MacPronto\HeliPort.dmg`.
+  - desde 29/10/2026 (na `main`): `MacPronto\AJUDA-IA.md` (contexto da máquina e da instalação para colar numa IA, sem números de série), `MacPronto\Bem-vindo-ao-Mac.html` (atalhos e diferenças para quem vem do Windows), `MacPronto\EFI-definitiva\EFI` e, com o itlwm, `MacPronto\HeliPort.dmg`;
+  - também desde 29/10/2026 (na `main`): `Bem-vindo-ao-Mac.pdf` e `AJUDA-IA.pdf`, ao lado do `Guia.pdf`.
+
+### Guia, PDFs e QR code (desde 29/10/2026, na `main`)
+
+- **Ilustrações:** `guide/figures.py` desenha em SVG as telas de cada etapa (teclas da BIOS, BIOS, menu de boot, OpenCore, modo detalhado, Recuperação, Utilitário de Disco, instalador, Finder, HeliPort, teclado do PC, Ajustes do Sistema, Terminal, Sobre Este Mac). São montagens, não capturas, personalizadas com as teclas do perfil de BIOS, o macOS e os arquivos da máquina. Círculos vermelhos numerados correspondem às notas da figura. Cada passo de `content.py` (`Step.figures`) diz quais figuras usa e pode ter `tip` (dica) e `warning` (atenção).
+- **PDFs:** `render.export_pdfs` gera `Guia.pdf`, `Bem-vindo-ao-Mac.pdf` e `AJUDA-IA.pdf` pelo Edge em modo headless, a partir de versões para impressão (`printing=True`: os "Problemas e soluções" saem abertos). O `AJUDA-IA.pdf` vem do Markdown pelo `markdown-it-py`, com HTML cru escapado. Até a 0.1.0-beta.3, o `Guia.pdf` saía com os problemas fechados, só com os títulos.
+- **QR code:** o celular abre uma página só com os botões de download dos PDFs (`baixar.html.j2`); os PDFs vão com `Content-Disposition: attachment` para ficarem salvos no aparelho. O endereço deixa de existir quando o computador desliga, por isso o guia pede para baixar antes de formatar. Sem o Edge, a página oferece o HTML e o `.md`.
 
 ### Onde ficam os arquivos no Windows
 
@@ -79,7 +86,7 @@ O MacPronto **não** instala o macOS, não mexe no disco interno e não aplica o
   - o programa lê `github.com/patrickccruz/MacPronto/releases.atom` a cada minuto e o `macpronto-update.json` de cada versão, que traz o tamanho e o SHA-256 do instalador;
   - com a autorização do usuário, roda o instalador com `/SILENT /ATUALIZACAO`.
 - **Testes e checagens:**
-  - `python -m pytest` (130 testes);
+  - `python -m pytest` (132 testes);
   - `python -m ruff check src tests`;
   - na pasta `frontend`: `npx tsc -b` e `npx oxlint src`;
   - build com `python scripts/build.py`.

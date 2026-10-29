@@ -53,11 +53,25 @@ Um Positivo VAIO VJFE (i5-10210U, Wi-Fi Intel AC 9462, touchpad Synaptics I2C) f
 - mapa USB com avisos de portas sem teste e o botão "Completar até 15";
 - EFI com o teclado ABNT2 PS/2 (opção ISO do VoodooPS2), o touchpad I2C pelo VoodooI2CHID e o itlwm sem as redes de exemplo;
 - pendrive com a EFI definitiva (sem `-v`, menu escondido), o HeliPort, o `AJUDA-IA.md` (para colar numa IA) e o `Bem-vindo-ao-Mac.html`;
-- guia com a pós-instalação completa: Wi-Fi, teclado, trackpad, USB, cópia da EFI para o disco interno e Apple ID.
+- guia com a pós-instalação completa: Wi-Fi, teclado, trackpad, USB, cópia da EFI para o disco interno e Apple ID;
+- guia com as telas ilustradas, dicas e avisos em cada passo, e os PDFs do guia, do Bem-vindo e da Ajuda para IA, que o celular baixa pelo QR code.
+
+### Relatórios anônimos (planejado em 29/10/2026)
+
+Objetivo: saber, com o tempo, quais máquinas funcionam, quais erros acontecem e o que dá certo depois de instalar, para melhorar o programa. Decisões:
+
+- **Destino:** issues de um repositório privado só para isso (`MacPronto-relatorios`), criadas pelo programa com uma chave própria (token fine-grained, só Issues desse repositório, 1 ano). A pessoa não precisa de conta no GitHub. Sem servidor nem banco de dados. A chave entra na compilação pelo GitHub Actions (segredo `RELATORIOS_TOKEN`), nunca no código.
+- **Por que outro repositório:** no GitHub, a visibilidade é do repositório inteiro, e quem extrair a chave do programa só alcança a caixa de entrada, nunca o código nem as versões da atualização automática.
+- **Autorização:** pergunta única ao abrir o programa depois da atualização ("Sim, quero ajudar" ou "Agora não", nada marcado), com "Ver o que é enviado" e opção nas configurações.
+- **Conteúdo:** lista fechada de campos (hardware com IDs PCI, veredito, macOS, kexts, SMBIOS, etapas, erros sem caminhos pessoais, versões) e um código aleatório da máquina. Nunca números de série, MAC, nome de usuário ou do computador.
+- **Quando:** diagnóstico concluído, pendrive criado e erro; fila local quando estiver sem internet.
+- **"Conte como foi":** `Conte-como-foi.html` no pendrive, aberto no próprio Mac depois de instalar, envia o que funcionou como comentário na issue da máquina. Antes de implementar, confirmar no VAIO que o Safari envia ao GitHub a partir de um arquivo local.
+- **Análise:** `scripts/relatorios.py` baixa as issues com o `gh` para uma pasta fora do repositório e gera um `RESUMO.md`.
+- **Pendências:** criar o repositório privado e a chave (a criação pelo assistente foi barrada pelo modo automático; o usuário cria ou autoriza), seção de privacidade na `POLITICA-DE-USO.md`.
 
 ### Próximos passos
 
-1. Publicar uma versão com as melhorias do teste no VAIO e gerar um pendrive novo para conferir os arquivos novos.
+1. Implementar os relatórios anônimos e publicar uma versão com eles, as melhorias do teste no VAIO e o guia ilustrado; gerar um pendrive novo para conferir os arquivos novos.
 2. Dar boot pelo pendrive no ThinkCentre M80q e instalar o macOS.
 3. Conferir os caminhos da BIOS do ThinkCentre M80q durante o boot e marcar o perfil como conferido; repetir com as máquinas dos amigos.
 4. Testar contra outros antivírus além do Windows Defender.

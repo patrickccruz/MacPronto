@@ -1,4 +1,8 @@
-"""Gera o guia personalizado (HTML) e o PDF (pelo Edge do Windows, em modo headless)."""
+"""Gera o guia personalizado (HTML) e os PDFs (pelo Edge do Windows, em modo headless).
+
+Além do Guia, vão para o pendrive o AJUDA-IA.md e o Bem-vindo-ao-Mac.html, cada um com o
+seu PDF. Os PDFs são o que o celular baixa pelo QR code (veja share.py).
+"""
 
 from __future__ import annotations
 
@@ -7,14 +11,17 @@ import os
 import plistlib
 import shutil
 import subprocess
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from markdown_it import MarkdownIt
+from markupsafe import Markup
 
 from macpronto import __version__, paths
 from macpronto.compat import macos
-from macpronto.guide import content
+from macpronto.guide import content, figures
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +29,18 @@ TEMPLATES = Path(__file__).resolve().parent / "templates"
 AI_HELP_FILE = "AJUDA-IA.md"
 WELCOME_FILE = "Bem-vindo-ao-Mac.html"
 CREATE_NO_WINDOW = 0x08000000
+
+# O que o celular baixa: (PDF, versão sem PDF, título, descrição)
+DOWNLOADS = (
+    ("Guia.pdf", "Guia.html", "Passo a passo da instalação", "BIOS, instalação e pós-instalação, com as telas ilustradas."),
+    ("Bem-vindo-ao-Mac.pdf", WELCOME_FILE, "Bem-vindo ao Mac", "Atalhos e diferenças para quem vem do Windows."),
+    (
+        "AJUDA-IA.pdf",
+        AI_HELP_FILE,
+        "Ajuda para IA",
+        "Com dúvida, envie este arquivo para uma IA (Claude, ChatGPT, Gemini) e conte o que aconteceu.",
+    ),
+)
 
 EDGE_PATHS = (
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -87,71 +106,57 @@ def build_context(
         )
     ]
 
-    macos_name = version.name if version else "macOS"
-    install_steps = [
-        {"title": title, "text": text.format(boot_key=vendor.boot_key, macos_name=macos_name)}
-        for title, text in content.INSTALL_STEPS
-    ]
-
+    macos_name = f"macOS {version.name}" if version else "macOS"
     config = (efi or {}).get("config") or {}
-    keys = {"bios_key": vendor.bios_key, "boot_key": vendor.boot_key}
-
-    def step(key: str) -> dict:
-        item = content.POST_STEPS[key]
-        return {
-            "title": item.title,
-            "text": item.text.format(**keys),
-            "items": [text.format(**keys) for text in item.items],
-        }
-
     decisions = {d["key"]: d for d in plan.get("decisions", [])}
     wifi = decisions.get("intel-wifi-kext")
     itlwm = "itlwm.kext" in config.get("kexts", []) or bool(
         wifi
         and any(o["value"] == wifi.get("chosen") and o["label"].startswith("itlwm") for o in wifi.get("options", []))
     )
-    post_install = [step("pendrive")]
+    abnt2 = (efi or {}).get("keyboard", "abnt2") == "abnt2"
+    is_laptop = machine.get("form_factor") == "laptop"
+    drawings = figures.build(
+        bios_key=vendor.bios_key,
+        boot_key=vendor.boot_key,
+        macos_name=macos_name,
+        macos_label=version.label if version else "macOS",
+        opencore=(efi or {}).get("opencore") or "1.0.9",
+        smbios_model=(config.get("smbios") or {}).get("model") or plan.get("smbios_model") or "",
+        laptop=is_laptop,
+        abnt2=abnt2,
+        heliport_app=itlwm,
+    )
+    keys = {"bios_key": vendor.bios_key, "boot_key": vendor.boot_key, "macos_name": macos_name}
+
+    def present(item: content.Step, anchor: str = "") -> dict:
+        return {
+            "id": anchor,
+            "title": item.title,
+            "text": item.text.format(**keys),
+            "items": [text.format(**keys) for text in item.items],
+            "figures": [drawings[name] for name in item.figures],
+            "tip": item.tip.format(**keys),
+            "warning": item.warning.format(**keys),
+        }
+
+    install_steps = [present(item) for item in content.INSTALL_STEPS]
+    chosen = ["pendrive"]
     if plan.get("needs_oclp"):
-        post_install.append(
-            {
-                "title": "Rode o OpenCore Legacy Patcher",
-                "text": (
-                    "Esta instalação precisa de patches de sistema. No macOS instalado, baixe o OpenCore Legacy Patcher "
-                    "(github.com/dortania/OpenCore-Legacy-Patcher; para o Tahoe, o fork github.com/lzhoang2801/OpenCore-Legacy-Patcher), "
-                    "abra-o, escolha Post-Install Root Patch > Start Root Patching e reinicie. Repita depois de cada atualização "
-                    "do macOS. Não use a opção Build and Install OpenCore: a EFI do MacPronto já é a certa."
-                ),
-                "items": [],
-            }
-        )
+        chosen.append("oclp")
     if itlwm:
-        post_install.append(step("heliport"))
-    if (efi or {}).get("keyboard", "abnt2") == "abnt2":
-        post_install.append(step("keyboard"))
-    if machine.get("form_factor") == "laptop":
-        post_install.append(step("trackpad"))
-    post_install.append(step("usb"))
+        chosen.append("heliport")
+    if abnt2:
+        chosen.append("keyboard")
+    if is_laptop:
+        chosen.append("trackpad")
+    chosen.append("usb")
     if not usb_mapped:
-        post_install.append(
-            {
-                "title": "Mapeie as portas USB",
-                "text": "A EFI está com todas as portas ativas (UTBDefault). Se alguma porta não funcionar ou o USB 3 ficar lento, "
-                "volte ao MacPronto no Windows antes de formatar, ou faça o mapa no macOS com o USBToolBox.",
-                "items": [],
-            }
-        )
+        chosen.append("usb_map")
     if config.get("vesa"):
-        post_install.append(
-            {
-                "title": "Ative a aceleração do vídeo integrado",
-                "text": (
-                    "A EFI usa o modo VESA porque há monitor no HDMI/DVI do vídeo integrado. Ligue o monitor na DisplayPort e "
-                    "remova -igfxvesa dos boot-args, ou peça ajuda nos fóruns para mapear as portas do vídeo (framebuffer patching)."
-                ),
-                "items": [],
-            }
-        )
-    post_install += [step("final_efi"), step("apple_id"), step("updates")]
+        chosen.append("vesa")
+    chosen += ["final_efi", "apple_id", "updates"]
+    post_install = [present(content.POST_STEPS[key], key) for key in chosen]
 
     components = [c for c in laudo.get("components", []) if c["status"] != "info"]
     return {
@@ -183,7 +188,10 @@ def build_context(
         "usb_mapped": usb_mapped,
         "usb_ports": usb_map_ports(efi),
         "itlwm": itlwm,
-        "is_laptop": machine.get("form_factor") == "laptop",
+        "is_laptop": is_laptop,
+        "bios_figures": [drawings["keys"], drawings["bios"]],
+        "keyboard_figure": drawings["pc_keyboard"],
+        "printing": False,
     }
 
 
@@ -207,12 +215,43 @@ def render_html(context: dict) -> str:
     return _environment().get_template("guia.html.j2").render(**context)
 
 
+def render_welcome(context: dict) -> str:
+    return _environment().get_template("boas-vindas.html.j2").render(**context)
+
+
 def render_markdown(context: dict) -> str:
     """AJUDA-IA.md: o contexto da máquina e da instalação para colar numa IA (sem números de série)."""
     environment = Environment(
         loader=FileSystemLoader(str(TEMPLATES)), autoescape=False, trim_blocks=True, lstrip_blocks=True
     )
     return environment.get_template("ajuda-ia.md.j2").render(**context)
+
+
+def markdown_html(text: str) -> Markup:
+    """Markdown em HTML para o PDF. HTML cru no texto sai escapado (o texto traz nomes vindos do hardware)."""
+    return Markup(MarkdownIt("commonmark", {"html": False}).enable("table").render(text))
+
+
+def render_document(title: str, body: Markup) -> str:
+    return _environment().get_template("documento.html.j2").render(title=title, body=body)
+
+
+def _size(size: int) -> str:
+    if size >= 1024 * 1024:
+        return f"{size / 1024 / 1024:.1f} MB".replace(".", ",")
+    return f"{max(1, size // 1024)} KB"
+
+
+def render_downloads(folder: Path) -> str:
+    """Página que o celular abre pelo QR code: só os botões para baixar os PDFs."""
+    items = []
+    for pdf, fallback, title, text in DOWNLOADS:
+        for name, kind in ((pdf, "PDF"), (fallback, "página")):
+            file = folder / name
+            if file.is_file():
+                items.append({"href": name, "title": title, "text": text, "kind": kind, "size": _size(file.stat().st_size)})
+                break
+    return _environment().get_template("baixar.html.j2").render(items=items, app_version=__version__)
 
 
 def find_edge() -> str | None:
@@ -245,6 +284,29 @@ def html_to_pdf(html_file: Path, pdf_file: Path) -> bool:
     return pdf_file.exists() and pdf_file.stat().st_size > 0
 
 
+def export_pdfs(folder: Path, context: dict) -> dict[str, str | None]:
+    """Guia, Bem-vindo e Ajuda para IA em PDF, a partir das versões para impressão (tudo aberto, sem botões)."""
+    printing = {**context, "printing": True}
+    sources = {
+        "pdf": ("Guia.pdf", render_html(printing)),
+        "welcome_pdf": ("Bem-vindo-ao-Mac.pdf", render_welcome(printing)),
+        "ai_help_pdf": (
+            "AJUDA-IA.pdf",
+            render_document(f"Ajuda para IA · {context['target']}", markdown_html(render_markdown(context))),
+        ),
+    }
+    result: dict[str, str | None] = {}
+    paths.cache_dir().mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=paths.cache_dir()) as temp:
+        for key, (name, html) in sources.items():
+            source = Path(temp) / name.replace(".pdf", ".html")
+            source.write_text(html, encoding="utf-8")
+            target = folder / name
+            target.unlink(missing_ok=True)
+            result[key] = str(target) if html_to_pdf(source, target) else None
+    return result
+
+
 def build(
     scan: dict,
     laudo: dict,
@@ -262,16 +324,15 @@ def build(
     ai_file = folder / AI_HELP_FILE
     ai_file.write_text(render_markdown(context), encoding="utf-8")
     welcome_file = folder / WELCOME_FILE
-    welcome_file.write_text(_environment().get_template("boas-vindas.html.j2").render(**context), encoding="utf-8")
-    pdf_file = folder / "Guia.pdf"
-    pdf_ok = html_to_pdf(html_file, pdf_file) if with_pdf else False
+    welcome_file.write_text(render_welcome(context), encoding="utf-8")
+    pdfs = export_pdfs(folder, context) if with_pdf else {"pdf": None, "welcome_pdf": None, "ai_help_pdf": None}
     log.info("Guia gerado em %s", folder)
     return {
         "folder": str(folder),
         "html": str(html_file),
         "ai_help": str(ai_file),
         "welcome": str(welcome_file),
-        "pdf": str(pdf_file) if pdf_ok else None,
+        **pdfs,
         "vendor": context["vendor"].name,
         "profile": {
             "id": context["vendor"].id,

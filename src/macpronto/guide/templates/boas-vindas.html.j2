@@ -1,3 +1,4 @@
+{% from "_figura.html.j2" import figure %}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -79,6 +80,7 @@
       </table>
     </div>
     <p class="muted">Com o layout Brasileiro – ABNT2, os acentos e o Ç funcionam como no Windows.</p>
+    {% if keyboard_figure %}{{ figure(keyboard_figure) }}{% endif %}
   </section>
 
   <section id="atalhos">
@@ -176,7 +178,7 @@
       <li><strong>O Wi-Fi é pelo HeliPort</strong>O ícone de Wi-Fi do macOS fica desligado, e é normal. Conecte pelo ícone do HeliPort, perto do relógio.</li>
       {% endif %}
       <li><strong>O que não funciona em PC</strong>AirDrop (só com placa Wi-Fi Broadcom), Sidecar, Apple Pay e Touch ID dependem de peças dos Macs.</li>
-      <li><strong>Com problema, peça ajuda a uma IA</strong>Envie o arquivo AJUDA-IA.md (pasta MacPronto do pendrive) para uma IA como Claude, ChatGPT ou Gemini e conte o que aconteceu.</li>
+      <li><strong>Com problema, peça ajuda a uma IA</strong>Envie o arquivo AJUDA-IA.md ou AJUDA-IA.pdf (pasta MacPronto do pendrive) para uma IA como Claude, ChatGPT ou Gemini e conte o que aconteceu.</li>
     </ol>
   </section>
 

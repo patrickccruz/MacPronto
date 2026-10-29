@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import plistlib
 from pathlib import Path
+from xml.etree import ElementTree
 
 import pytest
 
-from macpronto.guide import content, render
+from macpronto.guide import content, figures, render
 
 # (fabricante do sistema, família, modelo, fabricante da placa, fabricante da BIOS, notebook) -> perfil
 CASES = [
@@ -275,6 +276,63 @@ def test_notebook_com_wifi_intel_ajuda_para_ia_e_boas_vindas(tmp_path):
     info = render.build(scan, laudo, {"darwin": 23}, efi, usb_mapped=True, with_pdf=False)
     for key in ("html", "ai_help", "welcome"):
         assert Path(info[key]).is_file()
+
+
+def test_figuras_validas_e_ligadas_aos_passos():
+    drawings = figures.build(
+        bios_key="F2 (nos notebooks, às vezes Fn + F2)",
+        boot_key="F11, F12 ou F8",
+        macos_name="macOS Sonoma",
+        macos_label="macOS Sonoma 14",
+        opencore="1.0.9",
+        smbios_model="MacBookPro16,3",
+        laptop=True,
+        abnt2=True,
+        heliport_app=True,
+    )
+    for name, drawing in drawings.items():
+        root = ElementTree.fromstring(str(drawing.svg))  # SVG bem formado
+        assert root.get("aria-label"), name
+        badges = sum(1 for element in root.iter() if element.tag.endswith("circle") and element.get("r") == "11")
+        assert badges == len(drawing.notes), f"{name}: {badges} círculos para {len(drawing.notes)} notas"
+    steps = list(content.INSTALL_STEPS) + list(content.POST_STEPS.values())
+    assert {name for step in steps for name in step.figures} <= set(drawings)
+    assert figures.key_names("F11, F12 ou F8") == ["F11", "F12"]
+    assert figures.key_names("F10 (ou Esc e depois F10)") == ["F10"]
+    assert figures.mac_name("iMac19,1") == "iMac" and figures.mac_name("Macmini8,1") == "Mac mini"
+    # Teclado americano: sem as marcas das teclas do ABNT2
+    assert len(figures.pc_keyboard(abnt2=False).notes) == 2
+
+
+def test_versao_para_impressao_e_pdfs(tmp_path, monkeypatch):
+    scan, laudo = make_inputs()
+    context = render.build_context(scan, laudo, {"darwin": 24}, None, usb_mapped=False)
+    html = render.render_html(context)
+    printed = render.render_html({**context, "printing": True})
+    assert "<details open>" in printed and "<details open>" not in html  # o PDF sai com as soluções abertas
+    assert html.count('<figure class="shot">') >= 8 and 'id="apagar"' in html and 'id="pos-final_efi"' in html
+
+    # O markdown da ajuda para IA vira HTML, sem deixar passar HTML cru
+    assert "&lt;script&gt;" in render.markdown_html("<script>alert(1)</script>\n\n| a | b |\n|---|---|\n| 1 | 2 |")
+    assert "<table>" in render.markdown_html("| a | b |\n|---|---|\n| 1 | 2 |")
+
+    converted = []
+
+    def fake_pdf(source: Path, target: Path) -> bool:
+        converted.append((source.read_text(encoding="utf-8"), target.name))
+        target.write_bytes(b"%PDF")
+        return True
+
+    monkeypatch.setattr(render, "html_to_pdf", fake_pdf)
+    monkeypatch.setattr(render.paths, "cache_dir", lambda: tmp_path / "cache")
+    result = render.export_pdfs(tmp_path, context)
+    assert [name for _, name in converted] == ["Guia.pdf", "Bem-vindo-ao-Mac.pdf", "AJUDA-IA.pdf"]
+    assert "<details open>" in converted[0][0] and "Instruções para a IA" in converted[2][0]
+    assert all(Path(path).is_file() for path in result.values())
+    assert not list((tmp_path / "cache").iterdir())  # os HTML temporários são apagados
+
+    page = render.render_downloads(tmp_path)
+    assert page.count('class="download') == 3 and "PDF, 1 KB" in page
 
 
 def test_desktop_sem_wifi_intel_nao_mostra_heliport_nem_trackpad():

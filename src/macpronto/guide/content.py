@@ -249,46 +249,66 @@ def bios_settings(cpu_manufacturer: str, has_igpu: bool, requirements: list[str]
     return settings
 
 
-INSTALL_STEPS = (
-    (
-        "Dê boot pelo pendrive",
-        "Com o pendrive conectado (de preferência numa porta USB 2 ou na traseira), ligue o computador apertando a tecla do menu de boot "
-        "({boot_key}). Escolha o pendrive com o nome UEFI.",
-    ),
-    (
-        "Escolha o instalador no OpenCore",
-        'Aparece a tela do OpenCore. Escolha a opção com "macOS Base System" ou "Install macOS" e aperte Enter. Se só aparecer o '
-        "Windows, aperte a barra de espaço para mostrar as opções escondidas. Vão passar muitas linhas de texto: é normal, a EFI "
-        "liga o modo detalhado (verbose) para ajudar a diagnosticar problemas.",
-    ),
-    (
-        "Apague o disco de destino",
-        "No menu de Recuperação, abra o Utilitário de Disco. Clique em Visualizar > Mostrar Todos os Dispositivos, selecione o disco "
-        "inteiro (não a partição) onde o macOS vai ficar e clique em Apagar: formato APFS e esquema Mapa de Partição GUID. "
-        "Isto apaga o Windows e todos os arquivos desse disco.",
-    ),
-    (
-        "Reinstale o macOS",
-        "Feche o Utilitário de Disco, escolha Reinstalar o macOS {macos_name} e siga as telas. O instalador baixa o sistema da Apple: "
-        "a internet precisa estar funcionando (cabo de rede é o mais garantido).",
-    ),
-    (
-        "Escolha a entrada certa nas reinicializações",
-        'O computador reinicia algumas vezes. Em todas, dê boot pelo pendrive e escolha a entrada "macOS Installer" (ou o nome do '
-        "disco) no OpenCore, até aparecer a tela de configuração inicial do macOS.",
-    ),
-    (
-        "Configure o macOS",
-        "Siga a configuração inicial normalmente. Se preferir, deixe o login no iCloud para depois de conferir os números de série "
-        "(veja a pós-instalação).",
-    ),
-)
-
 @dataclass(frozen=True)
 class Step:
     title: str
     text: str
     items: tuple[str, ...] = ()
+    # Nomes das ilustrações de figures.py que acompanham o passo
+    figures: tuple[str, ...] = ()
+    tip: str = ""
+    warning: str = ""
+
+
+# Os textos aceitam {bios_key}, {boot_key} e {macos_name}, trocados pelos desta máquina.
+INSTALL_STEPS = (
+    Step(
+        "Dê boot pelo pendrive",
+        "Com o pendrive conectado (de preferência numa porta USB 2 ou na traseira), ligue o computador apertando a tecla do "
+        "menu de boot ({boot_key}). Escolha o pendrive com o nome UEFI.",
+        figures=("boot_menu",),
+        tip="O pendrive não aparece na lista? Use outra porta USB e confira na BIOS se o Secure Boot e o CSM ficaram desligados.",
+    ),
+    Step(
+        "Escolha o instalador no OpenCore",
+        'Aparece a tela do OpenCore, com fundo preto e uma lista numerada. Com as setas, escolha "macOS Base System" (ou '
+        '"Install macOS") e aperte Enter. Se só aparecer o Windows, aperte a barra de espaço para mostrar as opções escondidas.',
+        figures=("opencore", "verbose"),
+        tip="O OpenCore espera alguns segundos e liga a opção padrão sozinho: aperte uma seta logo que a lista aparecer. "
+        "Depois, vão passar muitas linhas de texto: é normal, a EFI do pendrive liga o modo detalhado para ajudar a achar "
+        "problemas.",
+    ),
+    Step(
+        "Apague o disco de destino",
+        "Na tela de Recuperação, escolha Utilitário de Disco e Continuar. Clique em Visualizar > Mostrar Todos os "
+        "Dispositivos, selecione o disco inteiro (não a partição) onde o macOS vai ficar e clique em Apagar: nome "
+        "Macintosh HD, formato APFS e esquema Mapa de Partição GUID.",
+        figures=("recovery", "disk_utility"),
+        warning="Isto apaga o Windows e todos os arquivos desse disco. Confira o tamanho do disco antes de apagar.",
+    ),
+    Step(
+        "Reinstale o macOS",
+        "Feche o Utilitário de Disco (Command + Q), escolha Reinstalar o {macos_name}, aceite os termos e escolha o disco "
+        "Macintosh HD. O instalador baixa o sistema da Apple: a internet precisa estar funcionando (cabo de rede é o mais "
+        "garantido).",
+        figures=("installer",),
+        tip="Leva de 30 a 90 minutos. A tela pode ficar preta ou parada na barra de progresso por vários minutos: espere.",
+    ),
+    Step(
+        "Escolha a entrada certa nas reinicializações",
+        'O computador reinicia algumas vezes. Em todas, dê boot pelo pendrive ({boot_key}) e escolha "macOS Installer" no '
+        "OpenCore. Quando essa opção sumir, escolha o nome do disco (Macintosh HD), até aparecer a configuração inicial do "
+        "macOS.",
+        figures=("opencore_reboot",),
+        tip="Caiu na tela de Recuperação de novo? Foi a opção errada: reinicie e escolha macOS Installer.",
+    ),
+    Step(
+        "Configure o macOS",
+        "Siga a configuração inicial: país, idioma, rede e conta de usuário. Crie a conta já com o seu nome: trocar depois dá "
+        "trabalho. Na tela do Apple ID, escolha Configurar Depois: o login no iCloud fica para depois de conferir o número de "
+        "série (veja a pós-instalação).",
+    ),
+)
 
 
 # Pós-instalação, na ordem em que aparece no guia. render.py escolhe os passos que valem para a
@@ -299,6 +319,14 @@ POST_STEPS = {
         "O pendrive dá a partida (o OpenCore) e o macOS roda do disco interno. Deixe-o conectado ao ligar até o passo "
         "\"Ligue sem o pendrive\". Antes de tirá-lo com o macOS ligado, ejete o MACPRONTO no Finder (⏏). Num teclado de PC, "
         "a tecla Windows faz o papel da Command (⌘) e a Alt, o da Option.",
+        figures=("finder_pendrive",),
+    ),
+    "oclp": Step(
+        "Rode o OpenCore Legacy Patcher",
+        "Esta instalação precisa de patches de sistema. No macOS instalado, baixe o OpenCore Legacy Patcher "
+        "(github.com/dortania/OpenCore-Legacy-Patcher; para o Tahoe, o fork github.com/lzhoang2801/OpenCore-Legacy-Patcher), "
+        "abra-o, escolha Post-Install Root Patch > Start Root Patching e reinicie. Repita depois de cada atualização do "
+        "macOS. Não use a opção Build and Install OpenCore: a EFI do MacPronto já é a certa.",
     ),
     "heliport": Step(
         "Conecte o Wi-Fi pelo HeliPort",
@@ -314,6 +342,7 @@ POST_STEPS = {
             "Clique no ícone de Wi-Fi do HeliPort, perto do relógio, escolha a rede e digite a senha.",
             "Para ele abrir sozinho: Ajustes do Sistema > Geral > Itens de Início > + > HeliPort.",
         ),
+        figures=("heliport",),
     ),
     "keyboard": Step(
         "Ajuste o teclado ABNT2",
@@ -326,6 +355,7 @@ POST_STEPS = {
             "Teste: a tecla abaixo do Esc deve dar ' e \" e a tecla ao lado do Z, \\ e |. Se continuarem trocadas, escolha "
             "ANSI e reinicie de novo.",
         ),
+        figures=("pc_keyboard", "keyboard_settings"),
     ),
     "trackpad": Step(
         "Ajuste o trackpad",
@@ -336,11 +366,22 @@ POST_STEPS = {
             "Para arrastar sem apertar nada: Ajustes do Sistema > Acessibilidade > Controle do Ponteiro > Opções do "
             "Trackpad… > Usar o trackpad para arrastar > Arrastar com três dedos.",
         ),
+        figures=("trackpad_settings",),
     ),
     "usb": Step(
         "Teste todas as portas USB",
         "Conecte um mouse ou pendrive em cada porta. Porta que não funciona no macOS, mas dá boot pela BIOS, ficou fora do "
         "mapa USB: veja Problemas e soluções.",
+    ),
+    "usb_map": Step(
+        "Mapeie as portas USB",
+        "A EFI está com todas as portas ativas (UTBDefault). Se alguma porta não funcionar ou o USB 3 ficar lento, volte ao "
+        "MacPronto no Windows antes de formatar, ou faça o mapa no macOS com o USBToolBox.",
+    ),
+    "vesa": Step(
+        "Ative a aceleração do vídeo integrado",
+        "A EFI usa o modo VESA porque há monitor no HDMI/DVI do vídeo integrado. Ligue o monitor na DisplayPort e remova "
+        "-igfxvesa dos boot-args, ou peça ajuda nos fóruns para mapear as portas do vídeo (framebuffer patching).",
     ),
     "final_efi": Step(
         "Ligue sem o pendrive (EFI definitiva)",
@@ -359,6 +400,8 @@ POST_STEPS = {
             "Para ver o menu do OpenCore depois, aperte Esc logo depois de ligar. Guarde o pendrive: ele continua dando "
             "boot e serve de emergência.",
         ),
+        figures=("terminal_diskutil", "finder_efi"),
+        tip="No Terminal, a senha não aparece enquanto você digita: é normal. Digite e aperte Enter.",
     ),
     "apple_id": Step(
         "Antes de entrar com o seu Apple ID (iCloud e App Store)",
@@ -376,6 +419,7 @@ POST_STEPS = {
             "placa Wi-Fi Broadcom).",
             "Se o computador for da empresa ou tiver dados de trabalho, fale com a TI antes de usar uma conta pessoal.",
         ),
+        figures=("about_mac",),
     ),
     "updates": Step(
         "Atualizações do macOS",

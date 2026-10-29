@@ -474,7 +474,8 @@ class Api:
     def guide_share_start(self) -> dict:
         from macpronto.guide.share import GuideShare
 
-        guide = self._session.guide or self._build_guide(with_pdf=False)
+        # O celular baixa os PDFs: sem guia ainda, gera com eles
+        guide = self._session.guide or self._build_guide()
         if self._share is None:
             self._share = GuideShare()
         return self._share.start(Path(guide["folder"]))

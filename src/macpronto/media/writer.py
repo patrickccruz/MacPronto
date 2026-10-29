@@ -190,11 +190,11 @@ def create(
     summary = (
         f"Pendrive criado pelo MacPronto {__version__} em {datetime.now():%d/%m/%Y %H:%M}.\n"
         f"macOS Recovery: produto {image['product']} (Darwin {darwin}).\n"
-        "Para instalar, siga o guia em MacPronto\\Guia.html (também abre no celular pelo QR code).\n"
+        "Para instalar, siga o guia em MacPronto\\Guia.pdf ou Guia.html (o QR code do MacPronto baixa os PDFs no celular).\n"
         "Com dúvida ou problema, abra uma IA (Claude, ChatGPT, Gemini), envie o arquivo MacPronto\\AJUDA-IA.md\n"
-        "e descreva o que aconteceu.\n"
+        "(ou AJUDA-IA.pdf) e descreva o que aconteceu.\n"
         f"Depois de instalar: a pasta MacPronto\\{FINAL_EFI_DIR} vai para o disco interno (veja o guia).\n"
-        "Primeira vez no Mac? Abra MacPronto\\Bem-vindo-ao-Mac.html (atalhos e diferenças para o Windows).\n"
+        "Primeira vez no Mac? Abra MacPronto\\Bem-vindo-ao-Mac.pdf (atalhos e diferenças para o Windows).\n"
     )
     if has_heliport:
         summary += "Wi-Fi: instale o MacPronto\\HeliPort.dmg no macOS (copie o HeliPort para Aplicativos).\n"
